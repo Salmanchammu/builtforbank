@@ -254,6 +254,7 @@ body {
     background: var(--primary-maroon);
     color: white;
     border-color: var(--primary-maroon);
+    box-shadow: 0 4px 10px rgba(128, 0, 0, 0.2);
 }
 
 @keyframes fadeIn {
@@ -426,8 +427,8 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     padding: 0 15px;
-    gap: 10px;
-    margin-bottom: 15px;
+    gap: 12px;
+    margin-bottom: 20px;
 }
 
 .action-item {
@@ -448,13 +449,22 @@ body {
     box-shadow: var(--card-shadow);
     color: var(--primary-maroon);
     font-size: 18px;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(128, 0, 0, 0.05);
+}
+
+.action-item:active .action-icon {
+    transform: scale(0.9);
+    background: var(--maroon-soft);
 }
 
 .action-label {
     font-size: 10px;
     text-align: center;
     color: var(--text-grey);
-    white-space: nowrap;
+    white-space: normal;
+    line-height: 1.2;
+    font-weight: 500;
 }
 
 .bbps-logo {
@@ -540,10 +550,19 @@ body {
 
 .nav-item.active {
     color: var(--primary-maroon);
+    background: var(--primary-light);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 700;
 }
 
 .nav-item i {
     font-size: 20px;
+    transition: transform 0.2s;
+}
+
+.nav-item:active i {
+    transform: scale(1.2);
 }
 
 .nav-label {

@@ -17,9 +17,10 @@
 
 .mobile-wrapper .chat-widget {
     position: absolute;
-    bottom: 80px;
-    /* Above bottom nav */
+    bottom: 110px;
+    /* Increased from 80px to avoid bottom nav/FAB overlap */
     right: 20px;
+    z-index: 2100;
 }
 
 .chat-button {
