@@ -1,12 +1,18 @@
 window.API = window.SMART_BANK_API_BASE || '/api';
 
+// Shared currency formatter — always renders as ₹1,00,000
+function fmtINR(n) {
+    return '₹' + parseFloat(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+
 // Premium custom confirm dialog
 function showConfirm({ title, message, warning, onConfirm }) {
     const existing = document.getElementById('_confirmModal');
     if (existing) existing.remove();
     const modal = document.createElement('div');
     modal.id = '_confirmModal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;';
     modal.innerHTML = `
         <div id="_confirmBox" style="background:#fff;border-radius:20px;padding:32px 28px;max-width:420px;width:90%;box-shadow:0 25px 60px rgba(0,0,0,0.18);text-align:center;">
             <div style="width:56px;height:56px;border-radius:50%;background:#fef2f2;color:#8b0000;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:24px;">
@@ -32,7 +38,7 @@ function showPrompt({ title, message, placeholder, confirmText, onConfirm }) {
     if (existing) existing.remove();
     const modal = document.createElement('div');
     modal.id = '_confirmModal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;';
     modal.innerHTML = `
         <div id="_confirmBox" style="background:#fff;border-radius:20px;padding:32px 28px;max-width:420px;width:90%;box-shadow:0 25px 60px rgba(0,0,0,0.18);text-align:center;">
             <div style="width:56px;height:56px;border-radius:50%;background:#fef3c7;color:#92400e;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:24px;">
@@ -77,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadStaffInfo();
     loadDashboardData();
+    initSecurity();
 
     // Set up real-time polling (every 30 seconds)
     setInterval(() => {
@@ -88,6 +95,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 30000);
 });
 
+/**
+ * Deterrence measures for financial data security
+ */
+function initSecurity() {
+    const mask = document.getElementById('privacyMask');
+    const flash = document.getElementById('screenshotFlash');
+
+    // Visual Flash Warning
+    const triggerFlash = () => {
+        if (!flash) return;
+        flash.classList.add('active');
+        setTimeout(() => flash.classList.remove('active'), 500);
+    };
+
+    // 1. Visibility & Focus tracking (Privacy Blur)
+    const showMask = () => { if (mask) mask.classList.add('active'); };
+    const hideMask = () => { if (mask) mask.classList.remove('active'); };
+
+    window.addEventListener('blur', showMask);
+    window.addEventListener('focus', hideMask);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) showMask(); else hideMask();
+    });
+
+    // 2. Disable Right-Click (Context Menu)
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 3. Block common screenshot/capture shortcuts
+    document.addEventListener('keydown', e => {
+        // Ctrl+P (Print), Ctrl+S (Save), Ctrl+U (View Source), Ctrl+Shift+I (DevTools)
+        if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u' || (e.key === 'i' && e.shiftKey))) {
+            e.preventDefault();
+            triggerFlash();
+            alert('Action disabled for security reasons.');
+            return false;
+        }
+        // PrintScreen Key
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            e.preventDefault();
+            triggerFlash();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(''); // Attempt to clear clipboard
+            }
+            alert('Screenshots are strictly prohibited on this dashboard.');
+        }
+    });
+
+    // 4. Best-effort PrintScreen detection via keyboard
+    window.addEventListener('keyup', e => {
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            triggerFlash();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText('');
+            }
+            if (typeof showToast === 'function') showToast('Security Alert: Screenshot blocked', 'error');
+        }
+    });
+}
+
 // Initialize Dashboard
 function initializeDashboard() {
     // Check if staff is logged in
@@ -98,8 +164,10 @@ function initializeDashboard() {
     }
 
     // Set staff info in sidebar
-    document.getElementById('staffName').textContent = staff.name || 'Staff Member';
-    document.getElementById('staffRole').textContent = staff.department || 'Staff';
+    const nameEl = document.getElementById('staffName');
+    const roleEl = document.getElementById('staffRole');
+    if (nameEl) nameEl.textContent = staff.name || 'Staff Member';
+    if (roleEl) roleEl.textContent = staff.department || 'Staff';
 
     // Update avatar
     const staffAvatar = document.getElementById('staffAvatar');
@@ -199,7 +267,7 @@ function loadStaffInfo() {
     if (!staff) return;
 
     // Update header
-    const headerStaffName = document.querySelector('.header-left .subtitle span');
+    const headerStaffName = document.querySelector('.header-left .subtitle span') || document.getElementById('staffGreeting');
     if (headerStaffName) {
         headerStaffName.textContent = staff.name || 'Staff Member';
     }
@@ -485,7 +553,7 @@ async function loadStaffAccounts() {
                                     <span style="font-size: 13px; color: var(--text-secondary); text-transform: capitalize;">${a.account_type}</span>
                                 </td>
                                 <td class="clickable-cell" onclick="viewAccount(${a.id})" style="font-family: 'Inter', sans-serif; font-weight: 800; color: var(--primary-color);">
-                                    INR ${(a.balance || 0).toLocaleString('en-IN')}
+                                    ₹${(a.balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                 </td>
                                 <td class="clickable-cell" onclick="viewAccount(${a.id})">
                                     <span class="status-badge ${a.status === 'active' ? 'success' : 'danger'}">${a.status}</span>
@@ -609,6 +677,7 @@ function showPage(pageName) {
     document.querySelector(`.nav-item[data-page="${pageName}"]`)?.classList.add('active');
 
     switch (pageName) {
+        case 'dashboard': loadDashboardData(); break;
         case 'customers': loadCustomersPage(); break;
         case 'accounts': loadStaffAccounts(); break;
         case 'approvals': loadApprovalsPage(); break;
@@ -1398,7 +1467,7 @@ async function loadCustomersPage() {
                                     <span class="status-badge" style="background:rgba(128,0,0,0.05);color:var(--primary-color);border:1px solid rgba(128,0,0,0.1);">${c.account_count || 0}</span>
                                 </td>
                                 <td class="acc-num-display" style="font-weight:800;color:var(--primary-color);">
-                                    INR${Number(c.total_balance || 0).toLocaleString('en-IN')}
+                                    ₹${Number(c.total_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                 </td>
                                 <td>
                                     <span class="status-badge ${c.status === 'active' ? 'success' : 'danger'}">
@@ -1983,14 +2052,28 @@ function displayFaceAuthStatus(data) {
 
 
 
-// Load face auth status when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+// Initialize on page load
+function initStaffDashboard() {
+    try {
+        console.log('Staff Dashboard Initializing...');
+        initializeDashboard();
+        initTheme();
+        setupEventListeners();
+        
+        // Show default page
+        showPage('dashboard');
+
         setTimeout(loadFaceAuthStatus, 1000);
-    })
-        ;
+    } catch (error) {
+        console.error('CRITICAL STARTUP ERROR:', error);
+    }
+}
+
+// Load when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStaffDashboard);
 } else {
-    setTimeout(loadFaceAuthStatus, 1000);
+    initStaffDashboard();
 }
 
 
@@ -2116,7 +2199,7 @@ window.viewAccount = async function (id) {
 
         // Populate Info Cards
         document.getElementById('viewAccType').textContent = acc.account_type;
-        document.getElementById('viewAccBalance').textContent = `INR${(acc.balance || 0).toLocaleString('en-IN')}`;
+        document.getElementById('viewAccBalance').textContent = `₹${(acc.balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
         document.getElementById('viewAccCustomer').textContent = acc.user_name || 'N/A';
         document.getElementById('viewAccPhone').textContent = acc.user_phone || 'N/A';
         document.getElementById('viewAccIfsc').textContent = acc.ifsc || '—';

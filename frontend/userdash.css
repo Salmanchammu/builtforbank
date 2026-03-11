@@ -969,7 +969,7 @@ body.dark-mode .loading-state {
     font-weight: 600;
     text-transform: uppercase;
     background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    /* blur removed */
 }
 
 .bank-card-status.active {
@@ -995,7 +995,7 @@ body.dark-mode .loading-state {
     width: 50px;
     height: 50px;
     background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    /* blur removed */
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -1226,7 +1226,7 @@ body.dark-mode .loan-status.active {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+    /* blur removed */
     display: none;
     align-items: center;
     justify-content: center;

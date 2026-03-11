@@ -36,7 +36,46 @@ function showToast(message, type = 'info') {
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Auth page helper initialized');
     initRecaptcha();
+    initLiquidCursor();
+    initSecurity();
 });
+
+/**
+ * Deterrence measures for authentication security
+ */
+function initSecurity() {
+    // 1. Disable Right-Click
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 2. Block screenshot/capture shortcuts
+    document.addEventListener('keydown', e => {
+        if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u' || (e.key === 'i' && e.shiftKey))) {
+            e.preventDefault();
+            alert('Action disabled.');
+            return false;
+        }
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            e.preventDefault();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText('');
+            }
+            alert('Screenshot capture is restricted.');
+        }
+    });
+
+    // 3. Keyup PrintScreen Detection
+    window.addEventListener('keyup', e => {
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText('');
+            }
+            if (typeof showToast === 'function') showToast('Security Warning: Screenshot detected', 'error');
+        }
+    });
+
+    // Note: Privacy mask/flash are typically reserved for dashboards with financial data.
+    // Auth pages use these basic deterrence measures.
+}
 
 // Real-time Interactive reCAPTCHA Mock
 function initRecaptcha() {
@@ -81,5 +120,58 @@ function initRecaptcha() {
                 window._isRecaptchaVerified = true;
             }, 1200);
         });
+    });
+}
+
+// Liquid Cursor Effect
+function initLiquidCursor() {
+    if (window.matchMedia("(hover: none) and (pointer: coarse)").matches) return;
+
+    const dot = document.createElement('div');
+    const blob = document.createElement('div');
+    dot.className = 'cursor-dot';
+    blob.className = 'cursor-blob';
+    document.body.appendChild(dot);
+    document.body.appendChild(blob);
+
+    let mouseX = 0, mouseY = 0;
+    let dotX = 0, dotY = 0;
+    let blobX = 0, blobY = 0;
+
+    window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+
+    const animate = () => {
+        // Dot follows instantly
+        dotX = mouseX;
+        dotY = mouseY;
+        dot.style.transform = `translate3d(${dotX}px, ${dotY}px, 0) translate(-50%, -50%)`;
+
+        // Blob follows with delay (interpolation)
+        blobX += (mouseX - blobX) * 0.15;
+        blobY += (mouseY - blobY) * 0.15;
+        blob.style.transform = `translate3d(${blobX}px, ${blobY}px, 0) translate(-50%, -50%)`;
+
+        requestAnimationFrame(animate);
+    };
+    animate();
+
+    // Interactive states
+    const interactiveEls = 'a, button, input, select, .checkbox-wrapper, .rc-checkbox-wrapper';
+    document.addEventListener('mouseover', (e) => {
+        if (e.target.closest(interactiveEls)) {
+            blob.style.width = '60px';
+            blob.style.height = '60px';
+            blob.style.background = 'rgba(197, 160, 89, 0.2)';
+        }
+    });
+    document.addEventListener('mouseout', (e) => {
+        if (e.target.closest(interactiveEls)) {
+            blob.style.width = '40px';
+            blob.style.height = '40px';
+            blob.style.background = 'rgba(142, 32, 32, 0.4)';
+        }
     });
 }

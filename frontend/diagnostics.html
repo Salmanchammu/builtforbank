@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Bank - Connection Diagnostics</title>
+    <link rel="stylesheet" href="modern-auth.css">
+    <style>
+        .diag-card {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .status-ok {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-fail {
+            color: red;
+            font-weight: bold;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            overflow: auto;
+        }
+    </style>
+</head>
+
+<body style="background: #f0f2f5; font-family: sans-serif;">
+    <div class="diag-card">
+        <h2>Connection Diagnostics</h2>
+        <p>Testing connection to backend...</p>
+
+        <div id="results">
+            <div class="test-row"><span>1. Relative API Check (/api/auth/check)</span><span id="res1">Testing...</span>
+            </div>
+            <div class="test-row"><span>2. Domain Origin</span><span id="res-origin">Testing...</span></div>
+        </div>
+
+        <h3>Debug Log</h3>
+        <pre id="log"></pre>
+
+        <button onclick="runTests()" class="btn-primary" style="margin-top: 20px;">Run Tests Again</button>
+        <button onclick="window.location.href='user.html'" class="btn-face-login" style="margin-top: 10px;">Back to
+            Login</button>
+    </div>
+
+    <script>
+        function log(msg) {
+            document.getElementById('log').textContent += msg + '\n';
+        }
+
+        async function runTests() {
+            document.getElementById('log').textContent = '';
+            document.getElementById('res-origin').textContent = window.location.origin;
+
+            log('Starting tests...');
+            try {
+                const res = await fetch('/api/auth/check', { credentials: 'include' });
+                const data = await res.json();
+                document.getElementById('res1').textContent = 'SUCCESS';
+                document.getElementById('res1').className = 'status-ok';
+                log('API Data: ' + JSON.stringify(data));
+            } catch (e) {
+                document.getElementById('res1').textContent = 'FAILED';
+                document.getElementById('res1').className = 'status-fail';
+                log('API Error: ' + e.message);
+                log('Stack: ' + e.stack);
+            }
+        }
+        window.onload = runTests;
+    </script>
+</body>
+
+</html>

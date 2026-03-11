@@ -18,6 +18,9 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
+                    <div class="brand-logo">
+                        <i class="fas fa-landmark"></i>
+                    </div>
                     <h1 class="logo-text">Smart<span class="logo-highlight">Bank</span></h1>
                 </div>
                 <p class="menu-label">Menu</p>
@@ -92,15 +95,6 @@
                 </a>
             </nav>
 
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <img id="adminAvatar" src="" alt="Admin" class="user-avatar">
-                    <div class="user-info">
-                        <div class="user-name" id="adminName">Administrator</div>
-                        <div class="user-role">System Admin</div>
-                    </div>
-                </div>
-            </div>
         </aside>
 
         <!-- Main Content -->
@@ -128,9 +122,16 @@
                     </button>
                     <button class="action-btn" onclick="showNotifications()">
                         <i class="fas fa-bell"></i>
-                        <span class="badge">7</span>
+                        <span class="badge" id="notificationBadge">0</span>
                     </button>
-                    <img id="topBarAvatar" src="" alt="Admin" class="user-avatar-small">
+                    <div style="display: flex; gap: 10px; margin-left: 10px;">
+                        <button class="top-bar-btn btn-profile" onclick="showPage('settings')">
+                            <i class="fas fa-user-circle"></i> Profile
+                        </button>
+                        <button class="top-bar-btn btn-logout" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -200,7 +201,7 @@
 
                     <div class="stat-card">
                         <div class="stat-icon" style="background: rgba(128, 0, 0, 0.1); color: #800000;">
-                            <span style="font-size: 20px; font-weight: 700;">Rs</span>
+                            <i class="fas fa-rupee-sign" style="font-size: 24px;"></i>
                         </div>
                         <div class="stat-content">
                             <div class="stat-value-group">
@@ -613,10 +614,17 @@
                 <div class="card">
                     <div class="card-header" style="justify-content: space-between;">
                         <h3 class="card-title">Salary Management - <span id="currentSalaryMonth">...</span></h3>
-                        <div class="header-actions">
+                        <div class="header-actions" style="display:flex;gap:10px;align-items:center;">
+                            <span style="font-size:12px;color:var(--text-secondary);">
+                                💰 Fund: <strong id="salaryFundBalance" style="color:var(--primary);">—</strong>
+                            </span>
                             <span class="badge badge-info" id="salaryStatsDays"
                                 style="background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Month
                                 Days: ...</span>
+                            <button onclick="payAllSalaries()"
+                                style="padding:8px 16px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">
+                                <i class="fas fa-money-bill-wave"></i> Pay All Salaries
+                            </button>
                         </div>
                     </div>
                     <div class="invoice-controls"
@@ -629,6 +637,7 @@
                             <i class="fas fa-info-circle"></i> Formula: <code>(Base Salary / Days) * Attendance</code>
                         </p>
                     </div>
+
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
@@ -1057,6 +1066,9 @@
 
     <script src="api-config.js"></script>
     <script src="face-auth-fixed.js"></script>
+    <div id="privacyMask" class="privacy-mask"></div>
+    <div id="screenshotFlash" class="screenshot-flash"></div>
+
     <script src="admindash.js"></script>
 
     <!-- Send Notification Modal -->

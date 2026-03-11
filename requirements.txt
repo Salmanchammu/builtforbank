@@ -17,9 +17,9 @@ simplejson==3.19.2
 # Flask-Session==0.5.0
 # redis==5.0.1
 
-# For production deployment (optional)
-# gunicorn==21.2.0
-# gevent==23.9.1
+# For production deployment
+gunicorn==21.2.0
+gevent==23.9.1
 
 # Email functionality uses built-in smtplib (no additional packages needed)
 

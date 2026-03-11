@@ -18,6 +18,9 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
+                    <div class="brand-logo">
+                        <i class="fas fa-landmark"></i>
+                    </div>
                     <h1 class="logo-text">Smart<span class="logo-highlight">Bank</span></h1>
                 </div>
                 <p class="menu-label">Menu</p>
@@ -48,9 +51,17 @@
                     <i class="fas fa-credit-card"></i>
                     <span>Cards</span>
                 </a>
+                <a href="#" class="nav-item" data-page="upi">
+                    <i class="fas fa-qrcode"></i>
+                    <span>UPI Banking</span>
+                </a>
                 <a href="#" class="nav-item" data-page="loans">
                     <i class="fas fa-hand-holding-usd"></i>
                     <span>Loans</span>
+                </a>
+                <a href="#" class="nav-item" data-page="deposits">
+                    <i class="fas fa-piggy-bank"></i>
+                    <span>Fixed Deposits</span>
                 </a>
 
                 <p class="menu-label">OTHERS</p>
@@ -68,15 +79,6 @@
                 </a>
             </nav>
 
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <img id="userAvatar" src="" alt="User" class="user-avatar">
-                    <div class="user-info">
-                        <div class="user-name" id="userName">Loading...</div>
-                        <div class="user-role">Customer</div>
-                    </div>
-                </div>
-            </div>
         </aside>
 
         <!-- Main Content -->
@@ -101,19 +103,13 @@
                             <div class="dropdown-content" id="notificationList">No new notifications</div>
                         </div>
                     </div>
-                    <div style="position: relative;">
-                        <img id="topBarAvatar" src="" alt="User" class="user-avatar-small"
-                            onclick="toggleDropdown('profileDropdown')">
-                        <div id="profileDropdown" class="dropdown-menu profile-menu">
-                            <a href="#" class="dropdown-item"
-                                onclick="showPage('settings'); toggleDropdown('profileDropdown');">
-                                <i class="fas fa-cog"></i> Settings
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item text-danger" onclick="logout()">
-                                <i class="fas fa-sign-out-alt"></i> Logout
-                            </a>
-                        </div>
+                    <div style="display: flex; gap: 10px; margin-left: 10px;">
+                        <button class="top-bar-btn btn-profile" onclick="showPage('settings')">
+                            <i class="fas fa-user-circle"></i> Profile
+                        </button>
+                        <button class="top-bar-btn btn-logout" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
                     </div>
                 </div>
             </div>
@@ -247,6 +243,10 @@
                             <i class="fas fa-coins"></i>
                             <span>Gold Loan</span>
                         </button>
+                        <button onclick="showFixedDepositModal()" class="quick-action-btn">
+                            <i class="fas fa-piggy-bank"></i>
+                            <span>Fixed Deposit</span>
+                        </button>
                     </div>
                 </div>
 
@@ -364,7 +364,7 @@
                         </div>
 
                         <div
-                            style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2);flex-shrink:0;">
+                            style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:none;border:1px solid rgba(255,255,255,0.2);flex-shrink:0;">
                             <i class="fas fa-credit-card" style="font-size:28px;color:white;"></i>
                         </div>
                         <div style="flex-grow:1;">
@@ -393,7 +393,7 @@
                         </div>
 
                         <div
-                            style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2);flex-shrink:0;">
+                            style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:none;border:1px solid rgba(255,255,255,0.2);flex-shrink:0;">
                             <i class="fas fa-credit-card" style="font-size:28px;color:white;"></i>
                         </div>
                         <div style="flex-grow:1;">
@@ -438,7 +438,7 @@
                         onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 30px rgba(139,0,0,0.5)'"
                         onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(139,0,0,0.35)'">
                         <div
-                            style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+                            style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:none;">
                             <i class="fas fa-user" style="font-size:22px;color:white;"></i>
                         </div>
                         <div>
@@ -456,7 +456,7 @@
                         onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 30px rgba(160,16,16,0.5)'"
                         onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(160,16,16,0.35)'">
                         <div
-                            style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+                            style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:none;">
                             <i class="fas fa-home" style="font-size:22px;color:white;"></i>
                         </div>
                         <div>
@@ -474,7 +474,7 @@
                         onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 30px rgba(122,0,0,0.5)'"
                         onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(122,0,0,0.35)'">
                         <div
-                            style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+                            style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:none;">
                             <i class="fas fa-car" style="font-size:22px;color:white;"></i>
                         </div>
                         <div>
@@ -492,7 +492,7 @@
                         onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 30px rgba(176,28,28,0.5)'"
                         onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(176,28,28,0.35)'">
                         <div
-                            style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+                            style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:none;">
                             <i class="fas fa-graduation-cap" style="font-size:22px;color:white;"></i>
                         </div>
                         <div>
@@ -514,13 +514,17 @@
                 </div>
             </div>
 
-            <!-- Wallet Page -->
-            <div id="wallet" class="page-content">
+            <!-- Fixed Deposits Page -->
+            <div id="deposits" class="page-content">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Digital Wallet</h3>
+                        <h3 class="card-title">Fixed Deposits</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showFixedDepositModal()">
+                            <i class="fas fa-plus"></i>
+                            New Fixed Deposit
+                        </button>
                     </div>
-                    <div id="walletContent"></div>
+                    <div id="depositsContent"></div>
                 </div>
             </div>
 
@@ -618,11 +622,8 @@
                             <div
                                 style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%); border-radius: 50%;">
                             </div>
-                            <div class="card-header">
-                                <h3 class="card-title" id="balanceLabel"
-                                    style="font-size: 16px; color: var(--text-secondary);"><i class="fas fa-wallet"
-                                        style="margin-right: 8px; color: var(--primary-blue);"></i>Total Balance</h3>
-                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                             <div>
                                 <div id="statTotalBalances"
                                     style="font-size: 36px; font-weight: 800; color: var(--text-primary); margin: 12px 0; letter-spacing: -0.5px;">
@@ -634,57 +635,64 @@
                                             class="fas fa-arrow-up" style="margin-right: 4px;"></i>Across all
                                         accounts</span>
                                 </div>
+                                <div style="margin-top: 20px;">
+                                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">My VPA
+                                    </p>
+                                    <h4 id="displayUpiId" style="font-weight: 700; color: var(--primary-blue);">...</h4>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="card">
-                            <h3 class="card-title">Quick UPI Actions</h3>
-                            <div style="display: flex; gap: 12px; margin-top: 16px;">
-                                <button onclick="showUpiTransfer('internal')" class="btn btn-outline" style="flex: 1;">
-                                    <i class="fas fa-user-friends"></i> Internal VPA
-                                </button>
-                                <button onclick="showUpiTransfer('external')" class="btn btn-outline" style="flex: 1;">
-                                    <i class="fas fa-globe"></i> External NPCI
-                                </button>
+                            <div id="displayUpiQr" style="text-align: center;">
+                                <!-- QR Code will be injected here -->
                             </div>
                         </div>
                     </div>
 
                     <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">UPI Transfer</h3>
+                        <h3 class="card-title">Quick UPI Actions</h3>
+                        <div style="display: flex; gap: 12px; margin-top: 16px;">
+                            <button onclick="showUpiTransfer('internal')" class="btn btn-outline" style="flex: 1;">
+                                <i class="fas fa-user-friends"></i> Internal VPA
+                            </button>
+                            <button onclick="showUpiTransfer('external')" class="btn btn-outline" style="flex: 1;">
+                                <i class="fas fa-globe"></i> External NPCI
+                            </button>
                         </div>
-                        <div class="card-body">
-                            <form id="upiTransferForm" onsubmit="submitUpiTransfer(event)" style="max-width: 500px;">
-                                <div class="form-group">
-                                    <label class="form-label">Recipient UPI ID (VPA)</label>
-                                    <div class="search-box" style="padding-left: 0;">
-                                        <input type="text" id="targetVpa" class="form-input"
-                                            placeholder="example@smtbank or example@axis" required>
-                                    </div>
-                                    <small style="color: var(--text-secondary);">Sandbox accepts @smtbank, @axis,
-                                        @okicici, @upi, @paytm</small>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">UPI Transfer</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="upiTransferForm" onsubmit="submitUpiTransfer(event)" style="max-width: 500px;">
+                            <div class="form-group">
+                                <label class="form-label">Recipient UPI ID (VPA)</label>
+                                <div class="search-box" style="padding-left: 0;">
+                                    <input type="text" id="targetVpa" class="form-input"
+                                        placeholder="example@smtbank or example@axis" required>
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">Amount (₹)</label>
-                                    <input type="number" id="upiAmount" class="form-input" placeholder="0.00" min="1"
-                                        step="0.01"
-                                        onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 46"
-                                        oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);"
-                                        required>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">UPI PIN</label>
-                                    <input type="password" id="upiTransferPin" class="form-input"
-                                        placeholder="6-digit PIN" maxlength="6" required>
-                                </div>
-                                <div style="margin-top: 24px;">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-paper-plane"></i> Pay Securely
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                                <small style="color: var(--text-secondary);">Sandbox accepts @smtbank, @axis,
+                                    @okicici, @upi, @paytm</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Amount (₹)</label>
+                                <input type="number" id="upiAmount" class="form-input" placeholder="0.00" min="1"
+                                    step="0.01"
+                                    onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 46"
+                                    oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">UPI PIN</label>
+                                <input type="password" id="upiTransferPin" class="form-input" placeholder="6-digit PIN"
+                                    maxlength="6" required>
+                            </div>
+                            <div style="margin-top: 24px;">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Pay Securely
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -706,7 +714,8 @@
                             <div style="text-align: center;">
                                 <i class="fas fa-ticket-alt" style="font-size: 32px; margin-bottom: 12px;"></i>
                                 <h2 style="font-size: 36px; font-weight: 700; margin-bottom: 8px;"
-                                    id="supportOpenTickets">0</h2>
+                                    id="supportOpenTickets">0
+                                </h2>
                                 <p style="font-size: 14px; opacity: 0.9;">Open Tickets</p>
                             </div>
                         </div>
@@ -714,7 +723,8 @@
                             <div style="text-align: center;">
                                 <i class="fas fa-clock" style="font-size: 32px; margin-bottom: 12px;"></i>
                                 <h2 style="font-size: 36px; font-weight: 700; margin-bottom: 8px;"
-                                    id="supportPendingTickets">0</h2>
+                                    id="supportPendingTickets">0
+                                </h2>
                                 <p style="font-size: 14px; opacity: 0.9;">Pending Response</p>
                             </div>
                         </div>
@@ -722,7 +732,8 @@
                             <div style="text-align: center;">
                                 <i class="fas fa-check-circle" style="font-size: 32px; margin-bottom: 12px;"></i>
                                 <h2 style="font-size: 36px; font-weight: 700; margin-bottom: 8px;"
-                                    id="supportResolvedTickets">0</h2>
+                                    id="supportResolvedTickets">0
+                                </h2>
                                 <p style="font-size: 14px; opacity: 0.9;">Resolved</p>
                             </div>
                         </div>
@@ -782,6 +793,45 @@
                 </button>
             </div>
             <div class="modal-body" id="loanModalBody"></div>
+        </div>
+    </div>
+
+    <!-- Fixed Deposit Modal -->
+    <div id="fdModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Open Fixed Deposit</h3>
+                <button class="modal-close" onclick="closeModal('fdModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="fdForm" onsubmit="submitFD(event)">
+                    <div class="form-group">
+                        <label class="form-label">Select Account</label>
+                        <select id="fdFromAccount" class="form-select" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Deposit Amount (₹)</label>
+                        <input type="number" id="fdAmount" class="form-input" placeholder="Min ₹10,000" min="10000"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tenure</label>
+                        <select id="fdTenure" class="form-select" required>
+                            <option value="12">1 year @ 7.5% p.a.</option>
+                            <option value="24">2 years @ 7.75% p.a.</option>
+                            <option value="36">3 years @ 8.0% p.a.</option>
+                            <option value="60">5 years @ 8.5% p.a.</option>
+                        </select>
+                    </div>
+                    <div
+                        style="background:rgba(16, 185, 129, 0.1);padding:12px;border-radius:8px;margin-bottom:20px;font-size:13px;color:var(--success);">
+                        <i class="fas fa-info-circle"></i> Interest is compounded annually and paid at maturity.
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Open FD Now</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -1363,19 +1413,24 @@
     <!-- Chatbot -->
     <div id="chatbot-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;"></div>
 
+    <div id="privacyMask" class="privacy-mask">
+        <div class="privacy-logo">Smart<span style="color:white">Bank</span></div>
+        <div class="privacy-msg">Screen hidden for your security</div>
+        <p style="margin-top: 15px; font-size: 14px; opacity: 0.8;">Return to this tab to resume your session</p>
+    </div>
+    <div id="screenshotFlash" class="screenshot-flash"></div>
+
     <script src="api-config.js"></script>
     <script src="chatbot.js"></script>
     <script src="face-api.min.js"></script>
     <script src="face-auth-fixed.js"></script>
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            if (typeof FaceAuthManager !== 'undefined') {
-                window.faceAuthManager = new FaceAuthManager();
-                window.faceAuthManager.init();
-            }
-        });
-    </script>
     <script src="userdash.js"></script>
+    <script>
+        if (typeof FaceAuthManager !== 'undefined') {
+            window.faceAuthManager = new FaceAuthManager();
+            window.faceAuthManager.init();
+        }
+    </script>
 </body>
 
 </html>

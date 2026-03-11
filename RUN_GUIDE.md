@@ -13,7 +13,7 @@ The backend is built with Flask and serves as the API and static file server.
    ```powershell
    cd backend
    ```
-2. Install the required Python dependencies:
+1. Install the required Python dependencies (from the project root):
    ```powershell
    pip install -r requirements.txt
    ```

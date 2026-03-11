@@ -25,19 +25,21 @@
         <!-- Dashboard Content -->
         <div id="dashboardPage" class="page-content active">
             <header class="mobile-header">
-                <div class="brand-logo">
-                    <i class="fas fa-landmark"></i>
+                <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="openMobileMenu()">
+                    <div class="brand-logo" style="background: linear-gradient(135deg, var(--primary-maroon), #2a0000); box-shadow: 0 4px 12px rgba(74, 0, 0, 0.2); transition: transform 0.2s ease;">
+                        <i class="fas fa-landmark" style="font-size: 18px;"></i>
+                    </div>
+                    <div style="font-size: 20px; font-weight: 800; color: var(--primary-maroon); letter-spacing: -0.8px; display: flex; align-items: center; white-space: nowrap;">
+                        Smart<span style="color: var(--accent-gold);">Bank</span>
+                    </div>
                 </div>
                 <div class="header-actions">
-                    <div style="position: relative; display: inline-block; cursor: pointer;"
-                        onclick="toggleMobileNotifications()">
+                    <div style="position: relative; cursor: pointer; color: var(--text-grey);" onclick="toggleMobileNotifications()">
                         <i class="fas fa-bell"></i>
-                        <span id="mobileNotifBadge"
-                            style="display: none; position: absolute; top: -5px; right: -5px; background: #e11d48; color: white; border-radius: 50%; font-size: 10px; width: 14px; height: 14px; text-align: center; line-height: 14px; font-weight: bold;">0</span>
+                        <span id="mobileNotifBadge" style="display: none; position: absolute; top: -4px; right: -4px; background: #e11d48; color: white; border-radius: 50%; font-size: 9px; width: 14px; height: 14px; text-align: center; line-height: 14px; font-weight: 800; border: 2px solid white;">0</span>
                     </div>
-                    <i class="fas fa-comment-dots"
-                        onclick="if(window.smartBankChatbot) window.smartBankChatbot.toggleChat()"></i>
-                    <i onclick="logout()" class="fas fa-sign-out-alt"></i>
+                    <i class="fas fa-comment-dots" style="color: var(--text-grey);" onclick="if(window.smartBankChatbot) window.smartBankChatbot.toggleChat()"></i>
+                    <i onclick="logout()" class="fas fa-power-off" style="color: var(--primary-accent);"></i>
                 </div>
             </header>
 
@@ -122,9 +124,12 @@
                         <span class="action-label">Self<br>Transfer</span>
                     </div>
                     <div class="action-item" onclick="showBillPayPage('Personal Loan')">
-                        <div class="action-icon" style="background: #f0fff4;"><i class="fas fa-hand-holding-usd"></i>
-                        </div>
+                        <div class="action-icon" style="background: #f0fff4; color: #166534;"><i class="fas fa-hand-holding-usd"></i></div>
                         <span class="action-label">Personal<br>Loan</span>
+                    </div>
+                    <div class="action-item" onclick="switchTab('more')">
+                        <div class="action-icon" style="background: #faf5ff; color: #7c3aed;"><i class="fas fa-th-large"></i></div>
+                        <span class="action-label">All<br>Services</span>
                     </div>
                 </div>
             </div> <!-- Closing welcome-section -->
@@ -137,6 +142,12 @@
                 <div class="last-login" id="lastLogin">Last Login Time: Loading...</div>
 
                 <div class="profile-card">
+                    <div style="position: absolute; top: 12px; right: 12px;" id="kycBadgeContainer">
+                        <span id="kycStatusBadge"
+                            style="background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1px solid #10b981; display: none;">
+                            <i class="fas fa-check-circle"></i> KYC Verified
+                        </span>
+                    </div>
                     <div class="profile-group">
                         <div class="profile-item">
                             <label>Customer ID</label>
@@ -223,8 +234,7 @@
                 <p style="color: var(--text-grey); margin-bottom: 20px;">Additional services and settings</p>
 
                 <div class="grid-actions">
-                    <div class="action-item"
-                        onclick="logMobileActivity('View Offers'); alert('Check back later for active offers!')">
+                    <div class="action-item" onclick="showOffersPage()">
                         <div class="action-icon" style="background: #fdfae5; color: #d97706;"><i
                                 class="fas fa-tags"></i></div>
                         <span class="action-label">Offers</span>
@@ -239,8 +249,7 @@
                                 class="fas fa-question-circle"></i></div>
                         <span class="action-label">FAQs</span>
                     </div>
-                    <div class="action-item"
-                        onclick="logMobileActivity('Locate Branch'); alert('Branch locator coming soon.')">
+                    <div class="action-item" onclick="showLocationsPage()">
                         <div class="action-icon" style="background: #fef2f2; color: #991b1b;"><i
                                 class="fas fa-map-marker-alt"></i></div>
                         <span class="action-label">Locate Us</span>
@@ -333,9 +342,126 @@
             </div>
         </div>
 
+        <!-- Offers Page -->
+        <div id="offersPage" class="page-content" style="display: none;">
+            <div class="welcome-section" style="padding-top: 40px;">
+                <h1 class="welcome-title">Exclusive Offers</h1>
+                <p style="color: var(--text-grey); margin-bottom: 20px;">Curated for you</p>
+
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div
+                        style="background: linear-gradient(135deg, #fff 0%, #fff9f0 100%); border: 1px solid #fae8d0; padding: 20px; border-radius: 16px; position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: -10px; right: -10px; width: 60px; height: 60px; background: #fff0d0; border-radius: 50%; opacity: 0.3;">
+                        </div>
+                        <span
+                            style="background: #fdf2f2; color: #800000; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;">Limited
+                            Time</span>
+                        <h4 style="margin: 12px 0 6px; font-size: 16px; color: #1e293b;">10% Cashback on Swiggy</h4>
+                        <p style="margin: 0; color: #64748b; font-size: 13px;">On all orders above ₹500 using your
+                            Classic Debit Card.</p>
+                        <div
+                            style="margin-top: 15px; border-top: 1px dashed #e5e7eb; padding-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                            <span
+                                style="font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-weight: 600; color: #475569;">SMART10</span>
+                            <span
+                                style="font-size: 12px; color: var(--primary-maroon); font-weight: 700; cursor: pointer;">Claim
+                                Now <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #fff 0%, #f0f7ff 100%); border: 1px solid #d0e7ff; padding: 20px; border-radius: 16px; position: relative; overflow: hidden;">
+                        <span
+                            style="background: #f0fdf4; color: #166534; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;">Pre-Approved</span>
+                        <h4 style="margin: 12px 0 6px; font-size: 16px; color: #1e293b;">Personal Loan @ 8.9%</h4>
+                        <p style="margin: 0; color: #64748b; font-size: 13px;">No documentation required. Instant
+                            disbursal to account.</p>
+                        <div style="margin-top: 15px; border-top: 1px dashed #e5e7eb; padding-top: 15px;">
+                            <span style="font-size: 12px; color: #0369a1; font-weight: 700; cursor: pointer;">Check
+                                Eligibility <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top: 25px; padding: 15px; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a;">
+                    <p
+                        style="margin: 0; font-size: 12px; color: #92400e; display: flex; align-items: flex-start; gap: 8px;">
+                        <i class="fas fa-info-circle" style="margin-top: 2px;"></i>
+                        <span>Offers are based on your transaction history and credit score. T&C apply.</span>
+                    </p>
+                </div>
+
+                <button onclick="switchTab('more')" class="btn-secondary" style="width: 100%; margin-top: 25px;">Back to
+                    More</button>
+            </div>
+        </div>
+
+        <!-- Locations Page -->
+        <div id="locationsPage" class="page-content" style="display: none;">
+            <div class="welcome-section" style="padding-top: 40px;">
+                <h1 class="welcome-title">Nearby Branches</h1>
+                <p style="color: var(--text-grey); margin-bottom: 20px;">Find us near you</p>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div
+                        style="background: #fff; border: 1px solid #f1f5f9; padding: 16px; border-radius: 12px; display: flex; gap: 15px; align-items: flex-start; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 10px; background: #fef2f2; color: #800000; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0; font-size: 15px; color: #1e293b;">MG Road Branch</h4>
+                            <p style="margin: 4px 0 8px; font-size: 12px; color: #64748b;">123 MG Road, Central
+                                District, Bangalore</p>
+                            <div style="display: flex; gap: 15px;">
+                                <span style="font-size: 11px; color: #059669; font-weight: 700;"><i
+                                        class="fas fa-clock"></i> Open Now</span>
+                                <span style="font-size: 11px; color: #64748b;"><i class="fas fa-map-marker-alt"></i> 1.2
+                                    km</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: #fff; border: 1px solid #f1f5f9; padding: 16px; border-radius: 12px; display: flex; gap: 15px; align-items: flex-start; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 10px; background: #f1f5f9; color: #475569; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fas fa-atm"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0; font-size: 15px; color: #1e293b;">Indiranagar ATM</h4>
+                            <p style="margin: 4px 0 8px; font-size: 12px; color: #64748b;">Metro Station, Block B,
+                                Indiranagar</p>
+                            <div style="display: flex; gap: 15px;">
+                                <span style="font-size: 11px; color: #059669; font-weight: 700;"><i
+                                        class="fas fa-circle"></i> 24/7 Active</span>
+                                <span style="font-size: 11px; color: #64748b;"><i class="fas fa-map-marker-alt"></i> 3.5
+                                    km</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top: 25px; background: #f8fafc; padding: 15px; border-radius: 12px; text-align: center; border: 1px dashed #cbd5e1;">
+                    <p style="margin: 0; font-size: 12px; color: #64748b;">Don't see your city? We are expanding fast!
+                    </p>
+                </div>
+
+                <button onclick="switchTab('more')" class="btn-secondary" style="width: 100%; margin-top: 25px;">Back to
+                    More</button>
+            </div>
+        </div>
+
         <div id="upiPage" class="page-content" style="display: none;">
             <div class="welcome-section">
-                <h2 class="welcome-title">UPI Payments</h2>
+                <div style="display:flex;align-items:center;gap:15px;margin-bottom:20px;color:var(--primary-maroon);cursor:pointer;"
+                    onclick="switchTab('dashboard')">
+                    <i class="fas fa-arrow-left" style="font-size:18px;"></i>
+                    <h2 class="welcome-title" style="margin:0;">UPI Payments</h2>
+                </div>
                 <p style="color: var(--text-grey); margin-bottom: 20px;">Fast & Secure via NPCI Sandbox</p>
 
                 <div id="upiStatusBox" style="margin-bottom: 20px;">
@@ -434,8 +560,8 @@
         <!-- Apply FD Modal -->
 
         <!-- Scanner Modal -->
-        <div id="qrScannerModal"
-            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; flex-direction:column; justify-content:center; align-items:center;">
+        <div id="qrScannerModal" class="modal-overlay"
+            style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; flex-direction:column; justify-content:center; align-items:center;">
             <div
                 style="background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center;">
                 <h3 style="margin-top: 0; color: #8b0000; font-size: 18px; margin-bottom: 15px;">Scan QR Code</h3>
@@ -446,31 +572,6 @@
         </div>
 
 
-
-        <nav class="bottom-nav">
-            <a href="#" class="nav-item active" onclick="switchTab('dashboard')">
-                <i class="fas fa-home"></i>
-                <span class="nav-label">Home</span>
-            </a>
-            <a href="#" class="nav-item" onclick="switchTab('profile')">
-                <i class="fas fa-user-circle"></i>
-                <span class="nav-label">My Profile</span>
-            </a>
-            <div class="nav-center">
-                <div class="nav-center-btn" onclick="openQrScanner()">
-                    <i class="fas fa-qrcode"></i>
-                    <span class="nav-label" style="font-size: 8px;">Scan QR</span>
-                </div>
-            </div>
-            <a href="#" class="nav-item" onclick="loadMobileTransactions(); switchTab('history')">
-                <i class="fas fa-history"></i>
-                <span class="nav-label">Transactions</span>
-            </a>
-            <a href="#" class="nav-item" onclick="logMobileActivity('Opened More Tab'); switchTab('more')">
-                <i class="fas fa-ellipsis-h"></i>
-                <span class="nav-label">More</span>
-            </a>
-        </nav>
 
         <!-- Passcode Setup Modal -->
         <div id="passcodeModal" class="modal-overlay">
@@ -499,7 +600,95 @@
                     <p style="text-align:center; color: var(--text-grey);">No new notifications</p>
                 </div>
             </div>
-        </div>
+        </div> <!-- Closing mobileNotifModal -->
+
+        <div id="mobileSidebar" class="modal-overlay"
+            style="justify-content: flex-start; z-index: 2147483647; background: rgba(0,0,0,0.4);"
+            onclick="if(event.target===this) closeMobileMenu()">
+                <div class="sidebar-content"
+                    style="background:#fff; width:280px; height:100%; display:flex; flex-direction:column;">
+                    <div
+                        style="padding:25px 20px; background:linear-gradient(135deg, var(--primary-maroon), #600000); color:white;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <div class="brand-logo" style="background:rgba(255,255,255,0.2); margin-bottom:12px;"><i
+                                        class="fas fa-landmark"></i></div>
+                                <h3 style="margin:0; font-size:18px; font-weight:700;">Smart Bank</h3>
+                                <p style="margin:4px 0 0; font-size:12px; opacity:0.8;" id="sidebarUserEmail">Premium
+                                    Banking</p>
+                            </div>
+                            <i class="fas fa-times" onclick="closeMobileMenu()"
+                                style="font-size:20px; cursor:pointer; opacity:0.8;"></i>
+                        </div>
+                    </div>
+                    <div style="flex:1; overflow-y:auto; padding: 10px 0;">
+                        <div style="padding: 24px 20px; border-bottom: 1px solid #f0f0f0;">
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div style="position: relative;">
+                                    <img id="mobileSidebarAvatar" src="" alt="User"
+                                        style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                                    <label for="mobileAvatarInput"
+                                        style="position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white;">
+                                        <i class="fas fa-camera" style="font-size: 10px;"></i>
+                                    </label>
+                                    <input type="file" id="mobileAvatarInput" style="display: none;" accept="image/*"
+                                        onchange="uploadMobileProfileImage(this)">
+                                </div>
+                                <div>
+                                    <div id="sidebarName"
+                                        style="font-weight: 700; font-size: 18px; color: var(--text-dark);">User</div>
+                                    <div id="sidebarEmail"
+                                        style="font-size: 13px; color: var(--text-grey); opacity: 0.8;">user@example.com
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sidebar-link" onclick="closeMobileMenu(); switchTab('dashboard')"><i
+                                class="fas fa-home"></i> Dashboard</div>
+                        <div class="sidebar-link" onclick="closeMobileMenu(); switchTab('profile')"><i
+                                class="fas fa-user-circle"></i> My Profile</div>
+                        <div class="sidebar-link" onclick="closeMobileMenu(); switchTab('history')"><i
+                                class="fas fa-history"></i> Transactions</div>
+                        <div class="sidebar-link" onclick="closeMobileMenu(); switchTab('more')"><i
+                                class="fas fa-ellipsis-h"></i> Services & More</div>
+                        <hr style="border:none; border-top:1px solid #f0f0f0; margin:10px 20px;">
+                        <div class="sidebar-link" onclick="closeMobileMenu(); showSupportPage()"><i
+                                class="fas fa-headset"></i> Help & Support</div>
+                        <div class="sidebar-link" onclick="closeMobileMenu(); showFAQPage()"><i
+                                class="fas fa-question-circle"></i> FAQs</div>
+                    </div>
+                    <div style="padding: 20px; border-top: 1px solid #f0f0f0;">
+                        <button onclick="logout()"
+                            style="width:100%; padding:12px; border-radius:12px; background:#fef2f2; color:#991b1b; border:none; font-weight:700; font-size:14px; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:8px;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div> <!-- Closing mobileSidebar -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" onclick="switchTab('dashboard')">
+                <i class="fas fa-home"></i>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="#" class="nav-item" onclick="switchTab('profile')">
+                <i class="fas fa-user-circle"></i>
+                <span class="nav-label">My Profile</span>
+            </a>
+            <div class="nav-center">
+                <div class="nav-center-btn" onclick="openQrScanner()">
+                    <i class="fas fa-qrcode"></i>
+                    <span class="nav-label" style="font-size: 8px; color: white;">Scan QR</span>
+                </div>
+            </div>
+            <a href="#" class="nav-item" onclick="loadMobileTransactions(); switchTab('history')">
+                <i class="fas fa-history"></i>
+                <span class="nav-label">Transactions</span>
+            </a>
+            <a href="#" class="nav-item" onclick="logMobileActivity('Opened More Tab'); switchTab('more')">
+                <i class="fas fa-ellipsis-h"></i>
+                <span class="nav-label">More</span>
+            </a>
+        </nav>
 
     </div> <!-- Closing mobile-wrapper -->
 
@@ -517,6 +706,7 @@
         });
     </script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="api-config.js"></script>
     <script src="mobile-logic.js"></script>
     <script>
         // Register Service Worker for PWA
@@ -528,6 +718,13 @@
             });
         }
     </script>
+    <!-- Privacy Mask for Screenshot/Blur Protection -->
+    <div id="privacyMask" class="privacy-mask">
+        <div class="privacy-logo">Smart<span style="color:var(--accent-gold)">Bank</span></div>
+        <div class="privacy-msg">Screen hidden for your security</div>
+        <p style="margin-top: 15px; font-size: 13px; opacity: 0.8;">Return to the app to resume your session</p>
+    </div>
+    <div id="screenshotFlash" class="screenshot-flash"></div>
 </body>
 
 </html>

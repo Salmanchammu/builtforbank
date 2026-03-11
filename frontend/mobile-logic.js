@@ -5,10 +5,11 @@
 
 'use strict';
 
-window.API = window.SMART_BANK_API_BASE || 'http://localhost:5000/api';
+window.API = window.SMART_BANK_API_BASE || '/api';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const page = window.location.pathname.split('/').pop();
+    initSecurityHandlers(); // Initialize Screenshot & Privacy Protection
 
     if (page === 'mobile-auth.html') {
         checkAndShowPasscodeLogin();
@@ -133,17 +134,18 @@ async function handlePasscodeLogin() {
 async function logout() {
     // Premium logout confirmation modal
     const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);';
+    modal.className = 'modal-overlay';
+    modal.style.display = 'flex';
     modal.innerHTML = `
-        <div style="background:#fff;border-radius:20px;padding:30px 24px;max-width:340px;width:90%;box-shadow:0 25px 60px rgba(0,0,0,0.18);text-align:center;">
-            <div style="width:52px;height:52px;border-radius:50%;background:#fdf2f2;color:#800000;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;">
-                <i class="fas fa-sign-out-alt"></i>
+        <div class="modal-content" style="text-align:center; padding: 30px 24px; border-radius: 24px;">
+            <div style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary-maroon);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px;box-shadow: 0 4px 12px rgba(74, 0, 0, 0.1);">
+                <i class="fas fa-power-off"></i>
             </div>
-            <h3 style="margin:0 0 8px;font-size:18px;font-weight:800;color:#111827;">Logout?</h3>
-            <p style="margin:0 0 22px;font-size:13px;color:#6b7280;">Are you sure you want to logout from SmartBank?</p>
-            <div style="display:flex;gap:10px;">
-                <button id="_logoutCancel" style="flex:1;padding:11px;border-radius:30px;border:1.5px solid #e5e7eb;background:#fff;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;">Stay</button>
-                <button id="_logoutOk" style="flex:1;padding:11px;border-radius:30px;border:none;background:#800000;font-size:13px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(128,0,0,0.25);">Logout</button>
+            <h3 style="margin:0 0 10px;font-size:20px;font-weight:800;color:var(--text-dark);">Sign Out?</h3>
+            <p style="margin:0 0 25px;font-size:14px;color:var(--text-grey);line-height:1.5;">Are you sure you want to sign out of your SmartBank session?</p>
+            <div style="display:flex;gap:12px;">
+                <button id="_logoutCancel" style="flex:1;padding:14px;border-radius:16px;border:1px solid var(--border-color);background:#fff;font-size:14px;font-weight:600;color:var(--text-grey);cursor:pointer;">Cancel</button>
+                <button id="_logoutOk" style="flex:1;padding:14px;border-radius:16px;border:none;background:var(--primary-maroon);font-size:14px;font-weight:700;color:#fff;cursor:pointer;box-shadow: 0 4px 12px rgba(74, 0, 0, 0.2);">Sign Out</button>
             </div>
         </div>`;
     document.body.appendChild(modal);
@@ -174,11 +176,13 @@ async function loadDashboardData() {
                 if (window._accountRequests && window._accountRequests.length > 0) {
                     if (dashContent) {
                         const bannerHTML = `
-                            <div id="zeroAccountBannerMobile" style="background:#fef3c7;color:#d97706;padding:20px;margin-bottom:20px;border-radius:16px;text-align:center;border:1px dashed #f59e0b;">
-                                <i class="fas fa-hourglass-half" style="font-size:32px;margin-bottom:10px;"></i>
-                                <h3 style="margin-bottom:8px;font-size:18px;">Account Pending</h3>
-                                <p style="font-size:14px;opacity:0.9;margin-bottom:16px;">We have received your KYC. Pending staff approval.</p>
-                                <button onclick="showAccountModal()" style="background:#fff;color:#d97706;border:none;padding:10px 20px;border-radius:24px;font-weight:600;width:100%;">Open Another Account</button>
+                            <div id="zeroAccountBannerMobile" class="placeholder-card" style="background:#fff7ed; border: 1px solid #fed7aa;">
+                                <div class="placeholder-icon" style="background:#ffedd5; color:#d97706;">
+                                    <i class="fas fa-hourglass-half"></i>
+                                </div>
+                                <h3 class="placeholder-title">KYC Under Review</h3>
+                                <p class="placeholder-desc">We've received your documents. Your account will be active once our team completes the verification.</p>
+                                <button class="placeholder-btn" style="background:#d97706;" onclick="showAccountModal()">Apply for Another</button>
                             </div>
                         `;
                         dashContent.insertAdjacentHTML('afterbegin', bannerHTML);
@@ -186,11 +190,13 @@ async function loadDashboardData() {
                 } else {
                     if (dashContent) {
                         const bannerHTML = `
-                            <div id="zeroAccountBannerMobile" style="background:var(--primary);color:var(--white);padding:20px;margin-bottom:20px;border-radius:16px;text-align:center;">
-                                <i class="fas fa-exclamation-circle" style="font-size:32px;margin-bottom:10px;"></i>
-                                <h3 style="margin-bottom:8px;font-size:18px;">Welcome to SmartBank</h3>
-                                <p style="font-size:14px;opacity:0.9;margin-bottom:16px;">You don't have any accounts yet. Open one to start banking.</p>
-                                <button onclick="showAccountModal()" style="background:var(--white);color:var(--primary);border:none;padding:10px 20px;border-radius:24px;font-weight:600;width:100%;">Open Account</button>
+                            <div id="zeroAccountBannerMobile" class="placeholder-card">
+                                <div class="placeholder-icon">
+                                    <i class="fas fa-university"></i>
+                                </div>
+                                <h3 class="placeholder-title">Welcome to SmartBank</h3>
+                                <p class="placeholder-desc">Experience premium digital banking. Open your first account in minutes with instant KYC.</p>
+                                <button class="placeholder-btn" onclick="showAccountModal()">Open Account</button>
                             </div>
                         `;
                         dashContent.insertAdjacentHTML('afterbegin', bannerHTML);
@@ -205,14 +211,31 @@ async function loadDashboardData() {
             }
             window._notifications = d.notifications || [];
             updateMobileNotifBadge();
-            renderProfile(d.user);
+            renderProfile(d.user, d.profile_image_url);
             renderDashboard(d);
+
+            // Update mobile header/sidebar avatars
+            const av = d.profile_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.user.name || d.user.username)}&background=4f46e5&color=fff&rounded=true&bold=true`;
+            const headerAv = document.getElementById('mobileHeaderAvatar');
+            const logo = document.getElementById('mobileLogo');
+            if (headerAv && logo) {
+                headerAv.src = av;
+                headerAv.style.display = 'block';
+                logo.style.display = 'none';
+            }
+            const sideAv = document.getElementById('mobileSidebarAvatar');
+            if (sideAv) sideAv.src = av;
+            const sideName = document.getElementById('sidebarName');
+            if (sideName) sideName.textContent = d.user.name || d.user.username;
+            const sideEmail = document.getElementById('sidebarEmail');
+            if (sideEmail) sideEmail.textContent = d.user.email;
+
             await checkUpiStatus();
             injectAccountModal();
             injectMutualFundModal();
             injectLifeInsuranceModal();
             injectGoldLoanModal();
-            injectFdModal();
+            injectFixedDepositModal();
         }
     } catch (e) { console.error('Load Dashboard Failed', e); }
 }
@@ -296,52 +319,28 @@ function injectMutualFundModal() {
     const modalHTML = `
     <div id="mobileMfModal" class="modal-overlay">
         <div class="modal-content">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                <h3 style="margin:0;color:var(--text-dark);font-size:18px;">Invest in Mutual Funds</h3>
-                <button onclick="closeMutualFundModal()" style="background:none;border:none;font-size:24px;color:var(--text-grey);">&times;</button>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="margin:0;color:#1a1a1a;font-size:18px;font-weight:700;">Invest in Mutual Funds</h3>
+                <button onclick="closeMutualFundModal()" style="background:none;border:none;font-size:26px;color:#888;cursor:pointer;line-height:1;">&times;</button>
             </div>
-            <p style="color:var(--text-grey);font-size:14px;margin-bottom:20px;">Select a top-performing Mutual Fund.</p>
-            <div style="display:flex;flex-direction:column;gap:15px;margin-bottom:24px;">
-                <div class="investment-card">
-                    <div>
-                        <h4>Alpha Growth Fund</h4>
-                        <p>Min Inv: ₹5,000</p>
-                    </div>
-                    <div style="text-align:right;">
-                        <span class="returns">+18% p.a.</span>
-                        <button class="modal-btn-submit" style="margin-top:10px; padding:10px;" onclick="showApplicationModal('Alpha Growth Fund')">Invest</button>
-                    </div>
-                </div>
-                <div class="investment-card">
-                    <div>
-                        <h4>Smart Wealth Builder</h4>
-                        <p>Min Inv: ₹2,000</p>
-                    </div>
-                    <div style="text-align:right;">
-                        <span class="returns">+18% p.a.</span>
-                        <button class="modal-btn-submit" style="margin-top:10px; padding:10px;" onclick="showApplicationModal('Smart Wealth Builder')">Invest</button>
-                    </div>
-                </div>
-                <div class="investment-card">
-                    <div>
-                        <h4>Secure Future Flexi-Cap</h4>
-                        <p>Min Inv: ₹5,000</p>
-                    </div>
-                    <div style="text-align:right;">
-                        <span class="returns">+18% p.a.</span>
-                        <button class="modal-btn-submit" style="margin-top:10px; padding:10px;" onclick="showApplicationModal('Secure Future Flexi-Cap')">Invest</button>
-                    </div>
-                </div>
+            <p style="color:#666;font-size:14px;margin-bottom:18px;">Select a top-performing Mutual Fund.</p>
+            <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+                <div class="investment-card"><div><h4>Alpha Growth Fund</h4><p>Min Inv: ₹5,000</p></div><div style="text-align:right;"><span class="returns">+18% p.a.</span><button class="modal-btn-submit" style="margin-top:10px;padding:10px;" onclick="showApplicationModal('Alpha Growth Fund')">Invest</button></div></div>
+                <div class="investment-card"><div><h4>Smart Wealth Builder</h4><p>Min Inv: ₹2,000</p></div><div style="text-align:right;"><span class="returns">+18% p.a.</span><button class="modal-btn-submit" style="margin-top:10px;padding:10px;" onclick="showApplicationModal('Smart Wealth Builder')">Invest</button></div></div>
+                <div class="investment-card"><div><h4>Secure Future Flexi-Cap</h4><p>Min Inv: ₹5,000</p></div><div style="text-align:right;"><span class="returns">+18% p.a.</span><button class="modal-btn-submit" style="margin-top:10px;padding:10px;" onclick="showApplicationModal('Secure Future Flexi-Cap')">Invest</button></div></div>
             </div>
         </div>
     </div>`;
-    const wrapper = document.querySelector('.mobile-wrapper') || document.body;
-    wrapper.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const el = document.getElementById('mobileMfModal');
+    el.addEventListener('click', e => { if (e.target === el) closeMutualFundModal(); });
 }
 
 function showMutualFundModal() {
+    console.log('Opening Mutual Fund Modal');
+    injectMutualFundModal();
     const modal = document.getElementById('mobileMfModal');
-    if (modal) modal.style.display = 'flex';
+    if (modal) { modal.style.display = 'flex'; }
 }
 
 function closeMutualFundModal() {
@@ -353,77 +352,65 @@ function injectLifeInsuranceModal() {
     if (document.getElementById('mobileInsuranceModal')) return;
     const modalHTML = `
     <div id="mobileInsuranceModal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                <h3 style="margin:0;color:var(--text-dark);font-size:18px;">Life Insurance</h3>
-                <button onclick="closeLifeInsuranceModal()" style="background:none;border:none;font-size:24px;color:var(--text-grey);">&times;</button>
+        <div class="modal-content" style="overflow-y:auto;max-height:80vh;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="margin:0;color:#1a1a1a;font-size:18px;font-weight:700;">Life Insurance</h3>
+                <button onclick="closeLifeInsuranceModal()" style="background:none;border:none;font-size:26px;color:#888;cursor:pointer;line-height:1;">&times;</button>
             </div>
-            <p style="color:var(--text-grey);font-size:14px;margin-bottom:20px;">Secure your family's future.</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
-                <div style="border:1px solid var(--border-color);border-radius:12px;padding:16px;text-align:center;">
-                    <i class="fas fa-shield-alt" style="font-size:24px;color:var(--primary-maroon);margin-bottom:10px;"></i>
-                    <h4 style="margin:0 0 5px 0;color:var(--text-dark);font-size:14px;">Term Protect</h4>
-                    <p style="font-size:12px;color:var(--text-grey);margin-bottom:12px;">High cover at low premiums.</p>
-                    <button class="modal-btn-submit" style="padding:10px; margin-top:5px; font-size:14px;" onclick="showApplicationModal('Term Protect')">Apply</button>
-                </div>
-                <div style="border:1px solid var(--border-color);border-radius:12px;padding:16px;text-align:center;">
-                    <i class="fas fa-heartbeat" style="font-size:24px;color:var(--primary-maroon);margin-bottom:10px;"></i>
-                    <h4 style="margin:0 0 5px 0;color:var(--text-dark);font-size:14px;">Health Plus</h4>
-                    <p style="font-size:12px;color:var(--text-grey);margin-bottom:12px;">Comprehensive medical cover.</p>
-                    <button class="modal-btn-submit" style="padding:10px; margin-top:5px; font-size:14px;" onclick="showApplicationModal('Health Plus')">Apply</button>
-                </div>
-                <div style="border:1px solid var(--border-color);border-radius:12px;padding:16px;text-align:center;">
-                    <i class="fas fa-child" style="font-size:24px;color:var(--primary-maroon);margin-bottom:10px;"></i>
-                    <h4 style="margin:0 0 5px 0;color:var(--text-dark);font-size:14px;">Child Saver</h4>
-                    <p style="font-size:12px;color:var(--text-grey);margin-bottom:12px;">Secure their education.</p>
-                    <button class="modal-btn-submit" style="padding:10px; margin-top:5px; font-size:14px;" onclick="showApplicationModal('Child Saver')">Apply</button>
-                </div>
-                <div style="border:1px solid var(--border-color);border-radius:12px;padding:16px;text-align:center;">
-                    <i class="fas fa-user-clock" style="font-size:24px;color:var(--primary-maroon);margin-bottom:10px;"></i>
-                    <h4 style="margin:0 0 5px 0;color:var(--text-dark);font-size:14px;">Retire Easy</h4>
-                    <p style="font-size:12px;color:var(--text-grey);margin-bottom:12px;">Guaranteed pension plan.</p>
-                    <button class="modal-btn-submit" style="padding:10px; margin-top:5px; font-size:14px;" onclick="showApplicationModal('Retire Easy')">Apply</button>
-                </div>
+            <p style="color:#666;font-size:14px;margin-bottom:18px;">Secure your family's future.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+                <div style="border:1px solid #ffe0e0;border-radius:12px;padding:16px;text-align:center;"><i class="fas fa-shield-alt" style="font-size:24px;color:#800000;margin-bottom:10px;"></i><h4 style="margin:0 0 5px;font-size:14px;">Term Protect</h4><p style="font-size:12px;color:#666;margin-bottom:12px;">High cover at low premiums.</p><button class="modal-btn-submit" style="padding:10px;font-size:14px;" onclick="showApplicationModal('Term Protect')">Apply</button></div>
+                <div style="border:1px solid #ffe0e0;border-radius:12px;padding:16px;text-align:center;"><i class="fas fa-heartbeat" style="font-size:24px;color:#800000;margin-bottom:10px;"></i><h4 style="margin:0 0 5px;font-size:14px;">Health Plus</h4><p style="font-size:12px;color:#666;margin-bottom:12px;">Comprehensive medical cover.</p><button class="modal-btn-submit" style="padding:10px;font-size:14px;" onclick="showApplicationModal('Health Plus')">Apply</button></div>
+                <div style="border:1px solid #ffe0e0;border-radius:12px;padding:16px;text-align:center;"><i class="fas fa-child" style="font-size:24px;color:#800000;margin-bottom:10px;"></i><h4 style="margin:0 0 5px;font-size:14px;">Child Saver</h4><p style="font-size:12px;color:#666;margin-bottom:12px;">Secure their education.</p><button class="modal-btn-submit" style="padding:10px;font-size:14px;" onclick="showApplicationModal('Child Saver')">Apply</button></div>
+                <div style="border:1px solid #ffe0e0;border-radius:12px;padding:16px;text-align:center;"><i class="fas fa-user-clock" style="font-size:24px;color:#800000;margin-bottom:10px;"></i><h4 style="margin:0 0 5px;font-size:14px;">Retire Easy</h4><p style="font-size:12px;color:#666;margin-bottom:12px;">Guaranteed pension plan.</p><button class="modal-btn-submit" style="padding:10px;font-size:14px;" onclick="showApplicationModal('Retire Easy')">Apply</button></div>
             </div>
         </div>
     </div>`;
-    const wrapper = document.querySelector('.mobile-wrapper') || document.body;
-    wrapper.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const el = document.getElementById('mobileInsuranceModal');
+    el.addEventListener('click', e => { if (e.target === el) closeLifeInsuranceModal(); });
 }
 
 function showApplicationModal(productName) {
-    if (!document.getElementById('mobileApplicationModal')) {
-        const modalHTML = `
-        <div id="mobileApplicationModal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                <h3 style="margin:0;color:var(--text-dark);font-size:18px;">Application Form</h3>
-                <button onclick="closeApplicationModal()" style="background:none;border:none;font-size:24px;color:var(--text-grey);">&times;</button>
-            </div>
-            <p style="color:var(--text-grey);font-size:14px;margin-bottom:20px;">Complete your application for <strong id="applicationProductName" style="color:var(--primary-maroon);"></strong>.</p>
-            <div class="modal-form-group">
-                <label>Select Linked Account</label>
-                <select id="mobileAppAccount" class="modal-select">
-                    ${(window._accounts || []).map(acc => `<option value="${acc.account_number}">${acc.account_type} - ${acc.account_number} (₹${(acc.balance || 0).toLocaleString('en-IN')})</option>`).join('') || '<option value="">No Active Accounts Available</option>'}
-                </select>
-            </div>
-            <div class="modal-form-group">
-                <label>Initial Amount (₹)</label>
-                <input type="number" id="mobileAppAmount" class="modal-input" placeholder="Enter amount">
-            </div>
-            <div class="modal-form-group">
-                <label>Aadhaar Number (12 Digits)</label>
-                <input type="text" id="mobileAppAadhaar" class="modal-input" placeholder="1234 5678 9012" maxlength="14" style="letter-spacing:1px;">
-            </div>
-            <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:12px;margin-bottom:24px;border-radius:8px;font-size:13px;color:#991b1b;">
-                By clicking submit, you authorize Smart Bank to process this application and deduct the initial amount from your selected account.
-            </div>
-            <button id="btnMobileSubmitApp" class="modal-btn-submit" onclick="submitApplication()">Submit Application</button>
+    // Prevent overlapping dark blur backgrounds
+    if (typeof closeMutualFundModal === 'function') closeMutualFundModal();
+    if (typeof closeLifeInsuranceModal === 'function') closeLifeInsuranceModal();
+    if (typeof closeGoldLoanModal === 'function') closeGoldLoanModal();
+    if (typeof closeFixedDepositModal === 'function') closeFixedDepositModal();
+
+    const existing = document.getElementById('mobileApplicationModal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+    <div id="mobileApplicationModal" class="modal-overlay">
+    <div class="modal-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h3 style="margin:0;color:var(--text-dark);font-size:18px;">Application Form</h3>
+            <button onclick="closeApplicationModal()" style="background:none;border:none;font-size:24px;color:var(--text-grey);">&times;</button>
         </div>
-    </div>`;
-        const wrapper = document.querySelector('.mobile-wrapper') || document.body;
-        wrapper.insertAdjacentHTML('beforeend', modalHTML);
-    }
+        <p style="color:var(--text-grey);font-size:14px;margin-bottom:20px;">Complete your application for <strong id="applicationProductName" style="color:var(--primary-maroon);"></strong>.</p>
+        <div class="modal-form-group">
+            <label>Select Linked Account</label>
+            <select id="mobileAppAccount" class="modal-select">
+                ${(window._accounts || []).map(acc => `<option value="${acc.account_number}">${acc.account_type} - ${acc.account_number} (₹${(acc.balance || 0).toLocaleString('en-IN')})</option>`).join('') || '<option value="">No Active Accounts Available</option>'}
+            </select>
+        </div>
+        <div class="modal-form-group">
+            <label>Initial Amount (₹)</label>
+            <input type="number" id="mobileAppAmount" class="modal-input" placeholder="Enter amount">
+        </div>
+        <div class="modal-form-group">
+            <label>Aadhaar Number (12 Digits)</label>
+            <input type="text" id="mobileAppAadhaar" class="modal-input" placeholder="1234 5678 9012" maxlength="14" style="letter-spacing:1px;">
+        </div>
+        <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:12px;margin-bottom:24px;border-radius:8px;font-size:13px;color:#991b1b;">
+            By clicking submit, you authorize Smart Bank to process this application and deduct the initial amount from your selected account.
+        </div>
+        <button id="btnMobileSubmitApp" class="modal-btn-submit" onclick="submitApplication()">Submit Application</button>
+    </div>
+</div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
     document.getElementById('applicationProductName').textContent = productName;
     document.getElementById('mobileApplicationModal').style.display = 'flex';
 }
@@ -466,6 +453,7 @@ async function submitApplication() {
             if (typeof closeMutualFundModal === 'function') closeMutualFundModal();
             if (typeof closeLifeInsuranceModal === 'function') closeLifeInsuranceModal();
             if (typeof closeGoldLoanModal === 'function') closeGoldLoanModal();
+            if (typeof closeFixedDepositModal === 'function') closeFixedDepositModal();
 
             // Success Screen
             const pageContent = document.querySelector('.page-content.active') || document.getElementById('dashboardPage');
@@ -500,6 +488,8 @@ async function submitApplication() {
 }
 
 function showLifeInsuranceModal() {
+    console.log('Opening Life Insurance Modal');
+    injectLifeInsuranceModal();
     const modal = document.getElementById('mobileInsuranceModal');
     if (modal) modal.style.display = 'flex';
 }
@@ -514,32 +504,58 @@ function injectGoldLoanModal() {
     const modalHTML = `
     <div id="mobileGoldLoanModal" class="modal-overlay">
         <div class="modal-content">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                <h3 style="margin:0;color:var(--text-dark);font-size:18px;">Gold Loan</h3>
-                <button onclick="closeGoldLoanModal()" style="background:none;border:none;font-size:24px;color:var(--text-grey);">&times;</button>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="margin:0;color:#1a1a1a;font-size:18px;font-weight:700;">Gold Loan</h3>
+                <button onclick="closeGoldLoanModal()" style="background:none;border:none;font-size:26px;color:#888;cursor:pointer;line-height:1;">&times;</button>
             </div>
-            <p style="color:var(--text-grey);font-size:14px;margin-bottom:20px;">Unlock the value of your gold with our instant gold loans.</p>
-            <div style="display:flex;flex-direction:column;gap:15px;margin-bottom:24px;">
-                <div class="investment-card">
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <i class="fas fa-coins" style="font-size:24px;color:var(--primary-maroon);"></i>
-                        <div>
-                            <h4>Instant Gold Loan</h4>
-                            <p>8% p.a. • Minimal Documentation</p>
-                        </div>
-                    </div>
-                    <div style="text-align:right;">
-                        <button class="modal-btn-submit" style="padding:10px 20px; font-size:14px; margin-top:5px;" onclick="showApplicationModal('Instant Gold Loan')">Apply Now</button>
-                    </div>
-                </div>
+            <p style="color:#666;font-size:14px;margin-bottom:18px;">Unlock the value of your gold with our instant gold loans.</p>
+            <div style="background:#f8f9fb;border:1px solid #ffe0e0;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <div style="display:flex;align-items:center;gap:12px;"><i class="fas fa-coins" style="font-size:24px;color:#800000;"></i><div><h4 style="margin:0 0 4px;">Instant Gold Loan</h4><p style="margin:0;font-size:13px;color:#666;">8% p.a. • Minimal Documentation</p></div></div>
+                <button class="modal-btn-submit" style="padding:10px 20px;font-size:14px;" onclick="showApplicationModal('Instant Gold Loan')">Apply Now</button>
             </div>
         </div>
     </div>`;
-    const wrapper = document.querySelector('.mobile-wrapper') || document.body;
-    wrapper.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const el = document.getElementById('mobileGoldLoanModal');
+    el.addEventListener('click', e => { if (e.target === el) closeGoldLoanModal(); });
+}
+
+function injectFixedDepositModal() {
+    if (document.getElementById('mobileFdModal')) return;
+    const modalHTML = `
+    <div id="mobileFdModal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="margin:0;color:#1a1a1a;font-size:18px;font-weight:700;">Fixed Deposit</h3>
+                <button onclick="closeFixedDepositModal()" style="background:none;border:none;font-size:26px;color:#888;cursor:pointer;line-height:1;">&times;</button>
+            </div>
+            <p style="color:#666;font-size:14px;margin-bottom:18px;">Secure returns with our high-interest FDs.</p>
+            <div style="background:#f8f9fb;border:1px solid #ffe0e0;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <div><h4 style="margin:0 0 4px;">Regular Fixed Deposit</h4><p style="margin:0;font-size:13px;color:#666;">Min Inv: ₹10,000</p></div>
+                <div style="text-align:right;"><span style="display:block;font-weight:700;color:#16a34a;margin-bottom:8px;">+7.5% p.a.</span><button class="modal-btn-submit" style="padding:10px;" onclick="showApplicationModal('Fixed Deposit')">Apply</button></div>
+            </div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const el = document.getElementById('mobileFdModal');
+    el.addEventListener('click', e => { if (e.target === el) closeFixedDepositModal(); });
+}
+
+function showApplyFD() {
+    console.log('Opening FD Modal');
+    injectFixedDepositModal();
+    const modal = document.getElementById('mobileFdModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeFixedDepositModal() {
+    const modal = document.getElementById('mobileFdModal');
+    if (modal) modal.style.display = 'none';
 }
 
 function showGoldLoanModal() {
+    console.log('Opening Gold Loan Modal');
+    injectGoldLoanModal();
     const modal = document.getElementById('mobileGoldLoanModal');
     if (modal) modal.style.display = 'flex';
 }
@@ -621,7 +637,7 @@ async function submitNewAccount() {
     }
 }
 
-function renderProfile(user) {
+function renderProfile(user, profileImageUrl) {
     if (!user) return;
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     set('profCustId', user.username || 'N/A');
@@ -629,6 +645,23 @@ function renderProfile(user) {
     set('profEmail', user.email || 'N/A');
     set('profDob', user.date_of_birth || 'N/A');
     set('cardHolder', (user.name || user.username || 'USER').toUpperCase());
+
+    // KYC Status Badge
+    const kycBadge = document.getElementById('kycStatusBadge');
+    if (kycBadge) {
+        // Assume verified if user has an active account
+        if (window._accounts && window._accounts.length > 0) {
+            kycBadge.style.display = 'inline-block';
+        } else {
+            kycBadge.style.display = 'none';
+        }
+    }
+
+    const av = profileImageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.username)}&background=4f46e5&color=fff&rounded=true&bold=true`;
+    const headerAv = document.getElementById('mobileHeaderAvatar');
+    if (headerAv) headerAv.src = av;
+    const sideAv = document.getElementById('mobileSidebarAvatar');
+    if (sideAv) sideAv.src = av;
 
     const lastLoginEl = document.getElementById('lastLogin');
     if (lastLoginEl) {
@@ -669,6 +702,35 @@ function renderProfile(user) {
                 </div>
             `).join('');
         }
+    }
+}
+
+async function uploadMobileProfileImage(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    if (file.size > 2 * 1024 * 1024) return showMobileToast('Image size must be less than 2MB', 'error');
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    showMobileToast('Uploading image...', 'info');
+    try {
+        const r = await fetch(`${API}/user/profile-image`, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        });
+        const d = await r.json();
+        if (d.success) {
+            showMobileToast('Profile image updated!', 'success');
+            // Refresh dashboard data to update all avatars
+            loadDashboardData();
+        } else {
+            showMobileToast(d.error || 'Upload failed', 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        showMobileToast('Upload failed', 'error');
     }
 }
 
@@ -767,22 +829,26 @@ function renderDashboard(data) {
 
         console.log('Mobile Dashboard Render:', { tab: lowerTab, serverReq: serverRequests.length, localReq: (window._localPendingRequests || []).length });
 
+        // A request is a credit card if: card_type contains 'credit' OR it has a requested_credit_limit set
+        const isCredit = (r) => {
+            const type = String(r.card_type || '').toLowerCase();
+            return type.includes('credit') || (r.requested_credit_limit != null && r.requested_credit_limit > 0);
+        };
+
         if (lowerTab === 'credit') {
             displayCards = (data.cards || []).filter(c => c.card_type && String(c.card_type).toLowerCase() === 'credit');
             displayRequests = allRequests.filter(r => {
-                const type = String(r.card_type || '').toLowerCase();
                 const status = String(r.status || '').toLowerCase();
-                // Exact match for credit to avoid showing debit requests in credit tab
-                return type.includes('credit') && ['pending', 'requested', 'processing', 'submitted', 'under review', 'request'].includes(status);
+                const isRejected = ['rejected', 'declined', 'expired', 'cancelled', 'canceled', 'closed'].includes(status);
+                return isCredit(r) && !isRejected;
             });
         } else {
             // Debit / Savings tab
             displayCards = (data.cards || []).filter(c => !c.card_type || String(c.card_type).toLowerCase() !== 'credit');
             displayRequests = allRequests.filter(r => {
-                const type = String(r.card_type || '').toLowerCase();
                 const status = String(r.status || '').toLowerCase();
-                // Match anything that isn't explicitly 'credit'
-                return !type.includes('credit') && ['pending', 'requested', 'processing', 'submitted', 'under review', 'request'].includes(status);
+                const isRejected = ['rejected', 'declined', 'expired', 'cancelled', 'canceled', 'closed'].includes(status);
+                return !isCredit(r) && !isRejected;
             });
         }
 
@@ -792,26 +858,31 @@ function renderDashboard(data) {
             const card = displayCards[0];
             const num = String(card.card_number || '0000000000000000');
             const last4 = num.slice(-4);
-            const cardTypeBrand = card.card_type === 'Visa' ? 'VISA' : (card.card_type && card.card_type.toLowerCase() === 'credit' ? 'CREDIT' : 'RuPay');
+            const formattedNum = `XXXX XXXX XXXX ${last4}`;
+            const grad = card.card_type && String(card.card_type).toLowerCase() === 'credit'
+                ? 'linear-gradient(135deg, #1e293b, #0f172a)'
+                : 'linear-gradient(135deg, var(--primary-maroon), #2a0000)';
             const holderName = (data.user.name || data.user.username || 'USER').toUpperCase();
 
             cardContainer.innerHTML = `
-        <div class="bank-card">
+                <div class="bank-card" style="background: ${grad};">
                     <div class="card-top">
-                        <div class="card-chip"></div>
-                        <div style="text-align: right;">
-                            <div class="rupay-branding">${cardTypeBrand}</div>
-                            <div class="rupay-label">${card.card_tier || 'Platinum'}</div>
+                        <div class="rupay-branding">
+                            RUPAY <small style="display:block;font-size:7px;margin-top:-2px;opacity:0.8;">${(card.card_tier || 'Platinum').toUpperCase()}</small>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:12px;font-weight:700;letter-spacing:0.5px;color:rgba(255,255,255,0.9);">SmartBank</div>
+                            <div style="font-size:8px;opacity:0.7;text-transform:uppercase;">Connect • Life</div>
                         </div>
                     </div>
-                    <div class="card-number" style="margin-bottom: 2px;">XXXX XXXX XXXX <span>${last4}</span></div>
-                    <div style="font-size: 10px; opacity: 0.8; margin-bottom: 12px; font-family: monospace;">IFSC: ${card.ifsc || 'SMTB0000001'}</div>
+                    <div class="card-chip"></div>
+                    <div class="card-number">${formattedNum}</div>
                     <div class="card-footer">
                         <div class="card-holder">${holderName}</div>
-                        <button class="send-money-btn" onclick="showTransferPage()">Send Money <i class="fas fa-chevron-right"></i></button>
+                        <button class="send-money-btn" onclick="switchPage('transfer')">SEND MONEY</button>
                     </div>
                 </div>
-        `;
+            `;
         } else if (displayRequests.length > 0) {
             const req = displayRequests[0];
             const typeLabel = (req.card_type || 'Classic') + ' Card';
@@ -1140,7 +1211,7 @@ async function applyForMobileCard() {
     }
 
     const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;';
     modal.innerHTML = `
         <div style="background:#fff;border-radius:20px;padding:30px 24px;max-width:340px;width:90%;box-shadow:0 25px 60px rgba(0,0,0,0.18);text-align:center;">
             <div style="width:52px;height:52px;border-radius:50%;background:#fdf2f2;color:#800000;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;">
@@ -1207,23 +1278,22 @@ async function applyForMobileCard() {
 
 async function applyForCreditCard() {
     if (!window._primaryAccount) {
-        const m = document.createElement('div');
-        m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:99999;';
-        m.innerHTML = `<div style="background:#fff;border-radius:20px;padding:28px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.15);">
-            <div style="font-size:36px;margin-bottom:14px;">🏦</div>
-            <h3 style="margin:0 0 8px;font-size:17px;font-weight:800;color:#111;">No Bank Account</h3>
-            <p style="margin:0 0 20px;font-size:13px;color:#6b7280;">Please open a bank account first before applying for a credit card.</p>
-            <button onclick="this.closest('[style]').remove()" style="padding:11px 28px;border-radius:30px;border:none;background:#800000;color:#fff;font-weight:700;font-size:13px;cursor:pointer;">OK</button>
+        const errorHTML = `
+        <div id="_ccErrorModal" class="modal-overlay" style="display:flex;">
+            <div class="modal-content" style="text-align:center;padding:28px 24px;border-radius:20px;">
+                <div style="font-size:36px;margin-bottom:14px;">🏦</div>
+                <h3 style="margin:0 0 8px;font-size:17px;font-weight:800;color:#111;">No Bank Account</h3>
+                <p style="margin:0 0 20px;font-size:13px;color:#6b7280;">Please open a bank account first before applying for a credit card.</p>
+                <button onclick="document.getElementById('_ccErrorModal').remove()" style="padding:11px 28px;border-radius:30px;border:none;background:#800000;color:#fff;font-weight:700;font-size:13px;cursor:pointer;">OK</button>
+            </div>
         </div>`;
-        document.body.appendChild(m);
-        m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+        document.body.insertAdjacentHTML('beforeend', errorHTML);
         return;
     }
 
-    const modal2 = document.createElement('div');
-    modal2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);';
-    modal2.innerHTML = `
-        <div style="background:#fff;border-radius:20px;padding:30px 24px;max-width:340px;width:90%;box-shadow:0 25px 60px rgba(0,0,0,0.18);text-align:center;">
+    const modalHTML = `
+    <div id="_ccApplyModal" class="modal-overlay" style="display:flex;">
+        <div class="modal-content" style="text-align:center;padding:30px 24px;border-radius:20px;">
             <div style="width:52px;height:52px;border-radius:50%;background:#fdf2f2;color:#800000;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;">
                 <i class="fas fa-credit-card"></i>
             </div>
@@ -1233,8 +1303,10 @@ async function applyForCreditCard() {
                 <button id="_ccCancel" style="flex:1;padding:11px;border-radius:30px;border:1.5px solid #e5e7eb;background:#fff;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;">Cancel</button>
                 <button id="_ccOk" style="flex:1;padding:11px;border-radius:30px;border:none;background:#800000;font-size:13px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(128,0,0,0.25);">Confirm</button>
             </div>
-        </div>`;
-    document.body.appendChild(modal2);
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modal2 = document.getElementById('_ccApplyModal');
     document.getElementById('_ccCancel').onclick = () => modal2.remove();
     modal2.addEventListener('click', e => { if (e.target === modal2) modal2.remove(); });
     let isSubmitting_cc = false;
@@ -1286,6 +1358,87 @@ async function applyForCreditCard() {
     };
 }
 
+async function applyForMobileCard() {
+    if (!window._primaryAccount) {
+        const errorHTML = `
+        <div id="_dcErrorModal" class="modal-overlay" style="display:flex;">
+            <div class="modal-content" style="text-align:center;padding:28px 24px;border-radius:20px;">
+                <div style="font-size:36px;margin-bottom:14px;">🏦</div>
+                <h3 style="margin:0 0 8px;font-size:17px;font-weight:800;color:#111;">No Bank Account</h3>
+                <p style="margin:0 0 20px;font-size:13px;color:#6b7280;">Please open a bank account first before applying for a debit card.</p>
+                <button onclick="document.getElementById('_dcErrorModal').remove()" style="padding:11px 28px;border-radius:30px;border:none;background:#800000;color:#fff;font-weight:700;font-size:13px;cursor:pointer;">OK</button>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', errorHTML);
+        return;
+    }
+
+    const modalHTML = `
+    <div id="_dcApplyModal" class="modal-overlay" style="display:flex;">
+        <div class="modal-content" style="text-align:center;padding:30px 24px;border-radius:20px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:#fcf8f8;color:#800000;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <h3 style="margin:0 0 8px;font-size:18px;font-weight:800;color:#111827;">Get Free Debit Card?</h3>
+            <p style="margin:0 0 22px;font-size:13px;color:#6b7280;">Apply for a new contactless <strong>RuPay Debit Card</strong> linked to your account. No issuance fees.</p>
+            <div style="display:flex;gap:10px;">
+                <button id="_dcCancel" style="flex:1;padding:11px;border-radius:30px;border:1.5px solid #e5e7eb;background:#fff;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;">Cancel</button>
+                <button id="_dcOk" style="flex:1;padding:11px;border-radius:30px;border:none;background:#800000;font-size:13px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(128,0,0,0.25);">Apply Now</button>
+            </div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modalDc = document.getElementById('_dcApplyModal');
+    document.getElementById('_dcCancel').onclick = () => modalDc.remove();
+    modalDc.addEventListener('click', e => { if (e.target === modalDc) modalDc.remove(); });
+    let isSubmitting_dc = false;
+    document.getElementById('_dcOk').onclick = async () => {
+        if (isSubmitting_dc) return;
+        isSubmitting_dc = true;
+
+        const btn = document.getElementById('_dcOk');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying...';
+            btn.style.opacity = '0.7';
+        }
+
+        if (!window._localPendingRequests) window._localPendingRequests = [];
+        window._localPendingRequests.push({ card_type: 'debit', status: 'pending', timestamp: Date.now() });
+        modalDc.remove();
+        if (!window._dashboardData) window._dashboardData = { cards: [], card_requests: [] };
+        renderDashboard(window._dashboardData);
+
+        try {
+            const r = await fetch(API + '/user/cards/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    account_id: window._primaryAccount.id,
+                    card_type: 'Debit',
+                    requested_credit_limit: 0
+                })
+            });
+            const d = await r.json();
+            if (r.ok) {
+                showMobileToast('Debit Card application submitted! ✅', 'success');
+                setTimeout(() => loadDashboardData(), 1500);
+            } else {
+                window._localPendingRequests = window._localPendingRequests.filter(x => x.card_type !== 'debit');
+                renderDashboard(window._dashboardData);
+                showMobileToast(d.error || 'Failed to apply for debit card', 'error');
+            }
+        } catch (e) {
+            window._localPendingRequests = window._localPendingRequests.filter(x => x.card_type !== 'debit');
+            renderDashboard(window._dashboardData);
+            showMobileToast('Server connection error. Try again later.', 'error');
+        } finally {
+            isSubmitting_dc = false;
+        }
+    };
+}
+
 /* ── UPI Logic ── */
 async function checkUpiStatus() {
     try {
@@ -1297,7 +1450,7 @@ async function checkUpiStatus() {
             const setupSec = document.getElementById('upiSetupSection');
 
             if (d.enabled) {
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=${d.upi_id}&pn=User`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${d.upi_id}&pn=${encodeURIComponent(window.currentUser?.name || 'User')}`;
                 statusBox.innerHTML = `<div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <div><p style="font-size: 12px; color: #166534;">Active VPA</p><h4 style="font-weight: 700;">${d.upi_id}</h4></div>
                     <i class="fas fa-check-circle" style="color: #22c55e; font-size: 24px;"></i>
@@ -1435,9 +1588,21 @@ function switchTab(tabId) {
     if (tab) {
         tab.style.display = 'block';
         tab.classList.add('active');
-        const nav = document.querySelector(`[onclick="switchTab('${tabId}')"]`);
+        // Robust selector for both mobile nav and sidebar links
+        const nav = document.querySelector(`.nav-item[onclick*="switchTab('${tabId}')"]`) || 
+                    document.querySelector(`.sidebar-link[onclick*="switchTab('${tabId}')"]`);
         if (nav) nav.classList.add('active');
     }
+}
+
+function showOffersPage() {
+    logMobileActivity('Viewed Offers', 'Opened the exclusive offers page');
+    switchTab('offers');
+}
+
+function showLocationsPage() {
+    logMobileActivity('Viewed Locations', 'Opened nearby branch locator');
+    switchTab('locations');
 }
 
 function showUpiPage() {
@@ -1561,74 +1726,6 @@ async function handleBillPayment() {
     } catch (e) { alert('Connection error'); }
 }
 
-function injectFdModal() {
-    if (document.getElementById('fdModal')) return;
-    const modalHTML = `
-    <div id="fdModal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                <h3 style="margin:0;color:var(--text-dark);font-size:18px;">Open Fixed Deposit</h3>
-                <button onclick="closeFdModal()" style="background:none;border:none;font-size:24px;color:var(--text-grey);">&times;</button>
-            </div>
-            <p style="color:var(--text-grey);font-size:14px;margin-bottom:20px;">Guaranteed returns up to 7.5% p.a.</p>
-            
-            <div class="modal-form-group">
-                <label>Deposit Amount (₹)</label>
-                <input type="number" id="fdAmount" class="modal-input" placeholder="Min. 5,000" min="5000">
-            </div>
-            
-            <div class="modal-form-group">
-                <label>Tenure</label>
-                <select id="fdTenure" class="modal-select">
-                    <option value="6 Months (5.5%)">6 Months (5.5%)</option>
-                    <option value="1 Year (6.5%)">1 Year (6.5%)</option>
-                    <option value="2 Years (7.0%)">2 Years (7.0%)</option>
-                    <option value="3 Years (7.5%)">3 Years (7.5%)</option>
-                </select>
-            </div>
-            
-            <button class="modal-btn-submit" onclick="handleApplyFD()">Confirm Booking</button>
-            <button class="btn-secondary" onclick="closeFdModal()">Cancel</button>
-        </div>
-    </div>`;
-    const wrapper = document.querySelector('.mobile-wrapper') || document.body;
-    wrapper.insertAdjacentHTML('beforeend', modalHTML);
-}
-
-function showApplyFD() {
-    injectFdModal();
-    const modal = document.getElementById('fdModal');
-    if (modal) modal.style.display = 'flex';
-}
-
-function closeFdModal() {
-    const modal = document.getElementById('fdModal');
-    if (modal) modal.style.display = 'none';
-}
-
-async function handleApplyFD() {
-    const amt = document.getElementById('fdAmount').value;
-    const ten = document.getElementById('fdTenure').value;
-
-    if (!amt || amt < 5000) return showMobileToast('Minimum amount is ₹5,000', 'error');
-
-    try {
-        const r = await fetch(`${API}/mobile/apply-fd`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ amount: parseFloat(amt), tenure: ten })
-        });
-        const d = await r.json();
-        if (r.ok) {
-            showMobileToast(`FD Booked Successfully! ID: ${d.reference}`, 'success');
-            document.getElementById('fdModal').style.display = 'none';
-            await loadDashboardData();
-        } else {
-            showMobileToast(d.error || 'Booking failed', 'error');
-        }
-    } catch (e) { showMobileToast('Connection error', 'error'); }
-}
 
 function showPasscodeSetup() {
     document.getElementById('passcodeModal').style.display = 'flex';
@@ -1750,15 +1847,63 @@ async function handleProfileClick(action, alertMsg) {
 }
 
 function handleResetPassword() {
-    handleProfileClick('Clicked Reset Password', 'Password reset link sent to registered email.');
+    logMobileActivity('Clicked Reset Password', 'Initiated password reset');
+
+    // Premium confirmation
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content" style="text-align:center; padding:30px 24px;">
+            <div style="width:60px; height:60px; background:#eff6ff; color:#3b82f6; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:24px;">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <h3 style="margin:0 0 10px;">Check Your Email</h3>
+            <p style="color:#64748b; font-size:14px; margin-bottom:25px; line-height:1.5;">We've sent a secure password reset link to your registered email address. Please follow the instructions to reset your passcode.</p>
+            <button onclick="this.closest('.modal-overlay').remove()" class="btn-primary-maroon" style="width:100%;">Understood</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
 }
 
 function handleManageKYC() {
-    handleProfileClick('Clicked Manage KYC', 'KYC Status: Verified');
+    logMobileActivity('Clicked Manage KYC', 'Checked KYC status');
+    if (window._accounts && window._accounts.length > 0) {
+        showMobileToast('Your KYC is verified and active. ✅', 'success');
+    } else {
+        showMobileToast('Please open an account to complete KYC.', 'info');
+        showAccountModal();
+    }
 }
 
 function handleDeactivate() {
-    handleProfileClick('Clicked Deactivate Account', 'Account deactivation requires branch visit.');
+    logMobileActivity('Clicked Deactivate', 'Initiated deactivation flow');
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content" style="text-align:center; padding:30px 24px;">
+            <div style="width:60px; height:60px; background:#fef2f2; color:#ef4444; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:24px;">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 style="margin:0 0 10px;">Security Requirement</h3>
+            <p style="color:#64748b; font-size:14px; margin-bottom:20px; line-height:1.5;">To protect your funds, account deactivation requires a physical visit to your base branch with original KYC documents.</p>
+            <div style="background:#f8fafc; padding:15px; border-radius:12px; margin-bottom:25px; text-align:left; border:1px solid #e2e8f0;">
+                <p style="margin:0; font-size:12px; color:#475569; font-weight:700;"><i class="fas fa-info-circle"></i> What to bring:</p>
+                <ul style="margin:8px 0 0; padding-left:20px; font-size:12px; color:#64748b;">
+                    <li>Original Aadhaar Card</li>
+                    <li>Original PAN Card</li>
+                    <li>Unused Checkbook</li>
+                </ul>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="this.closest('.modal-overlay').remove()" class="btn-secondary" style="flex:1;">Cancel</button>
+                <button onclick="this.closest('.modal-overlay').remove(); showLocationsPage();" class="btn-primary-maroon" style="flex:1;">Find Branch</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
 }
 
 function handleOffers() {
@@ -1990,4 +2135,73 @@ async function submitSupportTicket() {
         btn.disabled = false;
         btn.innerHTML = 'Submit Ticket';
     }
+}
+
+/* ── Mobile Sidebar Menu ── */
+function openMobileMenu() {
+    const sidebar = document.getElementById('mobileSidebar');
+    if (sidebar) {
+        sidebar.style.display = 'flex';
+        // Small delay to allow display:flex to apply before CSS transition happens
+        setTimeout(() => {
+            const content = sidebar.querySelector('.sidebar-content');
+            if (content) content.classList.add('open');
+            const emailSpan = document.getElementById('sidebarUserEmail');
+            if (emailSpan && window.currentUser) {
+                emailSpan.textContent = window.currentUser.email || 'Premium Banking';
+            }
+        }, 10);
+    }
+}
+
+function closeMobileMenu() {
+    const sidebar = document.getElementById('mobileSidebar');
+    if (sidebar) {
+        const content = sidebar.querySelector('.sidebar-content');
+        if (content) content.classList.remove('open');
+        // Wait for sliding transition to finish before hiding wrapper
+        setTimeout(() => {
+            sidebar.style.display = 'none';
+        }, 300);
+    }
+}
+
+/**
+ * Mobile Screenshot & Privacy Protection
+ */
+function initSecurityHandlers() {
+    const mask = document.getElementById('privacyMask');
+    const flash = document.getElementById('screenshotFlash');
+
+    const triggerFlash = () => {
+        if (!flash) return;
+        flash.classList.add('active');
+        setTimeout(() => flash.classList.remove('active'), 500);
+    };
+
+    const showMask = () => { if (mask) mask.classList.add('active'); };
+    const hideMask = () => { if (mask) mask.classList.remove('active'); };
+
+    // Detect when user leaves the app/tab
+    window.addEventListener('blur', showMask);
+    window.addEventListener('focus', hideMask);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            showMask();
+            triggerFlash(); // Deterrence on exit
+        } else {
+            hideMask();
+        }
+    });
+
+    // Disable context menu (long press on mobile)
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Best-effort detection for PrintScreen if using keyboard on tablet/mobile
+    document.addEventListener('keyup', e => {
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            triggerFlash();
+            if (typeof showMobileToast === 'function') showMobileToast('Screenshot blocked', 'error');
+        }
+    });
 }

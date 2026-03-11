@@ -15,7 +15,7 @@ function showConfirm({ title, message, warning, onConfirm }) {
     modal.style.cssText = `
         position:fixed; inset:0; background:rgba(0,0,0,0.45);
         display:flex; align-items:center; justify-content:center;
-        z-index:99999; backdrop-filter:blur(4px);
+        z-index:99999;
         animation: fadeIn 0.2s ease;
     `;
     modal.innerHTML = `
@@ -70,7 +70,7 @@ function showPrompt({ title, message, placeholder, confirmText, onConfirm }) {
     if (existing) existing.remove();
     const modal = document.createElement('div');
     modal.id = '_confirmModal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;';
     modal.innerHTML = `
         <div id="_confirmBox" style="background:#fff;border-radius:20px;padding:32px 28px;max-width:420px;width:90%;box-shadow:0 25px 60px rgba(0,0,0,0.18);text-align:center;">
             <div style="width:56px;height:56px;border-radius:50%;background:#fef3c7;color:#92400e;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:24px;">
@@ -108,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setupEventListeners();
         loadAdminInfo();
         loadDashboardData();
+        initSecurity();
 
         // Set up real-time polling (every 30 seconds)
         setInterval(() => {
@@ -329,6 +330,65 @@ function updateDashboardStats(stats) {
     if (statStaffTrend) statStaffTrend.style.display = 'none';
     renderTrend(statDepositsTrend, stats.deposit_trend, 'this month');
     renderTrend(statTransactionsTrend, stats.transaction_trend, 'today');
+}
+
+/**
+ * Deterrence measures for financial data security
+ */
+function initSecurity() {
+    const mask = document.getElementById('privacyMask');
+    const flash = document.getElementById('screenshotFlash');
+
+    // Visual Flash Warning
+    const triggerFlash = () => {
+        if (!flash) return;
+        flash.classList.add('active');
+        setTimeout(() => flash.classList.remove('active'), 500);
+    };
+
+    // 1. Visibility & Focus tracking (Privacy Blur)
+    const showMask = () => { if (mask) mask.classList.add('active'); };
+    const hideMask = () => { if (mask) mask.classList.remove('active'); };
+
+    window.addEventListener('blur', showMask);
+    window.addEventListener('focus', hideMask);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) showMask(); else hideMask();
+    });
+
+    // 2. Disable Right-Click (Context Menu)
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 3. Block common screenshot/capture shortcuts
+    document.addEventListener('keydown', e => {
+        // Ctrl+P (Print), Ctrl+S (Save), Ctrl+U (View Source), Ctrl+Shift+I (DevTools)
+        if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u' || (e.key === 'i' && e.shiftKey))) {
+            e.preventDefault();
+            triggerFlash();
+            alert('Action disabled for security reasons.');
+            return false;
+        }
+        // PrintScreen Key
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            e.preventDefault();
+            triggerFlash();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(''); // Attempt to clear clipboard
+            }
+            alert('Screenshots are strictly prohibited on this dashboard.');
+        }
+    });
+
+    // 4. Best-effort PrintScreen detection via keyboard
+    window.addEventListener('keyup', e => {
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            triggerFlash();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText('');
+            }
+            if (typeof showToast === 'function') showToast('Security Alert: Screenshot blocked', 'error');
+        }
+    });
 }
 
 // Load Recent Users
@@ -1224,22 +1284,31 @@ async function loadSalaryManagementPage() {
     const tableBody = document.getElementById('adminSalaryTable');
     if (!tableBody) return;
 
-    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading salaries...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading salaries...</td></tr>';
 
     try {
-        const response = await fetch(API + '/admin/salary/list', { credentials: 'include' });
-        const data = await response.json();
+        const [salaryRes, fundRes] = await Promise.all([
+            fetch(API + '/admin/salary/list', { credentials: 'include' }),
+            fetch(API + '/admin/liquidity/fund', { credentials: 'include' }).catch(() => null)
+        ]);
+        const data = await salaryRes.json();
 
         if (data.success) {
             document.getElementById('currentSalaryMonth').textContent = data.month;
             document.getElementById('salaryStatsDays').textContent = `Month Days: ${data.days_in_month}`;
+            // Show fund balance if element exists
+            if (fundRes && fundRes.ok) {
+                const fundData = await fundRes.json();
+                const fundEl = document.getElementById('salaryFundBalance');
+                if (fundEl) fundEl.textContent = `₹${(fundData.balance || 0).toLocaleString('en-IN')}`;
+            }
             renderSalaryTable(data.salary_list);
         } else {
-            tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:red;">Error: ${data.error}</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:red;">Error: ${data.error}</td></tr>`;
         }
     } catch (e) {
         console.error('Error loading salaries:', e);
-        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:red;">Failed to connect to backend.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:red;">Failed to connect to backend.</td></tr>';
     }
 }
 
@@ -1248,7 +1317,7 @@ function renderSalaryTable(salaryList) {
     if (!tableBody) return;
 
     if (!salaryList || salaryList.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">No staff records found.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">No staff records found.</td></tr>';
         return;
     }
 
@@ -1261,10 +1330,14 @@ function renderSalaryTable(salaryList) {
             <td><span class="status-badge success">${item.attendance_days} days</span></td>
             <td><strong style="color:var(--primary);font-size:15px;font-weight:800;">₹${(item.current_salary || 0).toLocaleString('en-IN')}</strong></td>
             <td>
-                <div style="display:flex;gap:8px;">
+                <div style="display:flex;gap:6px;">
                     <button class="action-btn-circle edit" onclick="openUpdateSalaryModal(${item.id}, '${item.name}', ${item.base_salary})" title="Update Base Salary">
                         <i class="fas fa-edit"></i>
                     </button>
+                    ${item.current_salary > 0 ? `
+                    <button class="action-btn-circle view" style="background:#dcfce7;color:#16a34a;" onclick="paySalary(${item.id}, '${item.name}', ${item.current_salary})" title="Pay Salary Now">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </button>` : ''}
                 </div>
             </td>
         </tr>
@@ -1303,6 +1376,66 @@ window.submitSalaryUpdate = async function (e) {
     } catch (e) {
         showToast('Network error updating salary.', 'error');
     }
+};
+
+// Pay a single staff salary
+window.paySalary = function (staffId, staffName, amount) {
+    showConfirm({
+        title: '💰 Pay Salary',
+        message: `Credit <strong>₹${amount.toLocaleString('en-IN')}</strong> salary to <strong>${staffName}</strong>?<br><small style="color:#6b7280;">This will be deducted from the Loan Liquidity Fund and credited directly to their bank account.</small>`,
+        onConfirm: async () => {
+            try {
+                const res = await fetch(API + '/admin/salary/pay', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ staff_id: staffId, amount })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast(data.message, 'success');
+                    loadSalaryManagementPage();
+                } else {
+                    showToast(data.error || 'Failed to pay salary', 'error');
+                }
+            } catch (e) {
+                showToast('Network error paying salary', 'error');
+            }
+        }
+    });
+};
+
+// Pay all salaries at once
+window.payAllSalaries = function () {
+    showConfirm({
+        title: '💰 Pay All Salaries',
+        message: 'Disburse salaries for <strong>ALL active staff</strong> based on their attendance this month?<br><small style="color:#6b7280;">Total amount will be deducted from the Loan Liquidity Fund and credited to each staff\'s bank account.</small>',
+        warning: '⚠ This will process all pending salaries in one batch.',
+        onConfirm: async () => {
+            showToast('Processing bulk salary payment...', 'info');
+            try {
+                const res = await fetch(API + '/admin/salary/pay-all', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: '{}'
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    let msg = data.message;
+                    if (data.skipped && data.skipped.length > 0) {
+                        msg += ` (${data.skipped.length} skipped — no bank account)`;
+                    }
+                    showToast(msg, 'success');
+                    loadSalaryManagementPage();
+                } else {
+                    showToast(data.error || 'Failed to pay salaries', 'error');
+                }
+            } catch (e) {
+                showToast('Network error processing salaries', 'error');
+            }
+        }
+    });
 };
 
 document.getElementById('salarySearch')?.addEventListener('input', (e) => {

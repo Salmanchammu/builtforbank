@@ -1,11 +1,13 @@
 # Smart Bank - Deployment Guide
 
 > [!IMPORTANT]
-> **🚀 Render.com Deployment Fix**
-> Render sometimes incorrectly thinks your project uses Node.js (Yarn). **Delete the default values** and use these instead:
-> 1. **Build Command**: `pip install -r requirements.txt`
-> 2. **Start Command**: `python render_app.py`
-> 3. **Environment**: Ensure **Runtime** is set to **Python 3**.
+> **🚀 Render.com Deployment (Recommended)**
+> We have simplified deployment using a Blueprint.
+> 1. **Auto-Configuration**: Render will automatically detect the `render.yaml` file.
+> 2. **Manual Settings** (if not using blueprint):
+>    - **Build Command**: `pip install -r requirements.txt`
+>    - **Start Command**: `gunicorn render_app:app`
+>    - **Disk**: Mount a persistent disk at `/opt/render/project/src/database` to persist SQLite data.
 
 ---
 
@@ -18,7 +20,7 @@ Since the Flask backend serves the frontend static files, they are deployed toge
 - **VPS (DigitalOcean, AWS EC2, Linode)**:
     1. Clone the repository.
     2. Set up a Python virtual environment.
-    3. Install dependencies: `pip install -r backend/requirements.txt`.
+    3. Install dependencies: `pip install -r requirements.txt`.
     4. Use a production WSGI server like **Gunicorn**:
        ```bash
        gunicorn --bind 0.0.0.0:8000 backend.app:app
@@ -26,7 +28,7 @@ Since the Flask backend serves the frontend static files, they are deployed toge
     5. Use **Nginx** as a reverse proxy to handle SSL and serve the app on port 80/443.
 - **PaaS (Render, Railway, Fly.io)**:
     1. Connect your GitHub repository.
-    2. Set the build command: `pip install -r backend/requirements.txt`.
+    2. Set the build command: `pip install -r requirements.txt`.
     3. Set the start command: `python backend/app.py` (or use Gunicorn).
     4. Ensure the `database` directory is included in the build.
 
@@ -59,3 +61,7 @@ If you just want to show your website to someone **right now** without a real se
    npx localtunnel --port 5000
    ```
 3. It will give you a public URL (e.g., `https://short-wolf-88.loca.lt`) that works anywhere in the world as long as your computer is on!
+---
+
+## 5. Utility Scripts
+Various maintenance and utility scripts (like `check_divs.py`, `check_tables.py`) have been consolidated into the root `/scripts` directory for easier access during development.

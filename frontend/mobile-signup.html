@@ -15,55 +15,55 @@
 
 <body>
     <div class="mobile-wrapper">
-        <div class="auth-container page-content">
-            <div class="auth-logo">
+        <div class="auth-container page-content active">
+            <div class="auth-logo" style="background: linear-gradient(135deg, var(--primary-maroon), #2a0000); box-shadow: 0 10px 25px rgba(74, 0, 0, 0.2);">
                 <i class="fas fa-user-plus"></i>
             </div>
 
-            <h1 class="welcome-title">Create Account.</h1>
-            <p style="color: var(--text-grey); margin-bottom: 30px;">Join SmartBank today</p>
+            <h1 class="welcome-title" style="font-size: 30px; letter-spacing: -1px; margin-bottom: 8px;">Join Us<span style="color: var(--accent-gold);">.</span></h1>
+            <p style="color: var(--text-grey); font-weight: 500; font-size: 15px; margin-bottom: 30px;">Start your premium banking journey</p>
 
             <form id="mobileSignupForm" onsubmit="handleMobileSignup(event)">
                 <div class="form-group">
                     <label class="form-label">Full Name</label>
-                    <input type="text" id="signupName" class="form-input" placeholder="e.g. Salman Shad" required>
+                    <input type="text" id="signupName" class="form-input" placeholder="e.g. Salman Shad" required style="border-radius: 16px; padding: 15px; background: white;">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
-                    <input type="email" id="signupEmail" class="form-input" placeholder="name@example.com" required>
+                    <input type="email" id="signupEmail" class="form-input" placeholder="name@example.com" required style="border-radius: 16px; padding: 15px; background: white;">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Username</label>
-                    <input type="text" id="signupUsername" class="form-input" placeholder="choose a username" required>
+                    <input type="text" id="signupUsername" class="form-input" placeholder="choose a username" required style="border-radius: 16px; padding: 15px; background: white;">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" id="signupPassword" class="form-input" placeholder="••••••••" required>
+                    <input type="password" id="signupPassword" class="form-input" placeholder="••••••••" required style="border-radius: 16px; padding: 15px; background: white;">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Confirm Password</label>
                     <input type="password" id="signupConfirmPassword" class="form-input" placeholder="••••••••"
-                        required>
+                        required style="border-radius: 16px; padding: 15px; background: white;">
                 </div>
 
-                <div class="form-group" style="display: flex; gap: 10px; align-items: center;">
+                <div class="form-group" style="display: flex; gap: 12px; align-items: center; margin-bottom: 25px;">
                     <input type="checkbox" id="agreeTerms" required
-                        style="width: 20px; height: 20px; accent-color: var(--primary-maroon);">
-                    <label class="form-label" style="margin-bottom: 0;">I agree to the <a href="#"
-                            style="color: var(--primary-maroon); font-weight: 600;">Terms & Conditions</a></label>
+                        style="width: 20px; height: 20px; accent-color: var(--primary-maroon); border-radius: 6px;">
+                    <label class="form-label" style="margin-bottom: 0; font-size: 13px;">I agree to the <a href="#"
+                            style="color: var(--primary-maroon); font-weight: 700;">Terms & Conditions</a></label>
                 </div>
 
-                <button type="submit" class="btn-primary-maroon">
+                <button type="submit" class="btn-primary-maroon" style="border-radius: 16px; padding: 16px; font-size: 16px; box-shadow: 0 8px 20px rgba(74, 0, 0, 0.2);">
                     Create Account
                 </button>
             </form>
 
-            <div class="auth-links">
-                <a href="mobile-auth.html">Already have an account? Login</a>
+            <div class="auth-links" style="margin-top: 20px;">
+                <a href="mobile-auth.html">Already have an account? <span style="color: var(--primary-maroon);">Login</span></a>
             </div>
         </div>
 

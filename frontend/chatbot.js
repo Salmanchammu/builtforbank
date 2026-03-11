@@ -40,7 +40,7 @@ class SmartBankChatbot {
                         </div>
                     </div>
                     <div style="display: flex; gap: 12px; align-items: center;">
-                        <button class="chat-close-btn" id="chatClearBtn" title="Clear Chat" style="background:none; border:none; color:rgba(255,255,255,0.7); cursor:pointer; font-size:14px;">
+                        <button class="chat-close-btn" id="chatClearBtn" title="Clear Chat">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                         <button class="chat-close-btn" id="chatCloseBtn">

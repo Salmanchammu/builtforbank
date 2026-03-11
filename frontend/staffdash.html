@@ -17,6 +17,9 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
+                    <div class="brand-logo">
+                        <i class="fas fa-landmark"></i>
+                    </div>
                     <h1 class="logo-text">Smart<span class="logo-highlight">Bank</span></h1>
                 </div>
                 <p class="menu-label">Menu</p>
@@ -90,15 +93,6 @@
                 </a>
             </nav>
 
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <img id="staffAvatar" src="" alt="Staff" class="user-avatar">
-                    <div class="user-info">
-                        <div class="user-name" id="staffName">Loading...</div>
-                        <div class="user-role" id="staffRole">Staff Member</div>
-                    </div>
-                </div>
-            </div>
         </aside>
 
         <!-- Main Content -->
@@ -128,8 +122,14 @@
                         <i class="fas fa-bell"></i>
                         <span class="badge" id="notificationBadge">0</span>
                     </button>
-                    <img id="topBarAvatar" src="" alt="Staff" class="user-avatar-small" onclick="showPage('profile')"
-                        style="cursor: pointer;">
+                    <div style="display: flex; gap: 10px; margin-left: 10px;">
+                        <button class="top-bar-btn btn-profile" onclick="showPage('profile')">
+                            <i class="fas fa-user-circle"></i> Profile
+                        </button>
+                        <button class="top-bar-btn btn-logout" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1619,10 +1619,14 @@
         </div>
     </div>
 
+    <div id="privacyMask" class="privacy-mask"></div>
+    <div id="screenshotFlash" class="screenshot-flash"></div>
+
     <script src="api-config.js"></script>
     <script src="face-auth-fixed.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="staffdash.js"></script>
+    <script src="face-auth-logic.js"></script>
     <!-- Send Notification Modal -->
     <div id="sendNotificationModal" class="modal">
         <div class="modal-content">
@@ -1863,6 +1867,8 @@
         </div>
     </div>
 
+    <div id="privacyMask" class="privacy-mask"></div>
+    <div id="screenshotFlash" class="screenshot-flash"></div>
 </body>
 
 

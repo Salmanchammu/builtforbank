@@ -1,4 +1,4 @@
-window.API = window.SMART_BANK_API_BASE || 'http://localhost:5000/api';
+window.API = window.SMART_BANK_API_BASE || '/api';
 // Default Staff & Admin Credentials (Mock Database)
 const DEFAULT_STAFF_CREDENTIALS = {
     staff: [

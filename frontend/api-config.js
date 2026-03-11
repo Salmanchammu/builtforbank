@@ -1,42 +1,124 @@
 /**
  * Smart Bank - API Configuration
- * Dynamically determines the backend API base URL based on the current hostname.
- * This allows the app to work on localhost, local IP, or production domains.
+ * Robust Dynamic API Base Detection
  */
+
+// --- SERVICE WORKER RESET ---
+// Forcefully unregister any active service worker to prevent stale caching issues
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (let registration of registrations) {
+            registration.unregister().then(() => {
+                console.log('Service Worker Unregistered successfully');
+            });
+        }
+    });
+}
 
 const getApiBase = () => {
     const hostname = window.location.hostname;
-    const isLocal = !hostname || hostname === 'localhost' || hostname === '127.0.0.1' ||
-        hostname.startsWith('192.168.') || hostname.startsWith('10.');
+    const port = window.location.port;
+    const protocol = window.location.protocol; // http: or https:
 
+    // 1. Identify Local/Private context
+    const isLocal = !hostname ||
+        hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname === '[::1]' ||
+        hostname.startsWith('192.168.') ||
+        hostname.startsWith('10.') ||
+        /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
+
+    // 2. Determine base URL
     if (isLocal) {
-        // Use the current hostname/IP but port 5000
-        const host = hostname || 'localhost';
-        return `http://${host}:5000/api`;
+        // Force protocol to match the current page to avoid mixed content errors
+        const targetProtocol = protocol.startsWith('http') ? protocol : 'http:';
+
+        // If we are on a different port than backend (5000), force backend port
+        if (port && port !== '5000' && port !== '80') {
+            console.log(`[API Config] External dev port detected (${port}). Forcing backend to port 5000.`);
+            return `${targetProtocol}//${hostname}:5000/api`;
+        }
+
+        // If we are on port 5000 already, relative path is safer
+        if (port === '5000') {
+            return '/api';
+        }
+
+        return `${targetProtocol}//${hostname || 'localhost'}:5000/api`;
     }
-    return window.location.origin + '/api';
+
+    return '/api';
 };
 
 const API_BASE_URL = getApiBase();
-
-
-// Export for use in modules if needed, or just keep as global
 window.SMART_BANK_API_BASE = API_BASE_URL;
-console.log('API Base URL configured as:', window.SMART_BANK_API_BASE);
+window.API = API_BASE_URL;
+console.log('✓ API Base configured:', window.API);
+
+// --- NUCLEAR CONNECTION DEBUGGER ---
+window.SMART_BANK_FIX_CONNECTION = async function () {
+    console.warn('!!! NUCLEAR CONNECTION FIX INITIATED !!!');
+
+    // 1. Clear Service Workers
+    if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let r of registrations) await r.unregister();
+    }
+
+    // 2. Clear Caches
+    if ('caches' in window) {
+        const keys = await caches.keys();
+        for (let k of keys) await caches.delete(k);
+    }
+
+    // 3. Clear Storage
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // 4. Force Reload without cache
+    window.location.reload(true);
+};
+
+function injectConnectionDebugger(errorMsg) {
+    if (document.getElementById('conn-debugger')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'conn-debugger';
+    overlay.className = 'conn-debugger-overlay active';
+    overlay.innerHTML = `
+        <div class="conn-debugger-card">
+            <div class="conn-debugger-icon"><i class="fas fa-plug-circle-xmark"></i></div>
+            <h2 class="conn-debugger-title">Connection Failed</h2>
+            <p class="conn-debugger-msg">The application cannot reach the backend server. This usually happens due to stale browser cache or restricted network settings.</p>
+            
+            <div class="conn-diagnostic-info">
+                <div class="conn-diagnostic-item"><span class="conn-diagnostic-label">Endpoint:</span> <span>${window.API}</span></div>
+                <div class="conn-diagnostic-item"><span class="conn-diagnostic-label">Origin:</span> <span>${window.location.origin}</span></div>
+                <div class="conn-diagnostic-item"><span class="conn-diagnostic-label">Browser:</span> <span>${navigator.userAgent.split(' ').pop()}</span></div>
+                <div class="conn-diagnostic-item"><span class="conn-diagnostic-label">Error:</span> <span style="color: #e53e3e">${errorMsg || 'Failed to fetch'}</span></div>
+            </div>
+
+            <button class="conn-fix-btn" onclick="window.SMART_BANK_FIX_CONNECTION()">
+                <i class="fas fa-magic"></i> Automatic Fix & Reload
+            </button>
+            
+            <p style="margin-top: 15px; font-size: 11px; color: #94a3b8;">This will clear browser cache and reset the connection.</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
 
 // --- GLOBAL FETCH INTERCEPTOR ---
-// Monkey-patch window.fetch to provide systemic fixes for all requests
 const originalFetch = window.fetch;
-
 window.fetch = async function (url, options) {
     if (!options) options = {};
     if (!options.headers) options.headers = {};
 
-    // 1. TUNNEL BYPASS
-    // Adds the Bypass-Tunnel-Reminder header for Localtunnel/Ngrok
-    const hostname = window.location.hostname;
-    const isLocal = !hostname || hostname === 'localhost' || hostname === '127.0.0.1';
-    if (!isLocal) {
+    const isInternalAPI = typeof url === 'string' && (url.includes(':5000/api') || url.includes('/api/'));
+    if (isInternalAPI) {
+        options.credentials = 'include';
+        // Add tunnel bypass headers anyway
         if (options.headers instanceof Headers) {
             options.headers.append('Bypass-Tunnel-Reminder', 'true');
         } else {
@@ -44,50 +126,17 @@ window.fetch = async function (url, options) {
         }
     }
 
-    // 2. CREDENTIALS ENFORCEMENT
-    // Force credentials: 'include' for all internal API calls.
-    // This is CRITICAL for session persistence across different ports/origins.
-    const isInternalAPI = typeof url === 'string' && (url.includes(':5000/api') || url.includes('/api/'));
-    if (isInternalAPI) {
-        options.credentials = 'include';
-    }
-
     try {
         const response = await originalFetch(url, options);
-
-        // 3. UNAUTHORIZED (401) HANDLING
-        // Skip 401 redirection if the request was to a login or auth-check endpoint
-        const isAuthEndpoint = typeof url === 'string' && (
-            url.includes('/login') ||
-            url.includes('/signup') ||
-            url.includes('/register') ||
-            url.includes('/face/') ||
-            url.includes('/auth/check')
-        );
-
-        if (response.status === 401 && !isAuthEndpoint) {
-            console.warn('API returned 401 Unauthorized. Redirecting to login...');
-
-            // Clear all auth data to be sure
-            localStorage.removeItem('user');
-            localStorage.removeItem('staff');
-            localStorage.removeItem('admin');
-            localStorage.removeItem('token');
-
-            // Prevent redirect loop if already on login page
-            const path = window.location.pathname;
-            if (!path.includes('user.html') && !path.includes('staff.html') && !path.includes('mobile-auth.html')) {
-                if (path.includes('mobile-')) {
-                    window.location.href = 'mobile-auth.html';
-                } else {
-                    window.location.href = 'user.html';
-                }
-            }
+        if (response.status === 401 && isInternalAPI && !url.includes('/auth/')) {
+            window.location.href = 'user.html';
         }
         return response;
     } catch (error) {
+        if (isInternalAPI) {
+            console.error('[Connection Error]', error);
+            injectConnectionDebugger(error.message);
+        }
         throw error;
     }
 };
-
-console.log('✓ Global Fetch Interceptor active');

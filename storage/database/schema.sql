@@ -33,7 +33,8 @@ CREATE TABLE users (
     mobile_passcode VARCHAR(255),
     passcode_enabled INTEGER DEFAULT 0,
     otp VARCHAR(10),
-    otp_expiry TIMESTAMP
+    otp_expiry TIMESTAMP,
+    profile_image VARCHAR(255)
 );
 
 -- Staff table (WITH face authentication)

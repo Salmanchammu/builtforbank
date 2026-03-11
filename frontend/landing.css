@@ -62,8 +62,8 @@ body::before {
     position: relative;
     z-index: 10;
     background: rgba(18, 0, 0, 0.6);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    /* blur removed */
+    /* blur removed */
     border-bottom: 1px solid var(--glass-border);
 }
 
@@ -238,7 +238,7 @@ body::before {
     background: var(--maroon-glass);
     color: var(--text-white);
     border: 1px solid var(--glass-border);
-    backdrop-filter: blur(5px);
+    /* blur removed */
 }
 
 .btn-secondary:hover {

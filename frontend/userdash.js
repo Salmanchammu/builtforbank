@@ -14,7 +14,7 @@ function showConfirm({ title, message, warning, icon, confirmText, onConfirm }) 
     const ex = document.getElementById('_confirmModal'); if (ex) ex.remove();
     const m = document.createElement('div');
     m.id = '_confirmModal';
-    m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);';
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;';
     m.innerHTML = `
         <div style="background:#fff;border-radius:20px;padding:30px 24px;max-width:380px;width:90%;box-shadow:0 25px 60px rgba(0,0,0,0.18);text-align:center;">
             <div style="width:52px;height:52px;border-radius:50%;background:#fef2f2;color:#800000;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;">
@@ -38,18 +38,19 @@ function showConfirm({ title, message, warning, icon, confirmText, onConfirm }) 
 /* ── State ───────────────────────────────────────────────── */
 const state = {
     user: null, accounts: [], transactions: [], cards: [],
-    loans: [], cardRequests: [], notifications: [],
+    loans: [], cardRequests: [], notifications: [], deposits: [],
     refreshTimer: null, currentPage: 'dashboard', upiStatus: null
 };
 
 /* ════════════════════════════════════════════════════════════
    INIT
    ════════════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', async () => {
+const init = async () => {
     injectStyles();
     updateDateTime();
     setInterval(updateDateTime, 60000);
     loadTheme();
+    initSecurity(); // Initialize Screenshot & Privacy Protection
 
     const ok = await checkAuth();
     if (!ok) { window.location.href = 'user.html'; return; }
@@ -60,7 +61,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadPreferences();
     startAutoRefresh();
     setTimeout(() => addNotification('Welcome back!', 'Dashboard is ready', 'success'), 1200);
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 /* ════════════════════════════════════════════════════════════
    AUTH
@@ -113,7 +120,7 @@ async function loadAll() {
                 time: n.created_at,
                 read: !!n.is_read
             }));
-            if (d.user) state.user = { ...state.user, ...d.user };
+            if (d.user) state.user = { ...state.user, ...d.user, profile_image_url: d.profile_image_url };
             updateNotifBadge();
             await loadCardRequests();
             renderAll();
@@ -169,6 +176,7 @@ function renderAll() {
     renderTransferPage();
     renderSettingsPage();
     renderSupportPage();
+    renderFixedDepositsPage();
     injectAccountModal(); // Inject Modal for account opening
 }
 
@@ -344,7 +352,7 @@ function renderUserInfo() {
     setText('userName', name);
     setText('userGreeting', name.split(' ')[0]);
     setText('welcomeName', name.split(' ')[0]);
-    const av = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=667eea&color=fff&rounded=true&bold=true`;
+    const av = u.profile_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=667eea&color=fff&rounded=true&bold=true`;
     ['userAvatar', 'topBarAvatar'].forEach(id => { const e = $id(id); if (e) e.src = av; });
 }
 
@@ -903,7 +911,7 @@ function renderCards() {
                 ${isCr ? `<div style="font-size:11px;opacity:.7;margin-top:4px;">Limit: ${fmtINR(c.credit_limit)} | Avail: ${fmtINR(c.available_credit)}</div>` : ''}</div>
                 <div style="text-align:right;"><div style="font-size:11px;opacity:.7;">EXPIRES</div><div>${expiry}</div></div>
             </div>
-            ${c.status === 'active' ? `<button onclick="blockCard(${c.id})" style="position:absolute;top:10px;right:10px;background:rgba(239,68,68,0.2);color:#fee2e2;border:1px solid rgba(239,68,68,0.5);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;backdrop-filter:blur(4px);"><i class="fas fa-ban"></i> Block</button>` : ''}
+            ${c.status === 'active' ? `<button onclick="blockCard(${c.id})" style="position:absolute;top:10px;right:10px;background:rgba(239,68,68,0.2);color:#fee2e2;border:1px solid rgba(239,68,68,0.5);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;backdrop-filter:none;"><i class="fas fa-ban"></i> Block</button>` : ''}
             </div>`;
     }).join('');
 }
@@ -1147,6 +1155,20 @@ function renderSettingsPage() {
         <div class="card">
             <div class="card-header"><h3 class="card-title">Profile</h3></div>
             <div style="padding:20px;display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+                    <div style="position:relative;">
+                        <img id="settingsAvatar" src="${u.profile_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || u.username)}&background=667eea&color=fff&rounded=true&bold=true`}" 
+                             style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--primary-blue,#3b82f6);">
+                        <label for="avatarInput" style="position:absolute;bottom:0;right:0;background:var(--primary-blue,#3b82f6);color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+                            <i class="fas fa-camera" style="font-size:12px;"></i>
+                        </label>
+                        <input type="file" id="avatarInput" style="display:none;" accept="image/*" onchange="uploadProfileImage(this)">
+                    </div>
+                    <div>
+                        <h4 style="margin:0;font-size:16px;">${escHtml(u.name || '') || 'Profile Picture'}</h4>
+                        <p style="margin:4px 0 0;font-size:12px;color:var(--text-secondary);opacity:0.8;">PNG, JPG or GIF (Max 2MB)</p>
+                    </div>
+                </div>
                 <div class="form-group"><label class="form-label">Full Name</label>
                     <input id="profileName" class="form-input" value="${escHtml(u.name || '')}"></div>
                 <div class="form-group"><label class="form-label">Email (read-only)</label>
@@ -1215,6 +1237,37 @@ async function saveProfile() {
         if (d.success) { showToast('Profile saved!', 'success'); if (state.user) Object.assign(state.user, data); }
         else showToast(d.error || 'Save failed', 'error');
     } catch { showToast('Saved locally (offline)', 'warning'); if (state.user) Object.assign(state.user, data); }
+}
+
+async function uploadProfileImage(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    if (file.size > 2 * 1024 * 1024) return showToast('Image size must be less than 2MB', 'error');
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    showToast('Uploading image...', 'info');
+    try {
+        const r = await fetch(`${API}/user/profile-image`, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        });
+        const d = await r.json();
+        if (d.success) {
+            state.user.profile_image_url = d.profile_image_url;
+            showToast('Profile image updated!', 'success');
+            renderUserInfo();
+            const setAv = $id('settingsAvatar');
+            if (setAv) setAv.src = d.profile_image_url;
+        } else {
+            showToast(d.error || 'Upload failed', 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        showToast('Upload failed', 'error');
+    }
 }
 
 /* ── Support Page ───────────────────────────────────────── */
@@ -1485,6 +1538,7 @@ function showPage(pageName) {
         if (pageName === 'settings') renderSettingsPage();
         if (pageName === 'support') renderSupportPage();
         if (pageName === 'upi') renderUpiPage();
+        if (pageName === 'deposits') renderFixedDepositsPage();
     }
 }
 
@@ -1794,6 +1848,76 @@ function formatDate(ds) {
     return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
 }
 function formatNotifTime(ds) { return formatDate(ds); }
+
+/* ── Fixed Deposits ─────────────────────────────────────── */
+function renderFixedDepositsPage() {
+    const el = $id('depositsContent'); if (!el) return;
+    if (!state.deposits.length) {
+        el.innerHTML = emptyState('piggy-bank', 'No active fixed deposits. Open one to grow your wealth!');
+        return;
+    }
+
+    el.innerHTML = state.deposits.map(d => `
+        <div style="padding:20px;background:var(--card-bg,#fff);border-radius:12px;margin-bottom:12px;border:1px solid var(--border-color,#e5e7eb);">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div class="txn-icon credit" style="background:rgba(128,0,0,0.1);color:var(--primary-maroon);">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin:0 0 4px;font-size:16px;">Fixed Deposit</h4>
+                        <p style="margin:0;font-size:12px;color:var(--text-secondary);">Maturity: ${formatDate(d.maturity_date)} • ${d.tenure_years} Years @ ${d.interest_rate}%</p>
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:20px;font-weight:700;color:var(--primary-maroon);">${fmtINR(d.amount)}</div>
+                    <span class="badge badge-success">Active</span>
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+function showFixedDepositModal() {
+    const modal = $id('fdModal'); if (!modal) return;
+    const sel = $id('fdFromAccount');
+    if (sel) {
+        sel.innerHTML = '<option value="">Select account...</option>' +
+            state.accounts.map(a => `<option value="${a.id}">${a.account_type} — ${maskAcct(a.account_number)} (${fmtINR(a.balance)})</option>`).join('');
+    }
+    modal.classList.add('active');
+}
+
+async function submitFD(e) {
+    e.preventDefault();
+    const aid = $id('fdFromAccount').value;
+    const amt = parseFloat($id('fdAmount').value);
+    const tenure = $id('fdTenure').value;
+    const rate = { '12': 7.5, '24': 7.75, '36': 8.0, '60': 8.5 }[tenure];
+
+    const acc = state.accounts.find(a => a.id == aid);
+    if (!acc || acc.balance < amt) return showToast('Insufficient balance in selected account', 'error');
+
+    // Mock success - in real world this would be an API call
+    showToast('Fixed Deposit opened successfully!', 'success');
+    addNotification('FD Opened', `₹${amt} Fixed Deposit opened for ${tenure / 12} years`, 'success');
+
+    // Update local state for demo
+    state.deposits.push({
+        id: Date.now(),
+        amount: amt,
+        interest_rate: rate,
+        tenure_years: tenure / 12,
+        maturity_date: new Date(Date.now() + tenure * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'active'
+    });
+
+    // Deduct from mock balance if needed, but loadAll should ideally refresh it
+    acc.balance -= amt;
+
+    closeModal('fdModal');
+    renderFixedDepositsPage();
+    renderStats();
+}
 function updateDateTime() {
     const el = $id('currentDateTime'); if (!el) return;
     const now = new Date();
@@ -1820,7 +1944,12 @@ async function renderUpiPage() {
             if (d.enabled) {
                 setupCard.style.display = 'none';
                 mainContent.style.display = 'block';
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${d.upi_id}&pn=${encodeURIComponent(state.user.name || 'User')}`;
                 setText('displayUpiId', d.upi_id);
+                const qrContainer = $id('displayUpiQr');
+                if (qrContainer) {
+                    qrContainer.innerHTML = `<img src="${qrUrl}" alt="UPI QR Code" style="border: 4px solid #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 200px;">`;
+                }
             } else {
                 setupCard.style.display = 'block';
                 mainContent.style.display = 'none';
@@ -2105,4 +2234,60 @@ async function manualRefreshBalance() {
             setTimeout(() => icon.classList.remove('fa-spin'), 600);
         }
     }
+}
+
+/**
+ * Screenshot & Privacy Protection
+ * Deterrence measures for financial data security
+ */
+function initSecurity() {
+    const mask = document.getElementById('privacyMask');
+    const flash = document.getElementById('screenshotFlash');
+
+    // Visual Flash Warning
+    const triggerFlash = () => {
+        if (!flash) return;
+        flash.classList.add('active');
+        setTimeout(() => flash.classList.remove('active'), 500);
+    };
+
+    // 1. Visibility & Focus tracking (Privacy Blur)
+    const showMask = () => { if (mask) mask.classList.add('active'); };
+    const hideMask = () => { if (mask) mask.classList.remove('active'); };
+
+    window.addEventListener('blur', showMask);
+    window.addEventListener('focus', hideMask);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) showMask(); else hideMask();
+    });
+
+    // 2. Disable Right-Click (Context Menu)
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 3. Block common screenshot/capture shortcuts
+    document.addEventListener('keydown', e => {
+        // Ctrl+P (Print), Ctrl+S (Save), Ctrl+U (View Source), Ctrl+Shift+I (DevTools)
+        if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u' || e.key === 'i' && e.shiftKey)) {
+            e.preventDefault();
+            triggerFlash();
+            alert('Action disabled for security reasons.');
+            return false;
+        }
+        // PrintScreen Key
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            e.preventDefault();
+            triggerFlash();
+            navigator.clipboard.writeText(''); // Attempt to clear clipboard
+            alert('Screenshots are strictly prohibited on this dashboard.');
+        }
+    });
+
+    // 4. Best-effort PrintScreen detection via keyboard
+    window.addEventListener('keyup', e => {
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+            triggerFlash();
+            navigator.clipboard.writeText('');
+            showToast('Security Alert: Screenshot blocked', 'error');
+        }
+    });
 }

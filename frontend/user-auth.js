@@ -111,7 +111,7 @@ async function userLogin(e) {
 
     // Try backend first
     try {
-        const baseURL = window.SMART_BANK_API_BASE || 'http://localhost:5000/api';
+        const baseURL = window.API || '/api';
         const response = await fetch(`${baseURL}/auth/login`, {
             method: 'POST',
             credentials: 'include',

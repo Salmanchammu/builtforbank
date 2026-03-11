@@ -1,4 +1,4 @@
-window.API = window.SMART_BANK_API_BASE || 'http://localhost:5000/api';
+window.API = window.SMART_BANK_API_BASE || '/api';
 /* ===================================
    FACE AUTHENTICATION - HUMAN ONLY
    Hidden Camera Mode for All Flows (Staff/Admin Login, KYC, Attendance)
@@ -387,8 +387,8 @@ class FaceAuthManager {
                 role = (window.location.href.includes('admin') || sessionStorage.getItem('userRole') === 'admin')
                     ? 'admin' : 'staff';
             }
-            const endpoint = role === 'admin' ? '/api/admin/face-login' : '/api/staff/face-login';
-            const response = await fetch(`${API.replace('/api', '')}${endpoint}`, {
+            const endpoint = role === 'admin' ? '/admin/face-login' : '/staff/face-login';
+            const response = await fetch(`${API}${endpoint}`, {
                 method: 'POST', credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ face_descriptor: descriptor })

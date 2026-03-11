@@ -1,4 +1,4 @@
-﻿from flask import Flask, request, jsonify, session, send_from_directory, g, send_file
+from flask import Flask, request, jsonify, session, send_from_directory, g, send_file
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
 from functools import wraps
@@ -27,13 +27,13 @@ mimetypes.add_type('application/javascript', '.js')
 
 # Import email config if exists
 try:
-    import email_config
+    from config import email_config
 except ImportError:
     email_config = None
 
 # SMS Logic
 try:
-    from sms_config import send_sms
+    from config.sms_config import send_sms
 except ImportError:
     def send_sms(p, m): print(f"[MOCK SMS] To: {p}, Msg: {m}"); return True
 
@@ -62,17 +62,24 @@ def get_local_ip():
 local_ip = get_local_ip()
 app = Flask(__name__)
 
-# Enable CORS with support for credentials - Reflects Origin dynamically
-CORS(app, resources={r"/*": {"origins": [
-    r"http://localhost:.*", 
-    r"http://127.0.0.1:.*", 
-    r"https://.*\.loca\.lt", 
-    r"http://192\.168\..*", 
-    r"http://10\..*", 
-    r"http://172\..*",
-    r"http://.*:8000",
-    r"http://.*:5500"
-]}}, supports_credentials=True, allow_headers=["Content-Type", "Bypass-Tunnel-Reminder", "bypass-tunnel-reminder", "Authorization", "Accept", "X-Requested-With"])
+# Enable CORS with broad support but VALID for credentials (no wildcard '*')
+# We allow any localhost port, common dev ports, and private IP patterns
+CORS(app, resources={r"/*": {
+    "origins": [
+        r"http://localhost:.*",
+        r"http://127\.0\.0\.1:.*",
+        r"http://192\.168\..*",
+        r"http://10\..*",
+        r"http://172\..*",
+        r"https://.*\.loca\.lt",
+        r"http://.*:3000",
+        r"http://.*:5000",
+        r"http://.*:5500",
+        r"http://.*:8000"
+    ],
+    "supports_credentials": True,
+    "allow_headers": ["Content-Type", "Bypass-Tunnel-Reminder", "Authorization", "Accept", "X-Requested-With"]
+}})
 
 from flask_cors import cross_origin
 
@@ -161,11 +168,22 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 # Database setup
 # Use absolute path to avoid CWD issues
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE = os.path.join(BASE_DIR, '..', 'database', 'smart_bank.db')
-FACE_DATA_DIR = os.path.join(BASE_DIR, 'face_data')
+DATABASE = os.path.abspath(os.path.join(BASE_DIR, '..', 'storage', 'database', 'smart_bank.db'))
+FACE_DATA_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'storage', 'face_data'))
 os.makedirs(FACE_DATA_DIR, exist_ok=True)
 os.makedirs(os.path.join(FACE_DATA_DIR, 'admin'), exist_ok=True)
 os.makedirs(os.path.join(FACE_DATA_DIR, 'staff'), exist_ok=True)
+
+# Profile Uploads configuration
+UPLOAD_FOLDER = os.path.abspath(os.path.join(BASE_DIR, '..', 'storage', 'uploads'))
+PROFILE_PICS_FOLDER = os.path.join(UPLOAD_FOLDER, 'profiles')
+os.makedirs(PROFILE_PICS_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -184,6 +202,38 @@ def init_db():
         if os.path.exists(schema_path):
             with open(schema_path, 'r') as f:
                 db.executescript(f.read())
+            db.commit()
+        
+        # Explicit migration for existing databases
+        try:
+            db.execute('SELECT 1 FROM service_applications LIMIT 1')
+        except sqlite3.OperationalError:
+            logger.info("Migrating database: Creating service_applications table")
+            db.execute('''
+                CREATE TABLE IF NOT EXISTS service_applications (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    account_id INTEGER,
+                    service_type VARCHAR(50) NOT NULL,
+                    product_name VARCHAR(100) NOT NULL,
+                    amount DECIMAL(15, 2),
+                    tenure VARCHAR(50),
+                    status VARCHAR(20) DEFAULT 'pending',
+                    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    processed_at TIMESTAMP,
+                    rejection_reason TEXT,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL
+                )
+            ''')
+            db.commit()
+
+        # Explicit migration for profile_image column
+        try:
+            db.execute('SELECT profile_image FROM users LIMIT 1')
+        except sqlite3.OperationalError:
+            logger.info("Migrating database: Adding profile_image column to users table")
+            db.execute('ALTER TABLE users ADD COLUMN profile_image VARCHAR(255)')
             db.commit()
 
 @app.teardown_appcontext
@@ -808,8 +858,11 @@ def get_user_dashboard():
     loans = db.execute('SELECT * FROM loans WHERE user_id = ?', (user_id,)).fetchall()
     total_balance = sum(acc['balance'] for acc in accounts)
     
+    user_dict = dict(user)
+    profile_img = user_dict.get('profile_image')
+    
     return jsonify({
-        'user': dict(user),
+        'user': user_dict,
         'accounts': [dict(a) for a in accounts],
         'account_requests': [dict(ar) for ar in account_requests],
         'transactions': [dict(t) for t in transactions],
@@ -817,7 +870,8 @@ def get_user_dashboard():
         'cards': [dict(c) for c in cards],
         'card_requests': [dict(cr) for cr in card_requests],
         'loans': [dict(l) for l in loans],
-        'total_balance': float(total_balance)
+        'total_balance': float(total_balance),
+        'profile_image_url': f"/api/user/profile-image/{profile_img}" if profile_img else None
     })
 
 @app.route('/api/user/transactions', methods=['GET'])
@@ -1018,6 +1072,47 @@ def update_user_profile():
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/user/profile-image', methods=['POST'])
+@login_required
+def upload_profile_image():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    if file and allowed_file(file.filename):
+        user_id = session['user_id']
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        filename = f"user_{user_id}_{int(time.time())}.{ext}"
+        filepath = os.path.join(PROFILE_PICS_FOLDER, filename)
+        file.save(filepath)
+
+        db = get_db()
+        try:
+            # Delete old image if exists
+            old_user = db.execute('SELECT profile_image FROM users WHERE id = ?', (user_id,)).fetchone()
+            if old_user and dict(old_user).get('profile_image'):
+                old_path = os.path.join(PROFILE_PICS_FOLDER, dict(old_user).get('profile_image'))
+                if os.path.exists(old_path):
+                    try: os.remove(old_path)
+                    except: pass
+
+            db.execute('UPDATE users SET profile_image = ? WHERE id = ?', (filename, user_id))
+            db.commit()
+            return jsonify({
+                'success': True,
+                'message': 'Profile image uploaded successfully',
+                'profile_image_url': f"/api/user/profile-image/{filename}"
+            })
+        except Exception as e:
+            db.rollback()
+            return jsonify({'error': str(e)}), 500
+    return jsonify({'error': 'Invalid file type'}), 400
+
+@app.route('/api/user/profile-image/<filename>')
+def serve_profile_image(filename):
+    return send_from_directory(PROFILE_PICS_FOLDER, filename)
 
 @app.route('/api/user/transfer', methods=['POST'])
 @login_required
@@ -1904,11 +1999,27 @@ def request_card():
     
     db = get_db()
     try:
-        # Check if already has a pending request
-        existing = db.execute('SELECT id FROM card_requests WHERE user_id = ? AND status = "pending"', (user_id,)).fetchone()
+        # Normalize card_type - if credit limit is requested, always store as 'Credit'
+        if requested_limit:
+            card_type = 'Credit'
+
+        # Check for duplicate - only block if there's already a pending request of the SAME category
+        # (credit vs debit are tracked independently)
+        is_credit_request = card_type.lower() == 'credit' or (requested_limit and requested_limit > 0)
+        if is_credit_request:
+            existing = db.execute(
+                'SELECT id FROM card_requests WHERE user_id = ? AND card_type = "Credit" AND status = "pending"',
+                (user_id,)
+            ).fetchone()
+        else:
+            existing = db.execute(
+                'SELECT id FROM card_requests WHERE user_id = ? AND (card_type != "Credit" OR card_type IS NULL) AND status = "pending"',
+                (user_id,)
+            ).fetchone()
         if existing:
-            return jsonify({'error': 'You already have a pending card request'}), 400
-            
+            error_label = 'credit card' if is_credit_request else 'debit card'
+            return jsonify({'error': f'You already have a pending {error_label} request'}), 400
+
         db.execute('INSERT INTO card_requests (user_id, account_id, card_type, requested_credit_limit, status) VALUES (?, ?, ?, ?, "pending")',
                   (user_id, account_id, card_type, requested_limit))
         db.commit()
@@ -1927,6 +2038,83 @@ def request_card():
             send_email_async(user['email'], subject, body)
             
         return jsonify({'success': True, 'message': 'Card request submitted'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/mobile/apply-fd', methods=['POST'])
+@login_required
+def handle_mobile_fd():
+    """Handle Fixed Deposit applications from mobile"""
+    data = request.json
+    user_id = session['user_id']
+    amount = data.get('amount')
+    tenure = data.get('tenure')
+    
+    if not amount or amount < 5000:
+        return jsonify({'error': 'Minimum FD amount is ₹5,000'}), 400
+        
+    db = get_db()
+    try:
+        # Get primary account for the user
+        acc = db.execute('SELECT id FROM accounts WHERE user_id = ? AND status = "active" LIMIT 1', (user_id,)).fetchone()
+        if not acc:
+            return jsonify({'error': 'No active bank account found'}), 400
+            
+        db.execute('''
+            INSERT INTO service_applications (user_id, account_id, service_type, product_name, amount, tenure, status)
+            VALUES (?, ?, "Fixed Deposit", "Standard FD", ?, ?, "pending")
+        ''', (user_id, acc['id'], amount, tenure))
+        db.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'FD application submitted successfully!',
+            'reference': f"FD-{secrets.token_hex(4).upper()}"
+        })
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/mobile/apply-investment', methods=['POST'])
+@login_required
+def handle_mobile_investment():
+    """Handle Mutual Fund and Insurance applications from mobile"""
+    data = request.json
+    user_id = session['user_id']
+    product_name = data.get('product_name')
+    account_num = data.get('account_number')
+    amount = data.get('amount')
+    aadhaar = data.get('aadhaar_number')
+    
+    if not product_name or not amount:
+        return jsonify({'error': 'Product and amount are required'}), 400
+        
+    db = get_db()
+    try:
+        # Resolve account number to account ID
+        acc = db.execute('SELECT id FROM accounts WHERE account_number = ? AND user_id = ?', (account_num, user_id)).fetchone()
+        if not acc:
+            return jsonify({'error': 'Invalid linked account selected'}), 400
+            
+        # Determine service type based on product name
+        service_type = 'Mutual Fund'
+        if any(x in product_name.lower() for x in ['insurance', 'protect', 'health', 'saver', 'retire']):
+            service_type = 'Insurance'
+        elif 'gold loan' in product_name.lower():
+            service_type = 'Loan'
+
+        db.execute('''
+            INSERT INTO service_applications (user_id, account_id, service_type, product_name, amount, status)
+            VALUES (?, ?, ?, ?, ?, "pending")
+        ''', (user_id, acc['id'], service_type, product_name, amount))
+        db.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Application for {product_name} submitted!',
+            'reference': f"APP-{secrets.token_hex(4).upper()}"
+        })
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
@@ -2818,9 +3006,11 @@ def update_card_request_status(card_id):
         db.rollback()
         return jsonify({'error': str(e)}), 500
 
+
 # ============================================================
 # ADMIN ROUTES
 # ============================================================
+
 
 @app.route('/api/admin/users', methods=['GET'])
 @role_required('admin')
@@ -3518,7 +3708,7 @@ def get_admin_audit():
 def admin_settings():
     # In a real app, this would use a 'settings' table. 
     # For this demo, we use a local JSON or just mock the persistence.
-    settings_file = os.path.join(BASE_DIR, 'system_settings.json')
+    settings_file = os.path.join(BASE_DIR, 'config', 'system_settings.json')
     
     if request.method == 'POST':
         data = request.json
@@ -4211,6 +4401,195 @@ def update_staff_base_salary():
     except Exception as e:
         logger.error(f"Error in update_staff_base_salary: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/salary/pay', methods=['POST'])
+@role_required('admin')
+def pay_staff_salary():
+    """Pay salary to a single staff member — deducts from Loan Liquidity Fund and credits their bank account."""
+    try:
+        data = request.json
+        staff_id = data.get('staff_id')
+        amount = float(data.get('amount', 0))
+
+        if not staff_id or amount <= 0:
+            return jsonify({'success': False, 'error': 'Invalid staff_id or amount'}), 400
+
+        db = get_db()
+
+        # Get staff info
+        staff = db.execute('SELECT * FROM staff WHERE id = ?', (staff_id,)).fetchone()
+        if not staff:
+            return jsonify({'success': False, 'error': 'Staff member not found'}), 404
+
+        # Check liquidity fund balance
+        fund = db.execute('SELECT id, balance FROM system_finances WHERE fund_name = "Loan Liquidity Fund"').fetchone()
+        if not fund:
+            return jsonify({'success': False, 'error': 'Liquidity fund not configured'}), 500
+        fund_balance = float(fund['balance'])
+        if fund_balance < amount:
+            return jsonify({'success': False, 'error': f'Insufficient liquidity fund balance (₹{fund_balance:,.2f} available)'}), 400
+
+        # Find staff's bank account (prefer Salary account, fallback to first Savings/Current)
+        account = db.execute('''
+            SELECT a.id, a.account_number, a.balance FROM accounts a
+            JOIN users u ON a.user_id = u.id
+            WHERE u.email = ? AND a.status = "active"
+            ORDER BY CASE a.account_type WHEN "Salary" THEN 0 WHEN "Savings" THEN 1 ELSE 2 END
+            LIMIT 1
+        ''', (staff['email'],)).fetchone()
+
+        now_str = datetime.now().strftime('%Y-%m')
+        month_label = datetime.now().strftime('%B %Y')
+
+        if not account:
+            # No bank account linked — still log the salary record but cannot credit automatically
+            db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "Loan Liquidity Fund"', (amount,))
+            db.commit()
+            log_audit(session.get('admin_id'), 'admin', 'salary_paid_no_account',
+                      f"Salary ₹{amount} paid to {staff['name']} (ID {staff_id}) — no bank account linked")
+            return jsonify({
+                'success': True,
+                'message': f'Salary ₹{amount:,.2f} recorded for {staff["name"]} but no linked bank account found to credit.',
+                'no_account': True
+            })
+
+        # Deduct from Liquidity Fund
+        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "Loan Liquidity Fund"', (amount,))
+
+        # Credit to staff's bank account
+        db.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (amount, account['id']))
+
+        # Record the salary transaction
+        db.execute('''
+            INSERT INTO transactions (account_id, type, amount, description, transaction_date, reference_number)
+            VALUES (?, "Salary Credit", ?, ?, CURRENT_TIMESTAMP, ?)
+        ''', (account['id'], amount, f'Salary for {month_label}', f'SAL-{now_str}-{staff_id}'))
+
+        db.commit()
+
+        # Send notification and email
+        db.execute('''
+            INSERT INTO notifications (user_id, title, message, type, created_at)
+            SELECT u.id, "Salary Credited 💰", ?, "success", CURRENT_TIMESTAMP
+            FROM users u WHERE u.email = ?
+        ''', (f'Your salary of ₹{amount:,.2f} for {month_label} has been credited to account {account["account_number"]}.', staff['email']))
+        db.commit()
+
+        # Email notification
+        send_email_async(staff['email'], f'Salary Credited – {month_label}', f'''
+            <h3>Smart Bank – Salary Credit</h3>
+            <p>Dear {staff["name"]},</p>
+            <p>Your salary of <strong>₹{amount:,.2f}</strong> for <strong>{month_label}</strong> has been credited to your account <strong>{account["account_number"]}</strong>.</p>
+            <p>Thank you for your service!</p>
+        ''')
+
+        log_audit(session.get('admin_id'), 'admin', 'salary_paid',
+                  f"Salary ₹{amount} paid to {staff['name']} (ID {staff_id}) → Account {account['account_number']}")
+
+        return jsonify({
+            'success': True,
+            'message': f'Salary ₹{amount:,.2f} credited to {staff["name"]} ({account["account_number"]})',
+            'account_number': account['account_number'],
+            'new_fund_balance': float(fund_balance - amount)
+        })
+
+    except Exception as e:
+        logger.error(f"Error in pay_staff_salary: {str(e)}")
+        try: db.rollback()
+        except: pass
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/admin/salary/pay-all', methods=['POST'])
+@role_required('admin')
+def pay_all_salaries():
+    """Pay all active staff salaries at once from the Liquidity Fund."""
+    try:
+        db = get_db()
+        import calendar
+        now = datetime.now()
+        start_of_month = now.replace(day=1).strftime('%Y-%m-%d')
+        days_in_month = calendar.monthrange(now.year, now.month)[1]
+        working_days = sum(1 for d in range(1, days_in_month + 1) if datetime(now.year, now.month, d).weekday() != 6)
+        month_label = now.strftime('%B %Y')
+        now_str = now.strftime('%Y-%m')
+
+        # Get all active staff with attendance
+        staff_list = db.execute('''
+            SELECT s.id, s.name, s.email, s.department, COALESCE(s.base_salary, 50000.00) as base_salary,
+                (SELECT COUNT(*) FROM attendance a WHERE a.staff_id = s.id AND a.date >= ? 
+                 AND (a.clock_in IS NOT NULL AND a.clock_out IS NOT NULL) AND a.status != "absent") as valid_days
+            FROM staff s WHERE s.status = "active"
+        ''', (start_of_month,)).fetchall()
+
+        # Total payroll needed
+        total_payroll = 0
+        pay_items = []
+        for s in staff_list:
+            base = float(s['base_salary'])
+            days = int(s['valid_days'] or 0)
+            pay = round((base / working_days) * days, 2) if working_days > 0 and days > 0 else 0
+            if pay > 0:
+                total_payroll += pay
+                pay_items.append({'staff': dict(s), 'amount': pay})
+
+        if total_payroll == 0:
+            return jsonify({'success': False, 'error': 'No salary to pay (check attendance records)'}), 400
+
+        # Check fund
+        fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "Loan Liquidity Fund"').fetchone()
+        fund_balance = float(fund['balance']) if fund else 0
+        if fund_balance < total_payroll:
+            return jsonify({'success': False, 'error': f'Insufficient liquidity fund. Need ₹{total_payroll:,.2f}, available ₹{fund_balance:,.2f}'}), 400
+
+        paid = []
+        skipped = []
+        for item in pay_items:
+            s = item['staff']
+            amt = item['amount']
+            account = db.execute('''
+                SELECT a.id, a.account_number FROM accounts a
+                JOIN users u ON a.user_id = u.id
+                WHERE u.email = ? AND a.status = "active"
+                ORDER BY CASE a.account_type WHEN "Salary" THEN 0 WHEN "Savings" THEN 1 ELSE 2 END LIMIT 1
+            ''', (s['email'],)).fetchone()
+
+            db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "Loan Liquidity Fund"', (amt,))
+
+            if account:
+                db.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (amt, account['id']))
+                db.execute('''
+                    INSERT INTO transactions (account_id, type, amount, description, transaction_date, reference_number)
+                    VALUES (?, "Salary Credit", ?, ?, CURRENT_TIMESTAMP, ?)
+                ''', (account['id'], amt, f'Salary for {month_label}', f'SAL-{now_str}-{s["id"]}'))
+                db.execute('''
+                    INSERT INTO notifications (user_id, title, message, type, created_at)
+                    SELECT u.id, "Salary Credited 💰", ?, "success", CURRENT_TIMESTAMP FROM users u WHERE u.email = ?
+                ''', (f'Salary ₹{amt:,.2f} for {month_label} credited to {account["account_number"]}.', s['email']))
+                send_email_async(s['email'], f'Salary Credited – {month_label}',
+                    f'<h3>Smart Bank Salary</h3><p>Dear {s["name"]}, your salary of <strong>₹{amt:,.2f}</strong> for {month_label} has been credited to account {account["account_number"]}.</p>')
+                paid.append({'name': s['name'], 'amount': amt, 'account': account['account_number']})
+            else:
+                skipped.append({'name': s['name'], 'amount': amt})
+
+        db.commit()
+        log_audit(session.get('admin_id'), 'admin', 'salary_pay_all',
+                  f"Bulk salary disbursement: ₹{total_payroll:,.2f} for {len(paid)} staff")
+
+        return jsonify({
+            'success': True,
+            'paid': paid,
+            'skipped': skipped,
+            'total_paid': total_payroll,
+            'message': f'Salary disbursed for {len(paid)} staff. Total: ₹{total_payroll:,.2f}'
+        })
+
+    except Exception as e:
+        logger.error(f"Error in pay_all_salaries: {str(e)}")
+        try: db.rollback()
+        except: pass
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 # ============================================================
 # MAIN

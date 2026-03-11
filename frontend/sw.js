@@ -21,9 +21,6 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-    // Try network first, then cache
-    event.respondWith(
-        fetch(event.request)
-            .catch(() => caches.match(event.request))
-    );
+    // Force network only during debug to prevent connection failures
+    event.respondWith(fetch(event.request));
 });

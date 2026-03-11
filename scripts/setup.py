@@ -63,7 +63,7 @@ def install_requirements():
     """Install Python requirements"""
     print_header("Installing Python Dependencies")
     
-    requirements_file = Path(__file__).parent / 'requirements.txt'
+    requirements_file = Path(__file__).parent.parent / 'requirements.txt'
     
     if not requirements_file.exists():
         print_error(f"requirements.txt not found at {requirements_file}")

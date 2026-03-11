@@ -64,6 +64,77 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     color: var(--text-primary);
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* ============================================================
+   SCREENSHOT & PRIVACY PROTECTION
+   ============================================================ */
+@media print {
+    body {
+        display: none !important;
+    }
+}
+
+.privacy-mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 99999;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+}
+
+.privacy-mask.active {
+    display: flex;
+}
+
+.privacy-logo {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #8E2020;
+}
+
+.privacy-msg {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+/* Flash effect on screenshot attempt */
+.screenshot-flash {
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 100001;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.screenshot-flash.active {
+    animation: flashEffect 0.5s ease-out;
+}
+
+@keyframes flashEffect {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
 }
 
 /* ===== LAYOUT ===== */
@@ -76,8 +147,7 @@ body {
 .sidebar {
     width: 280px;
     background: var(--sidebar-bg);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    /* transition removed */
     border-right: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
     display: flex;
@@ -110,6 +180,29 @@ body {
 
 .logo-highlight {
     color: var(--primary-maroon);
+}
+
+.brand-logo {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, var(--primary-maroon), #5c0000);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 2px;
+    box-shadow: 0 4px 8px rgba(128, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.brand-logo i {
+    color: white;
+    font-size: 18px;
+}
+
+.brand-logo:hover {
+    transform: scale(1.05) rotate(5deg);
+    box-shadow: 0 6px 12px rgba(128, 0, 0, 0.3);
 }
 
 .menu-label {
@@ -189,7 +282,6 @@ body {
     border-radius: 10px;
     font-size: 18px;
     transition: all 0.3s ease;
-    backdrop-filter: blur(4px);
     flex-shrink: 0;
 }
 
@@ -295,8 +387,7 @@ body {
     position: relative;
     z-index: 100;
     background: var(--card-bg);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    /* transition removed */
     padding: 20px 32px;
     border-radius: 20px;
     box-shadow: var(--shadow-sm);
@@ -329,6 +420,52 @@ body {
     align-items: center;
     gap: 16px;
     margin-left: auto;
+}
+
+/* Premium Top Bar Buttons */
+.top-bar-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    font-family: inherit;
+}
+
+.btn-profile {
+    background: var(--maroon-light);
+    color: var(--primary-maroon);
+    border-color: rgba(128, 0, 0, 0.1);
+}
+
+.btn-profile:hover {
+    background: var(--primary-maroon);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(128, 0, 0, 0.2);
+}
+
+.btn-logout {
+    background: #fff1f2;
+    color: #e11d48;
+    border-color: #fecdd3;
+}
+
+.btn-logout:hover {
+    background: #e11d48;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2);
+    border-color: transparent;
+}
+
+.top-bar-btn i {
+    font-size: 16px;
 }
 
 /* Loan Premium Cards */
@@ -522,8 +659,7 @@ body {
     right: 0;
     width: 320px;
     background: var(--card-bg);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    /* transition removed */
     border: 1px solid var(--border-color);
     border-radius: 16px;
     box-shadow: var(--shadow-lg);
@@ -606,8 +742,7 @@ body {
 /* ===== CARDS ===== */
 .card {
     background: var(--card-bg);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    /* transition removed */
     border: 1px solid var(--border-color);
     border-radius: 24px;
     box-shadow: var(--shadow-sm);
@@ -666,8 +801,7 @@ body {
 /* ===== STAT CARDS ===== */
 .stat-card {
     background: var(--card-bg);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    /* transition removed */
     color: var(--text-primary);
     border-radius: 24px;
     padding: 24px;
@@ -1314,7 +1448,7 @@ body {
     z-index: 2000;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(2px);
+    /* blur removed */
 }
 
 .modal.active {
