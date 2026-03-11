@@ -159,7 +159,8 @@ function initializeDashboard() {
     // Check if staff is logged in
     const staff = JSON.parse(localStorage.getItem('staff'));
     if (!staff) {
-        window.location.href = 'user.html';
+        const loginUrl = (window.SmartBankDeviceDetector && window.SmartBankDeviceDetector.getLoginUrl) ? window.SmartBankDeviceDetector.getLoginUrl() : 'user.html';
+        window.location.href = loginUrl;
         return;
     }
 
@@ -1905,7 +1906,8 @@ function logout() {
     confirmBtn.onclick = () => {
         localStorage.removeItem('staff');
         localStorage.removeItem('token');
-        window.location.href = 'user.html';
+        const loginUrl = (window.SmartBankDeviceDetector && window.SmartBankDeviceDetector.getLoginUrl) ? window.SmartBankDeviceDetector.getLoginUrl() : 'user.html';
+        window.location.href = loginUrl;
     };
 }
 

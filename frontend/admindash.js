@@ -127,7 +127,8 @@ function initializeDashboard() {
     // Check if admin is logged in
     const admin = JSON.parse(localStorage.getItem('admin'));
     if (!admin) {
-        window.location.href = 'user.html';
+        const loginUrl = (window.SmartBankDeviceDetector && window.SmartBankDeviceDetector.getLoginUrl) ? window.SmartBankDeviceDetector.getLoginUrl() : 'user.html';
+        window.location.href = loginUrl;
         return;
     }
 
@@ -1207,7 +1208,8 @@ function logout() {
         onConfirm: () => {
             localStorage.removeItem('admin');
             localStorage.removeItem('token');
-            window.location.href = 'user.html';
+            const loginUrl = (window.SmartBankDeviceDetector && window.SmartBankDeviceDetector.getLoginUrl) ? window.SmartBankDeviceDetector.getLoginUrl() : 'user.html';
+            window.location.href = loginUrl;
         }
     });
 }
