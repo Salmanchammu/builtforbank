@@ -90,7 +90,8 @@ async function handleOtpVerification(e) {
         if (response.ok && data.success) {
             showToast('Email verified! Redirecting to login...', 'success');
             setTimeout(() => {
-                window.location.href = 'user.html';
+                const detector = window.SmartBankDeviceDetector;
+                window.location.href = detector ? detector.getLoginUrl() : 'user.html';
             }, 2000);
         } else {
             showToast(data.error || 'Verification failed.', 'error');

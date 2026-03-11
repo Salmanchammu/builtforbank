@@ -156,7 +156,8 @@ async function staffLogin(e) {
             showToast('Login successful!', 'success');
 
             setTimeout(() => {
-                window.location.href = 'staffdash.html';
+                const detector = window.SmartBankDeviceDetector;
+                window.location.href = detector ? detector.getDashboardUrl() : 'staffdash.html';
             }, 500);
             return;
         } else {
@@ -204,7 +205,8 @@ async function adminLogin(e) {
             showToast('Login successful!', 'success');
 
             setTimeout(() => {
-                window.location.href = 'admindash.html';
+                const detector = window.SmartBankDeviceDetector;
+                window.location.href = detector ? detector.getDashboardUrl() : 'admindash.html';
             }, 500);
             return;
         } else {

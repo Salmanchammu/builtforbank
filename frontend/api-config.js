@@ -132,7 +132,11 @@ window.fetch = async function (url, options) {
             const loginUrl = (window.SmartBankDeviceDetector && window.SmartBankDeviceDetector.getLoginUrl) 
                 ? window.SmartBankDeviceDetector.getLoginUrl() 
                 : 'user.html';
-            window.location.href = loginUrl;
+            
+            // Guard: Only redirect if not already on the login page to avoid refresh loops
+            if (!window.location.pathname.includes(loginUrl)) {
+                window.location.href = loginUrl;
+            }
         }
         return response;
     } catch (error) {

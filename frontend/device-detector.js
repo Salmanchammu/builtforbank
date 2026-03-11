@@ -45,7 +45,14 @@
 
         // Helper to get the correct login page based on device
         getLoginUrl: function() {
-            return (this.getDeviceType() === 'mobile' || this.getDeviceType() === 'tablet') ? 'mobile-auth.html' : 'user.html';
+            const device = this.getDeviceType();
+            return (device === 'mobile' || device === 'tablet') ? 'mobile-auth.html' : 'user.html';
+        },
+
+        // Helper to get the correct dashboard based on device
+        getDashboardUrl: function() {
+            const device = this.getDeviceType();
+            return (device === 'mobile' || device === 'tablet') ? 'mobile-dash.html' : 'userdash.html';
         },
 
         checkAndRedirect: function () {

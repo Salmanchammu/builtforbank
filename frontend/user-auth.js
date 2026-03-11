@@ -149,9 +149,12 @@ async function userLogin(e) {
 
             // Redirect based on role
             setTimeout(() => {
+                const detector = window.SmartBankDeviceDetector;
                 if (role === 'admin') window.location.href = 'admindash.html';
                 else if (role === 'staff') window.location.href = 'staffdash.html';
-                else window.location.href = 'userdash.html';
+                else {
+                    window.location.href = detector ? detector.getDashboardUrl() : 'userdash.html';
+                }
             }, 500);
             return;
         } else {
