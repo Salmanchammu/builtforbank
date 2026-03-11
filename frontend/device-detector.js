@@ -10,7 +10,9 @@
             'user.html': 'mobile-auth.html',
             'signup.html': 'mobile-signup.html',
             'forgot-password.html': 'mobile-forgot-password.html',
-            'userdash.html': 'mobile-dash.html'
+            'userdash.html': 'mobile-dash.html',
+            'staffdash.html': 'mobile-dash.html',
+            'admindash.html': 'mobile-dash.html'
         },
 
         // Reverse Mapping: [Mobile Page] -> [Desktop Page]
