@@ -195,14 +195,24 @@ def get_db():
     return db
 
 def init_db():
-    """Initialize database with schema"""
+    """Initialize database with schema (Destructive)"""
     with app.app_context():
         db = get_db()
         schema_path = os.path.join(os.path.dirname(__file__), 'schema.sql')
         if os.path.exists(schema_path):
+            logger.info("Initializing database from schema.sql")
             with open(schema_path, 'r') as f:
                 db.executescript(f.read())
             db.commit()
+        
+        # Run migrations as well to ensure everything is up to date
+        migrate_db()
+
+def migrate_db():
+    """Apply incremental migrations to existing database (Non-destructive)"""
+    with app.app_context():
+        db = get_db()
+        logger.info("Checking for database migrations...")
         
         # Explicit migration for existing databases
         try:

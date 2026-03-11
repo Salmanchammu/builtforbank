@@ -9,7 +9,7 @@ if backend_dir not in sys.path:
 
 # Now we can import from the backend folder
 try:
-    from app import app, init_db, DATABASE, get_db
+    from app import app, init_db, migrate_db, DATABASE, get_db
 except ImportError as e:
     print(f"Error: Could not import backend.app. Ensure 'backend' folder exists. {e}")
     sys.exit(1)
@@ -69,7 +69,9 @@ def initialize_deployment():
             seed_default_data()
         print("Database initialized and seeded successfully.")
     else:
-        print(f"Database found at {DATABASE}.")
+        print(f"Database found at {DATABASE}. Running migrations...")
+        with app.app_context():
+            migrate_db()
 
 # Initialize on import so Gunicorn workers have a ready DB
 initialize_deployment()
