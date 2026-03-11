@@ -34,20 +34,32 @@
 
         checkAndRedirect: function () {
             const deviceType = this.getDeviceType();
-            const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+            const fullPath = window.location.pathname;
+            const fileName = fullPath.substring(fullPath.lastIndexOf('/') + 1) || 'index.html';
             
-            // If on mobile device and current page has a mobile equivalent
+            let target = null;
             if (deviceType === 'mobile' || deviceType === 'tablet') {
-                if (this.redirectionMap[currentPath]) {
-                    console.log(`Mobile detected. Redirecting ${currentPath} -> ${this.redirectionMap[currentPath]}`);
-                    window.location.href = this.redirectionMap[currentPath];
-                }
-            } 
-            // If on desktop device and current page is mobile-only
-            else if (deviceType === 'desktop') {
-                if (this.reverseMap[currentPath]) {
-                    console.log(`Desktop detected. Redirecting ${currentPath} -> ${this.reverseMap[currentPath]}`);
-                    window.location.href = this.reverseMap[currentPath];
+                target = this.redirectionMap[fileName];
+            } else {
+                target = this.reverseMap[fileName];
+            }
+
+            // ONLY redirect if target is defined AND it's not the current page
+            if (target && target !== fileName) {
+                // Final safety check: ensure the target isn't already in the URL
+                if (window.location.href.indexOf(target) === -1) {
+                    // Prevent infinite loops by checking sessionStorage
+                    const lastRedirect = sessionStorage.getItem('smart_bank_last_redirect');
+                    const now = Date.now();
+                    
+                    if (lastRedirect && (now - parseInt(lastRedirect)) < 3000) {
+                        console.warn("Redirection loop blocked.");
+                        return;
+                    }
+
+                    sessionStorage.setItem('smart_bank_last_redirect', now.toString());
+                    console.log(`Redirecting from ${fileName} to ${target} (${deviceType})`);
+                    window.location.href = target;
                 }
             }
         }
