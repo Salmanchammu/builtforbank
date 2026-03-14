@@ -190,12 +190,29 @@ def allowed_file(filename):
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(DATABASE, timeout=30.0)
-        db.row_factory = sqlite3.Row
-        # Enable WAL (Write Ahead Logging) for better concurrency on Render
-        db.execute('PRAGMA journal_mode = WAL')
-        # Enable foreign key constraints for cascading deletes
-        db.execute('PRAGMA foreign_keys = ON')
+        db_url = os.environ.get('DATABASE_URL')
+        if db_url and db_url.startswith('postgres'):
+            # PostgreSQL support for Render
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+            
+            # Render provides postgres:// but psycopg2 prefers postgresql://
+            if db_url.startswith('postgres://'):
+                db_url = db_url.replace('postgres://', 'postgresql://', 1)
+            
+            conn = psycopg2.connect(db_url)
+            conn.autocommit = True
+            # We wrap the connection to mimic sqlite3 row behavior partially
+            # or just use RealDictCursor
+            db = g._database = conn
+        else:
+            # Standard SQLite
+            db = g._database = sqlite3.connect(DATABASE, timeout=30.0)
+            db.row_factory = sqlite3.Row
+            # Enable WAL (Write Ahead Logging) for better concurrency on Render
+            db.execute('PRAGMA journal_mode = WAL')
+            # Enable foreign key constraints for cascading deletes
+            db.execute('PRAGMA foreign_keys = ON')
     return db
 
 def init_db():

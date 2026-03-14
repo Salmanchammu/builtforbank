@@ -79,6 +79,37 @@ def seed_default_data(db):
     print("Default accounts seeding complete.")
 
 
+def load_smart_seed(db):
+    """Load data from smart_seed.json if it exists."""
+    seed_file = os.path.join(backend_dir, 'smart_seed.json')
+    if not os.path.exists(seed_file):
+        print("No smart_seed.json found. Skipping custom seeding.")
+        return
+
+    print(f"Loading data from {seed_file}...")
+    try:
+        with open(seed_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        for table, rows in data.items():
+            if not rows: continue
+            print(f"  Inserting {len(rows)} rows into '{table}'...")
+            for row in rows:
+                cols = row.keys()
+                placeholders = ', '.join(['?'] * len(cols))
+                col_names = ', '.join(cols)
+                vals = [row[c] for c in cols]
+                
+                try:
+                    query = f"INSERT OR IGNORE INTO {table} ({col_names}) VALUES ({placeholders})"
+                    db.execute(query, vals)
+                except Exception as e:
+                    print(f"    [WARN] Failed to insert row into {table}: {e}")
+            db.commit()
+        print("Smart seed loading complete.")
+    except Exception as e:
+        print(f"❌ Error loading smart seed: {e}")
+
 def initialize_deployment():
     """Run required initialization for deployment."""
     db_missing_or_empty = not os.path.exists(DATABASE) or os.path.getsize(DATABASE) == 0
@@ -86,13 +117,16 @@ def initialize_deployment():
     if db_missing_or_empty:
         print(f"Database missing or empty at {DATABASE}. Initializing...")
         os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
-        # Run init_db and seeding inside ONE shared app_context so the
-        # freshly committed schema is visible to the seed inserts.
         with app.app_context():
             init_db()
             db = get_db()
-            seed_default_data(db)
-        print("Database initialized and seeded successfully.")
+            # Try to load custom seed first, then fallback to defaults if needed
+            seed_file = os.path.join(backend_dir, 'smart_seed.json')
+            if os.path.exists(seed_file):
+                load_smart_seed(db)
+            else:
+                seed_default_data(db)
+        print("Database initialized successfully.")
     else:
         print(f"Database found at {DATABASE}. Running migrations...")
         with app.app_context():

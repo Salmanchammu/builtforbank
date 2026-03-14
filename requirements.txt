@@ -24,3 +24,6 @@ gunicorn==21.2.0
 
 # PDF Generation
 reportlab>=4.0.0
+
+# Database Persistence
+psycopg2-binary>=2.9.9
