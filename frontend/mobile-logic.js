@@ -5,7 +5,9 @@
 
 'use strict';
 
-window.API = window.SMART_BANK_API_BASE || '/api';
+// Ensure window.API is consistently set from the global config
+window.API = window.SMART_BANK_API_BASE || window.API || '/api';
+const API = window.API;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const page = window.location.pathname.split('/').pop();
@@ -97,7 +99,12 @@ async function handleLogin(e) {
             }));
             window.location.href = 'mobile-dash.html';
         } else {
+            console.error('[Login] Failed:', d);
             showMobileToast(d.error || 'Login failed', 'error');
+            if (d.unverified) {
+                // If unverified, we could potentially show the OTP modal here if it's available
+                // For now, let the user know they need to verify.
+            }
         }
     } catch (err) {
         clearTimeout(timeoutId);
