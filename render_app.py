@@ -46,35 +46,35 @@ def seed_default_data(db):
     # Default Staff: S001 / staff123
     try:
         db.execute(
-            "INSERT INTO staff (staff_id, password, name, email, department, position) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT OR IGNORE INTO staff (staff_id, password, name, email, department, position) VALUES (?, ?, ?, ?, ?, ?)",
             ('S001', generate_password_hash('staff123'), 'Rajesh Kumar', 'rajesh@smartbank.com', 'Operations', 'Senior Teller')
         )
         db.commit()
-        print("  [OK] Staff S001 seeded")
+        print("  [OK] Staff S001 seed attempted")
     except Exception as e:
-        print(f"  [WARN] Staff S001 seed skipped: {e}")
+        print(f"  [WARN] Staff S001 seed error: {e}")
 
     # Bonus Staff: yasir / Yasir123#
     try:
         db.execute(
-            "INSERT INTO staff (staff_id, password, name, email, department, position) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT OR IGNORE INTO staff (staff_id, password, name, email, department, position) VALUES (?, ?, ?, ?, ?, ?)",
             ('yasir', generate_password_hash('Yasir123#'), 'Yasir Staff', 'yasir@smartbank.com', 'Management', 'Manager')
         )
         db.commit()
-        print("  [OK] Staff yasir seeded")
+        print("  [OK] Staff 'yasir' seed attempted")
     except Exception as e:
-        print(f"  [WARN] Staff yasir seed skipped: {e}")
+        print(f"  [WARN] Staff 'yasir' seed error: {e}")
 
     # Default User: rajesh / user123
     try:
         db.execute(
-            "INSERT INTO users (username, password, email, name, phone, status) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT OR IGNORE INTO users (username, password, email, name, phone, status) VALUES (?, ?, ?, ?, ?, ?)",
             ('rajesh', generate_password_hash('user123'), 'customer@example.com', 'Rajesh Customer', '9876543210', 'active')
         )
         db.commit()
-        print("  [OK] User rajesh seeded")
+        print("  [OK] User 'rajesh' seed attempted")
     except Exception as e:
-        print(f"  [WARN] User rajesh seed skipped: {e}")
+        print(f"  [WARN] User 'rajesh' seed error: {e}")
 
     print("Default accounts seeding complete.")
 
@@ -129,9 +129,26 @@ def initialize_deployment():
                 seed_default_data(db)
         print("Database initialized successfully.")
     else:
-        print(f"Database found at {DATABASE}. Running migrations...")
+        print(f"Database found at {DATABASE}. Checking content...")
+        force_reseed = os.environ.get('FORCE_RESEED', 'false').lower() == 'true'
+        
         with app.app_context():
-            migrate_db()
+            db = get_db()
+            try:
+                staff_count = db.execute("SELECT COUNT(*) as count FROM staff").fetchone()['count']
+                print(f"  Existing staff count: {staff_count}")
+                if staff_count == 0 or force_reseed:
+                    print("  Database content missing or reseed forced. Seeding...")
+                    seed_file = os.path.join(backend_dir, 'smart_seed.json')
+                    if os.path.exists(seed_file):
+                        load_smart_seed(db)
+                    else:
+                        seed_default_data(db)
+                else:
+                    migrate_db()
+            except Exception as e:
+                print(f"  [Error] Failed to check/seed existing database: {e}")
+                migrate_db()
 
 
 # Initialize on import so Gunicorn workers have a ready DB

@@ -209,7 +209,12 @@ def get_db():
                     self.conn = conn
                 def execute(self, sql, params=None):
                     cur = self.conn.cursor(cursor_factory=RealDictCursor)
-                    cur.execute(sql.replace('?', '%s'), params)
+                    # Convert ? to %s for Postgres
+                    sql = sql.replace('?', '%s')
+                    # Convert INSERT OR IGNORE to ON CONFLICT DO NOTHING (Postgres style)
+                    if 'INSERT OR IGNORE' in sql.upper():
+                        sql = sql.upper().replace('INSERT OR IGNORE', 'INSERT') + ' ON CONFLICT DO NOTHING'
+                    cur.execute(sql, params)
                     return cur
                 def commit(self): pass # autocommit is ON
                 def rollback(self): self.conn.rollback()
