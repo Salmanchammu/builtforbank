@@ -202,9 +202,21 @@ def get_db():
             
             conn = psycopg2.connect(db_url)
             conn.autocommit = True
-            # We wrap the connection to mimic sqlite3 row behavior partially
-            # or just use RealDictCursor
-            db = g._database = conn
+            
+            # Add a wrapper to make it behave more like sqlite3's shortcut methods
+            class PostgresWrapper:
+                def __init__(self, conn):
+                    self.conn = conn
+                def execute(self, sql, params=None):
+                    cur = self.conn.cursor(cursor_factory=RealDictCursor)
+                    cur.execute(sql.replace('?', '%s'), params)
+                    return cur
+                def commit(self): pass # autocommit is ON
+                def rollback(self): self.conn.rollback()
+                def close(self): self.conn.close()
+                def fetchone(self): return None # Not used directly on connection
+            
+            db = g._database = PostgresWrapper(conn)
         else:
             # Standard SQLite
             db = g._database = sqlite3.connect(DATABASE, timeout=30.0)
@@ -223,7 +235,20 @@ def init_db():
         if os.path.exists(schema_path):
             logger.info("Initializing database from schema.sql")
             with open(schema_path, 'r') as f:
-                db.executescript(f.read())
+                schema_sql = f.read()
+            
+            # Use executescript for SQLite, or manual split for others
+            if hasattr(db, 'executescript'):
+                db.executescript(schema_sql)
+            else:
+                # Basic split for Postgres (assumes no complex strings with ;)
+                # In production, a proper migration tool is better
+                commands = [c.strip() for c in schema_sql.split(';') if c.strip()]
+                for cmd in commands:
+                    try:
+                        db.execute(cmd)
+                    except Exception as e:
+                        logger.warning(f"Schema init cmd failed: {e}")
             db.commit()
         
         # Run migrations as well to ensure everything is up to date
@@ -955,7 +980,9 @@ def login():
     else: 
         return jsonify({'error': 'Invalid role'}), 400
 
-    if not user: return jsonify({'error': 'Invalid credentials'}), 401
+    if not user: 
+        logger.warning(f"Login failed: user '{username_input}' not found in role '{role}'")
+        return jsonify({'error': 'Invalid credentials'}), 401
     
     if user['status'] == 'pending':
         return jsonify({'error': 'Your email is not verified. Please check your email for the verification code.', 'unverified': True, 'username': user['username']}), 403
@@ -992,6 +1019,7 @@ def login():
         logger.info(f"Login Success: user={actual_username}, role={role}, session_id={session.get('_id', 'N/A')}")
         return jsonify({'success': True, 'user': {'id': user['id'], 'username': actual_username, 'name': user['name'], 'role': role}})
     
+    logger.warning(f"Login failed: password mismatch for user '{username_input}' (role: {role})")
     return jsonify({'error': 'Invalid credentials'}), 401
 
 @app.route('/api/auth/logout', methods=['POST'])

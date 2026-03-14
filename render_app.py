@@ -112,7 +112,8 @@ def load_smart_seed(db):
 
 def initialize_deployment():
     """Run required initialization for deployment."""
-    db_missing_or_empty = not os.path.exists(DATABASE) or os.path.getsize(DATABASE) == 0
+    force_reseed = os.environ.get('FORCE_RESEED', 'false').lower() == 'true'
+    db_missing_or_empty = not os.path.exists(DATABASE) or os.path.getsize(DATABASE) == 0 or force_reseed
 
     if db_missing_or_empty:
         print(f"Database missing or empty at {DATABASE}. Initializing...")
