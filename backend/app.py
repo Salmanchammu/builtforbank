@@ -66,16 +66,18 @@ app = Flask(__name__)
 # We allow any localhost port, common dev ports, and private IP patterns
 CORS(app, resources={r"/*": {
     "origins": [
-        r"http://localhost:.*",
-        r"http://127\.0\.0\.1:.*",
-        r"http://192\.168\..*",
-        r"http://10\..*",
-        r"http://172\..*",
-        r"https://.*\.loca\.lt",
-        r"http://.*:3000",
-        r"http://.*:5000",
-        r"http://.*:5500",
-        r"http://.*:8000"
+        re.compile(r"http://localhost:.*"),
+        re.compile(r"http://127\.0\.0\.1:.*"),
+        re.compile(r"http://192\.168\..*"),
+        re.compile(r"http://10\..*"),
+        re.compile(r"http://172\..*"),
+        re.compile(r"https://.*\.loca\.lt"),
+        re.compile(r"http://.*:3000"),
+        re.compile(r"http://.*:5000"),
+        re.compile(r"http://.*:5500"),
+        re.compile(r"http://.*:8000"),
+        re.compile(r"https://.*\.onrender\.com"),  # Render deployment
+        re.compile(r"https://.*\.railway\.app"),   # Railway deployment
     ],
     "supports_credentials": True,
     "allow_headers": ["Content-Type", "Bypass-Tunnel-Reminder", "Authorization", "Accept", "X-Requested-With"]
@@ -160,7 +162,7 @@ def serve_static(path):
 app.secret_key = 'stable_secret_key_fixed_123' 
 app.config['SESSION_COOKIE_NAME'] = 'smart_bank_session'
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax' 
-app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_SECURE'] = any(os.environ.get(k) for k in ['RENDER', 'RAILWAY_ENVIRONMENT', 'PORT']) or os.environ.get('FLASK_ENV') == 'production'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
@@ -188,8 +190,10 @@ def allowed_file(filename):
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
+        db = g._database = sqlite3.connect(DATABASE, timeout=30.0)
         db.row_factory = sqlite3.Row
+        # Enable WAL (Write Ahead Logging) for better concurrency on Render
+        db.execute('PRAGMA journal_mode = WAL')
         # Enable foreign key constraints for cascading deletes
         db.execute('PRAGMA foreign_keys = ON')
     return db
@@ -366,29 +370,152 @@ def role_required(role):
     return decorator
 
 def send_email_async(to_email, subject, body_html):
-    """Send email in a separate thread to avoid blocking the main request."""
+    """Send email in a separate thread to avoid blocking the main request.
+    On Render (cloud): Uses Resend API (set RESEND_API_KEY env var) to bypass SMTP restrictions.
+    Locally: Falls back to Gmail SMTP.
+    """
     def send_task():
         if not email_config or email_config.SENDER_EMAIL == "your-email@gmail.com":
             print(f"\n[DEBUG EMAIL - NOT CONFIGURED]\nTo: {to_email}\nSubject: {subject}\nBody: {body_html[:200]}...\n")
             return
 
+        # Try Resend HTTP API first (works on Render/cloud servers)
+        resend_api_key = os.environ.get("RESEND_API_KEY")
+        if resend_api_key:
+            try:
+                import urllib.request as urllib_req
+                import json as json_lib
+                
+                # Use dedicated RESEND_FROM if available, fallback to default SENDER_EMAIL
+                resend_sender = getattr(email_config, 'RESEND_FROM', f"Smart Bank <{email_config.SENDER_EMAIL}>")
+                
+                payload = json_lib.dumps({
+                    "from": resend_sender,
+                    "to": [to_email],
+                    "subject": subject,
+                    "html": body_html
+                }).encode('utf-8')
+                
+                req = urllib_req.Request(
+                    "https://api.resend.com/emails",
+                    data=payload,
+                    headers={
+                        "Authorization": f"Bearer {resend_api_key}",
+                        "Content-Type": "application/json"
+                    }
+                )
+                
+                with urllib_req.urlopen(req, timeout=15) as response:
+                    res_body = response.read().decode('utf-8')
+                    logger.info(f"Email sent via Resend to {to_email}. Response: {res_body}")
+                return
+            except Exception as e:
+                # Capture and log detailed error from Resend
+                error_msg = str(e)
+                if hasattr(e, 'read'):
+                    try:
+                        error_msg += f" - Response: {e.read().decode('utf-8')}"
+                    except: pass
+                logger.error(f"Resend API failed: {error_msg}. Trying SMTP fallback...")
+
+        # SMTP fallback (works locally, often blocked on cloud servers)
         try:
             msg = MIMEMultipart()
             msg['From'] = email_config.SENDER_EMAIL
             msg['To'] = to_email
             msg['Subject'] = subject
             msg.attach(MIMEText(body_html, 'html'))
+
+            use_ssl = getattr(email_config, 'SMTP_USE_SSL', False)
+            if use_ssl:
+                import ssl
+                context = ssl.create_default_context()
+                with smtplib.SMTP_SSL(email_config.SMTP_SERVER, email_config.SMTP_PORT, context=context) as server:
+                    server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
+                    server.send_message(msg)
+            else:
+                with smtplib.SMTP(email_config.SMTP_SERVER, email_config.SMTP_PORT) as server:
+                    server.starttls()
+                    server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
+                    server.send_message(msg)
+            logger.info(f"Email sent via SMTP to {to_email}")
+        except Exception as e:
+            logger.error(f"SMTP also failed for {to_email}: {str(e)}")
+            print(f"\n[EMAIL FAILED]\nError: {str(e)}\nTo: {to_email}\nSubject: {subject}\n")
+
+    threading.Thread(target=send_task).start()
+
+def send_email_diagnostic(to_email, subject, body_html):
+    """Synchronous version of send_email for diagnostics. Returns detailed results."""
+    results = {"success": False, "resend": None, "smtp": None, "config": None}
+    
+    if not email_config or email_config.SENDER_EMAIL == "your-email@gmail.com":
+        results["config"] = "Email not configured (using default placeholders)"
+        return results
+
+    # Try Resend
+    resend_api_key = os.environ.get("RESEND_API_KEY")
+    if resend_api_key:
+        try:
+            import urllib.request as urllib_req
+            import json as json_lib
+            resend_sender = getattr(email_config, 'RESEND_FROM', f"Smart Bank <{email_config.SENDER_EMAIL}>")
+            payload = json_lib.dumps({
+                "from": resend_sender, 
+                "to": [to_email], 
+                "subject": subject, 
+                "html": body_html
+            }).encode('utf-8')
             
+            req = urllib_req.Request(
+                "https://api.resend.com/emails", 
+                data=payload, 
+                headers={
+                    "Authorization": f"Bearer {resend_api_key}", 
+                    "Content-Type": "application/json"
+                }
+            )
+            with urllib_req.urlopen(req, timeout=15) as response:
+                res_body = response.read().decode('utf-8')
+                results["resend"] = f"Success: {res_body}"
+                results["success"] = True
+                return results
+        except Exception as e:
+            error_msg = str(e)
+            if hasattr(e, 'read'):
+                try: error_msg += f" - Response: {e.read().decode('utf-8')}"
+                except: pass
+            results["resend"] = f"Error: {error_msg}"
+
+    # Try SMTP
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = email_config.SENDER_EMAIL
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body_html, 'html'))
+        
+        use_ssl = getattr(email_config, 'SMTP_USE_SSL', False)
+        if use_ssl:
+            import ssl
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(email_config.SMTP_SERVER, email_config.SMTP_PORT, context=context) as server:
+                server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
+                server.send_message(msg)
+        else:
             with smtplib.SMTP(email_config.SMTP_SERVER, email_config.SMTP_PORT) as server:
                 server.starttls()
                 server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
                 server.send_message(msg)
-            logger.info(f"Email sent successfully to {to_email}")
-        except Exception as e:
-            logger.error(f"Failed to send email to {to_email}: {str(e)}")
-            print(f"\n[DEBUG EMAIL - ATTEMPT FAILED]\nError: {str(e)}\nTo: {to_email}\nSubject: {subject}\n")
+        results["smtp"] = "Success"
+        results["success"] = True
+    except Exception as e:
+        results["smtp"] = f"Error: {str(e)}"
+        
+    return results
 
-    threading.Thread(target=send_task).start()
+
+
 
 # Validation functions
 def validate_email(email):
@@ -731,6 +858,58 @@ def verify_otp():
         db.rollback()
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/auth/resend-otp', methods=['POST'])
+def resend_otp():
+    data = request.json
+    username = data.get('username')
+    
+    if not username:
+        return jsonify({'error': 'Username is required'}), 400
+    
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+    
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    if user['status'] == 'active':
+        return jsonify({'error': 'Account is already active'}), 400
+    
+    try:
+        # Generate a new 6-digit OTP
+        otp = str(random.randint(100000, 999999))
+        otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
+        
+        db.execute('UPDATE users SET otp = ?, otp_expiry = ? WHERE id = ?', (otp, otp_expiry, user['id']))
+        db.commit()
+
+        # Send New OTP Email
+        resend_body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+                <h2 style="color: #8b0000; text-align: center;">New Verification Code</h2>
+                <p>Hello {user['name']},</p>
+                <p>You requested a new verification code for your Smart Bank account.</p>
+                <div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+                    <p style="margin: 0; font-size: 14px; color: #4b5563;">Your New Verification Code:</p>
+                    <h1 style="margin: 10px 0; font-size: 32px; color: #8b0000; letter-spacing: 5px;">{otp}</h1>
+                    <p style="margin: 0; font-size: 12px; color: #6b7280;">Valid for 10 minutes</p>
+                </div>
+                <p>If you didn't request this, please ignore this email.</p>
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+                <p style="font-size: 11px; color: #9ca3af; text-align: center;">&copy; 2026 Smart Bank Corporation</p>
+            </div>
+        </body>
+        </html>
+        """
+        send_email_async(user['email'], "New Verification Code - Smart Bank", resend_body)
+
+        return jsonify({'success': True, 'message': 'New verification code sent!'}), 200
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.json
@@ -740,6 +919,7 @@ def login():
     face_descriptor = data.get('face_descriptor')
     
     db = get_db()
+    logger.info(f"Login attempt: user={username_input}, role={requested_role}")
     user = None
     role = requested_role
 
@@ -4640,4 +4820,31 @@ if __name__ == '__main__':
         
     print(f"Smart Bank API starting on http://0.0.0.0:5000")
     app.run(debug=True, host='0.0.0.0', port=5000)
-
+@app.route('/api/admin/test-email', methods=['POST'])
+@role_required('admin')
+def admin_test_email():
+    """Diagnostic endpoint for admins to test email sending."""
+    try:
+        data = request.json
+        target_email = data.get('email', 'salmanchamumu@gmail.com')
+        subject = "Diagnostic Test Email - Smart Bank"
+        
+        from datetime import datetime
+        body = f"""
+        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 600px;">
+            <h2 style="color: #8b0000; text-align: center;">Smart Bank Diagnostic</h2>
+            <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
+                <p style="color: #065f46; margin: 0;"><strong>Success!</strong> Your email configuration is working.</p>
+            </div>
+            <p>This is a test email triggered from the Admin Dashboard on <strong>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</strong>.</p>
+            <p>If you are seeing this, your email configuration (Resend or SMTP) is <strong>correctly delivering messages</strong> to your inbox.</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="font-size: 12px; color: #9ca3af; text-align: center;">Server ID: {os.environ.get('RAILWAY_STATIC_URL', 'Local')} | {datetime.now().isoformat()}</p>
+        </div>
+        """
+        
+        results = send_email_diagnostic(target_email, subject, body)
+        return jsonify(results)
+    except Exception as e:
+        logger.error(f"Test email endpoint error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500

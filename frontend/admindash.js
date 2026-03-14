@@ -1066,13 +1066,71 @@ async function confirmPromotion() {
         if (response.ok) {
             showToast(data.message || `Staff member successfully promoted to ${newRole}.`, 'success');
             closePromoteModal();
-            loadStaffPage();
-        } else {
-            showToast('Error: ' + (data.error || 'Failed to promote staff member.'), 'error');
         }
     } catch (e) {
         console.error('Error promoting staff:', e);
         showToast('A network error occurred while trying to promote the staff member.', 'error');
+    }
+}
+
+async function testEmail() {
+    const btn = document.getElementById('testEmailBtn');
+    const resultDiv = document.getElementById('emailTestResults');
+    const email = document.getElementById('diagEmailTarget').value;
+    
+    if (!email) return showToast('Please enter a target email', 'error');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+    resultDiv.style.display = 'block';
+    resultDiv.style.background = '#f1f5f9';
+    resultDiv.style.border = '1px solid #e2e8f0';
+    resultDiv.style.color = '#334155';
+    resultDiv.textContent = 'Initializing diagnostic test...\nContacting backend...';
+    
+    try {
+        const response = await fetch(API + '/admin/test-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email })
+        });
+        
+        const res = await response.json();
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Test Email';
+        
+        let report = '=== EMAIL DIAGNOSTIC REPORT ===\n';
+        report += `Time: ${new Date().toLocaleString()}\n`;
+        report += `Success: ${res.success ? '✅ YES' : '❌ NO'}\n\n`;
+        
+        if (res.config) report += `Config: ${res.config}\n`;
+        if (res.resend) report += `Resend API: ${res.resend}\n`;
+        if (res.smtp) report += `SMTP: ${res.smtp}\n`;
+        if (res.error) report += `Error: ${res.error}\n`;
+        
+        resultDiv.textContent = report;
+        
+        if (res.success) {
+            resultDiv.style.background = '#f0fdf4';
+            resultDiv.style.border = '1px solid #bbfcbd';
+            resultDiv.style.color = '#166534';
+            showToast('Test email sent successfully!', 'success');
+        } else {
+            resultDiv.style.background = '#fef2f2';
+            resultDiv.style.border = '1px solid #fecaca';
+            resultDiv.style.color = '#991b1b';
+            showToast('Email test failed. See report below.', 'error');
+        }
+        
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Test Email';
+        resultDiv.textContent = `CRITICAL ERROR:\n${e.message}\n\nCheck if the server is running and the /api/admin/test-email endpoint is correctly deployed.`;
+        resultDiv.style.background = '#fff7ed';
+        resultDiv.style.border = '1px solid #ffedd5';
+        resultDiv.style.color = '#9a3412';
     }
 }
 
@@ -2218,6 +2276,33 @@ function renderSettingsForm(settings) {
                         <div id="faceAuthStatusContainer" style="display: flex; align-items: center; gap: 12px;">
                             <span id="faceStatusText" style="padding: 6px 12px; background: #e5e7eb; color: #374151; border-radius: 20px; font-size: 12px; font-weight: bold;">Checking...</span>
                             <div id="faceActionButtons"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Diagnostics Card -->
+                <div class="form-group" style="grid-column: span 2; margin-top: 12px;">
+                    <div style="padding: 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                            <div>
+                                <h4 style="margin: 0; color: #1e293b; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-envelope-open-text" style="color: #8b0000;"></i> Email Diagnostics
+                                </h4>
+                                <p style="margin: 4px 0 0; font-size: 13px; color: #64748b;">Verify your SMTP or Resend API settings on Railway.</p>
+                            </div>
+                            <button type="button" onclick="testEmail()" id="testEmailBtn" 
+                                style="padding: 10px 18px; background: #8b0000; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+                                <i class="fas fa-paper-plane"></i> Send Test Email
+                            </button>
+                        </div>
+                        
+                        <div id="emailTestTarget" style="margin-bottom: 16px;">
+                            <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Target Email Address</label>
+                            <input type="email" id="diagEmailTarget" value="salmanchamumu@gmail.com" 
+                                style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;">
+                        </div>
+
+                        <div id="emailTestResults" style="display: none; padding: 16px; border-radius: 8px; font-size: 13px; font-family: monospace; white-space: pre-wrap; line-height: 1.5; border: 1px solid transparent;">
                         </div>
                     </div>
                 </div>

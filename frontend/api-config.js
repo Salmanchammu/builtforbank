@@ -135,10 +135,12 @@ window.fetch = async function (url, options) {
                 : 'user.html';
             
             // Guard: Only redirect if not already on a login/public page to avoid refresh loops
-            const publicPages = ['user.html', 'signup.html', 'forgot-password.html', 'mobile-auth.html', 'mobile-signup.html', 'mobile-forgot-password.html', 'index.html'];
-            const isOnPublicPage = publicPages.some(page => window.location.pathname.includes(page));
+            const publicPages = ['user.html', 'signup.html', 'forgot-password.html', 'mobile-auth.html', 'mobile-signin.html', 'mobile-forgot-password.html', 'index.html', 'reset-password.html'];
+            const currentPath = window.location.pathname.toLowerCase();
+            const isOnPublicPage = publicPages.some(page => currentPath.endsWith(page.toLowerCase()) || currentPath.includes('/' + page.toLowerCase()));
             
             if (!isOnPublicPage) {
+                console.warn('[API Config] Unauthorized access detected, redirecting to:', loginUrl);
                 window.location.href = loginUrl;
             }
         }

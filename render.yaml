@@ -3,12 +3,14 @@ services:
     name: smart-bank-v2
     runtime: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn render_app:app"
+    startCommand: "gunicorn render_app:app --workers 1 --timeout 120"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: FLASK_ENV
         value: production
+      - key: RENDER
+        value: "true"
     disk:
       name: smart-bank-data
       mountPath: /opt/render/project/src/storage

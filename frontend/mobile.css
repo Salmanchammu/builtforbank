@@ -130,7 +130,7 @@ body {
     flex: 1;
     overflow-y: auto;
     min-height: 0;
-    padding-bottom: 120px; /* Increased space for bottom nav and center button */
+    padding-bottom: 140px; /* Increased space for bottom nav and center button */
 }
 
 .page-content.active {
@@ -403,6 +403,16 @@ body {
     to {
         transform: translateY(0);
     }
+}
+
+@keyframes toastIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes toastOut {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(-20px); opacity: 0; }
 }
 
 .animate-fade-in {

@@ -13,6 +13,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (page === 'mobile-auth.html') {
         checkAndShowPasscodeLogin();
+        // Silently ping the server so Render's free tier starts waking up
+        // before the user finishes typing their credentials.
+        fetch(`${window.API}/health`, { method: 'GET', credentials: 'include' }).catch(() => {});
     } else if (page === 'mobile-dash.html') {
         const ok = await checkAuth();
         if (!ok) {
@@ -34,7 +37,7 @@ async function checkAuth() {
         const r = await fetch(`${API}/auth/check`, { credentials: 'include' });
         if (r.ok) {
             const d = await r.json();
-            if (d.authenticated && d.user.role === 'user') {
+            if (d.authenticated && d.user) {
                 window.currentUser = d.user;
                 return true;
             }
@@ -53,31 +56,61 @@ async function handleLogin(e) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
 
+    // Render free-tier servers can take 30-60 s to cold-start.
+    // We wait 55 s total and show a friendly message after 5 s.
+    const TIMEOUT_MS = 55000;
+    const WAKEUP_MSG_DELAY = 5000;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+    // Show "waking up" hint after a short delay so users don't panic
+    const wakeupHintId = setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Server waking up…';
+    }, WAKEUP_MSG_DELAY);
+
     try {
+        const deviceType = window.SmartBankDeviceDetector ? window.SmartBankDeviceDetector.getDeviceType() : 'mobile';
+        console.log(`[Login] Attempting login for ${username} on ${deviceType}...`);
+        
         const r = await fetch(`${API}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ username, password, role })
+            signal: controller.signal,
+            body: JSON.stringify({ username, password, role, device_type: deviceType })
         });
+        
+        clearTimeout(timeoutId);
+        clearTimeout(wakeupHintId);
+        console.log(`[Login] Status: ${r.status}`);
+        
         const d = await r.json();
         if (r.ok) {
-            // Save user basic info for passcode association
+            console.log('[Login] Success! Redirecting...');
+            btn.innerHTML = '<i class="fas fa-check"></i> Success!';
             localStorage.setItem('bank_mobile_user_info', JSON.stringify({
                 username: d.user.username,
                 name: d.user.name,
                 id: d.user.id,
-                role: 'user'
+                role: d.user.role
             }));
             window.location.href = 'mobile-dash.html';
         } else {
             showMobileToast(d.error || 'Login failed', 'error');
         }
     } catch (err) {
-        showMobileToast('Server connection error', 'error');
+        clearTimeout(timeoutId);
+        clearTimeout(wakeupHintId);
+        console.error('Login Error:', err);
+        if (err.name === 'AbortError') {
+            showMobileToast('Server took too long to respond. Please try again.', 'error');
+        } else {
+            showMobileToast('Server connection error. Please check your internet.', 'error');
+        }
     } finally {
         btn.disabled = false;
-        btn.innerHTML = 'Login';
+        btn.innerHTML = 'Login Securely';
     }
 }
 
@@ -1775,24 +1808,105 @@ async function handleMobileSignup(e) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
 
     try {
+        const deviceType = window.SmartBankDeviceDetector ? window.SmartBankDeviceDetector.getDeviceType() : 'mobile';
         const r = await fetch(`${API}/auth/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ name, email, username, password })
+            body: JSON.stringify({ name, email, username, password, device_type: deviceType })
         });
         const d = await r.json();
         if (r.ok) {
-            alert('Account created successfully! Please login.');
-            window.location.href = 'mobile-auth.html';
+            window._tempSignupUsername = username; // Store for OTP verification
+            showMobileToast('Account created! Please verify your email. 📧', 'success');
+            
+            // Show OTP Modal
+            const modal = document.getElementById('otpModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                // Hide signup form container
+                document.querySelector('.auth-container').style.display = 'none';
+            }
         } else {
-            alert(d.error || 'Signup failed');
+            showMobileToast(d.error || 'Signup failed', 'error');
         }
     } catch (err) {
-        alert('Server connection error');
+        console.error('Signup Error:', err);
+        showMobileToast('Server connection error', 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = 'Create Account';
+    }
+}
+
+function moveOtpFocus(current, nextId) {
+    if (current.value.length === 1) {
+        const next = document.getElementById(nextId);
+        if (next) next.focus();
+    }
+}
+
+async function handleMobileVerifyOtp() {
+    const username = window._tempSignupUsername;
+    if (!username) return showMobileToast('Session expired. Please signup again.', 'error');
+
+    let otp = '';
+    for (let i = 1; i <= 6; i++) {
+        const val = document.getElementById(`otp_${i}`).value;
+        if (!val) return showMobileToast('Please enter full 6-digit code', 'warning');
+        otp += val;
+    }
+
+    const btn = document.getElementById('btnVerifyOtp');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Activating...';
+
+    try {
+        const r = await fetch(`${API}/auth/verify-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ username, otp })
+        });
+        const d = await r.json();
+        if (r.ok) {
+            showMobileToast('Account activated! You can now login. ✅', 'success');
+            setTimeout(() => { window.location.href = 'mobile-auth.html'; }, 2000);
+        } else {
+            showMobileToast(d.error || 'Verification failed', 'error');
+        }
+    } catch (e) {
+        showMobileToast('Connection error during verification', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'CONFIRM & ACTIVATE <i class="fas fa-arrow-right"></i>';
+    }
+}
+
+async function handleMobileResendOtp() {
+    const username = window._tempSignupUsername;
+    if (!username) return showMobileToast('Session expired. Please signup again.', 'error');
+
+    try {
+        const r = await fetch(`${API}/auth/resend-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ username })
+        });
+        const d = await r.json();
+        if (r.ok) {
+            showMobileToast('New verification code sent! 📧', 'success');
+            // Clear inputs
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`otp_${i}`).value = '';
+            }
+            document.getElementById('otp_1').focus();
+        } else {
+            showMobileToast(d.error || 'Resend failed', 'error');
+        }
+    } catch (e) {
+        showMobileToast('Connection error during resend', 'error');
     }
 }
 
@@ -2201,7 +2315,91 @@ function initSecurityHandlers() {
     document.addEventListener('keyup', e => {
         if (e.key === 'PrintScreen' || e.keyCode === 44) {
             triggerFlash();
-            if (typeof showMobileToast === 'function') showMobileToast('Screenshot blocked', 'error');
+            showMobileToast('Screenshot blocked', 'error');
         }
     });
 }
+
+/**
+ * Premium Mobile Toast Notifications
+ */
+function showMobileToast(message, type = 'info') {
+    let container = document.getElementById('mobileToastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'mobileToastContainer';
+        container.style.cssText = `
+            position: fixed;
+            top: 40px;
+            left: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        `;
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `mobile-toast ${type}`;
+    
+    // Icon mapping
+    const icons = {
+        'success': 'fa-check-circle',
+        'error': 'fa-exclamation-circle',
+        'info': 'fa-info-circle',
+        'warning': 'fa-exclamation-triangle'
+    };
+    
+    const icon = icons[type] || icons.info;
+    const colors = {
+        'success': '#10b981',
+        'error': '#ef4444',
+        'info': '#3b82f6',
+        'warning': '#f59e0b'
+    };
+    const color = colors[type] || colors.info;
+
+    toast.style.cssText = `
+        background: white;
+        color: #1a1a1a;
+        padding: 16px 20px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        border-right: 5px solid ${color};
+        animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        pointer-events: auto;
+    `;
+
+    toast.innerHTML = `
+        <i class="fas ${icon}" style="color: ${color}; font-size: 18px;"></i>
+        <div style="flex: 1;">${message}</div>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto-remove
+    setTimeout(() => {
+        toast.style.animation = 'toastOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        setTimeout(() => toast.remove(), 400);
+    }, 4000);
+}
+
+// Global Error Handler for Mobile
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error('Global Error:', message, error);
+    if (typeof showMobileToast === 'function') {
+        // Only show toast for actual script errors, not network ones (handled by fetch interceptor)
+        if (!message.includes('Script error.') && !message.includes('fetch')) {
+            showMobileToast('A system error occurred. Reverting to safe state.', 'error');
+        }
+    }
+    return false;
+};

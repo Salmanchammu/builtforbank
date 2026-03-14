@@ -119,9 +119,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const resendLink = document.getElementById('resendOtp');
     if (resendLink) {
-        resendLink.addEventListener('click', (e) => {
+        resendLink.addEventListener('click', async (e) => {
             e.preventDefault();
-            showToast('A new code has been sent to your email (Mock)', 'info');
+            const username = document.getElementById('otpUsername').value;
+            if (!username) return showToast('Session expired. Please signup again.', 'error');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/resend-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showToast('A new verification code has been sent to your email! 📧', 'success');
+                } else {
+                    showToast(data.error || 'Failed to resend code.', 'error');
+                }
+            } catch (error) {
+                showToast('Network error. Please try again.', 'error');
+            }
         });
     }
 });
