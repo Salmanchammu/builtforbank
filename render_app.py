@@ -14,23 +14,26 @@ if backend_dir not in sys.path:
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
-print(f"Deployment Boot: Root={root_dir}, Backend={backend_dir}")
-print(f"Current Sys Path: {sys.path[:3]}") # Debug top 3 paths
+import traceback
 
-# Now we can import from the backend folder
+print(f"Deployment Boot: Root={root_dir}, Backend={backend_dir}")
+print(f"Working Directory: {os.getcwd()}")
+
+# Now we can import from the backend folder using absolute package path
 try:
-    # We try both methods for maximum compatibility
+    print("Attempting primary import: from backend.app import app")
+    from backend.app import app, DATABASE, get_db
+    from backend.core.db import init_db, migrate_db
+except Exception as e:
+    print(f"Primary import failed, trying fallback: {e}")
     try:
+        print("Attempting fallback import: from app import app")
         from app import app, init_db, migrate_db, DATABASE, get_db
-    except ImportError:
-        from backend.app import app, init_db, migrate_db, DATABASE, get_db
-except ImportError as e:
-    print(f"❌ CRITICAL IMPORT ERROR: {e}")
-    print(f"Working Directory: {os.getcwd()}")
-    print(f"Files in root: {os.listdir(root_dir)}")
-    if os.path.exists(backend_dir):
-        print(f"Files in backend: {os.listdir(backend_dir)}")
-    sys.exit(1)
+    except Exception as e_fallback:
+        print("❌ CRITICAL: ALL IMPORT ATTEMPTS FAILED")
+        traceback.print_exc()
+        print(f"Detailed Path: {sys.path}")
+        sys.exit(1)
 
 from werkzeug.security import generate_password_hash
 
