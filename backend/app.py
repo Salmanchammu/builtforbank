@@ -156,6 +156,48 @@ if __name__ == '__main__':
     
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
+import json
+
+def load_smart_seed(db):
+    """Load data from smart_seed.json if it exists."""
+    # Look for seed file in the same directory as app.py
+    seed_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'smart_seed.json')
+    if not os.path.exists(seed_file):
+        return
+
+    print(f"✅ Production Boot: Loading data from {seed_file}...")
+    try:
+        with open(seed_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        for table, rows in data.items():
+            if not rows: continue
+            print(f"   - Seeding {len(rows)} rows into '{table}'...")
+            for row in rows:
+                cols = row.keys()
+                placeholders = ', '.join(['?'] * len(cols))
+                col_names = ', '.join(cols)
+                vals = [row[c] for c in cols]
+                
+                try:
+                    query = f"INSERT OR IGNORE INTO {table} ({col_names}) VALUES ({placeholders})"
+                    db.execute(query, vals)
+                except Exception:
+                    pass
+            db.commit()
+    except Exception as e:
+        print(f"⚠️ Error loading smart seed: {e}")
+
+if __name__ == '__main__':
+    from core.constants import DATABASE
+    with app.app_context():
+        if not os.path.exists(DATABASE):
+            init_db()
+        else:
+            migrate_db()
+    
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
 else:
     # Production Auto-Initialization (Render/Other Cloud)
     # This runs when imported by Gunicorn
@@ -170,8 +212,13 @@ else:
                 if not os.path.exists(DATABASE) or os.path.getsize(DATABASE) == 0:
                     print(f"✅ Production Boot: Initializing fresh database at {DATABASE}")
                     init_db()
+                    load_smart_seed(get_db())
+                    print("✅ Production Boot: Seeding completed.")
                 else:
                     print(f"✅ Production Boot: Verifying database migrations at {DATABASE}")
                     migrate_db()
+                    # Optional: Seed missing data even in existing DBs
+                    if os.environ.get('FORCE_RESEED', 'false').lower() == 'true':
+                        load_smart_seed(get_db())
         except Exception as e:
             print(f"⚠️ Production Boot Warning: Database initialization skipped/failed: {e}")
