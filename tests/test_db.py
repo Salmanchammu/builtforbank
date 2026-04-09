@@ -1,5 +1,7 @@
 import sqlite3
-db = sqlite3.connect('database/smart_bank.db')
+import os
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'database', 'smartbank.db')
+db = sqlite3.connect(DB_PATH)
 db.row_factory = sqlite3.Row
 try:
     print("Users count:", db.execute('SELECT COUNT(*) FROM users').fetchone()[0])

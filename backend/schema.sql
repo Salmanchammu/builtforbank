@@ -1,20 +1,11 @@
 -- Smart Bank Database Schema with Face Authentication
 -- SQLite Database
 
--- Drop existing tables if they exist
-DROP TABLE IF EXISTS system_audit;
-DROP TABLE IF EXISTS chat_history;
-DROP TABLE IF EXISTS card_requests;
-DROP TABLE IF EXISTS transactions;
-DROP TABLE IF EXISTS cards;
-DROP TABLE IF EXISTS loans;
-DROP TABLE IF EXISTS accounts;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS staff;
-DROP TABLE IF EXISTS admins;
+-- Smart Bank Database Schema
+-- SQLite Database
 
--- Users table (NO face authentication for users)
-CREATE TABLE users (
+-- Core Tables (Using IF NOT EXISTS for resilience)
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -40,7 +31,7 @@ CREATE TABLE users (
 );
 
 -- Staff table (WITH face authentication)
-CREATE TABLE staff (
+CREATE TABLE IF NOT EXISTS staff (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     staff_id VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -58,7 +49,7 @@ CREATE TABLE staff (
 );
 
 -- Admins table (WITH face authentication)
-CREATE TABLE admins (
+CREATE TABLE IF NOT EXISTS admins (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -73,7 +64,7 @@ CREATE TABLE admins (
 );
 
 -- System Audit table
-CREATE TABLE system_audit (
+CREATE TABLE IF NOT EXISTS system_audit (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER, -- Admin or Staff ID
     user_type VARCHAR(20), -- 'admin' or 'staff'
@@ -84,7 +75,7 @@ CREATE TABLE system_audit (
 );
 
 -- Accounts table
-CREATE TABLE accounts (
+CREATE TABLE IF NOT EXISTS accounts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     account_number VARCHAR(20) UNIQUE NOT NULL,
@@ -96,13 +87,14 @@ CREATE TABLE accounts (
     ifsc VARCHAR(20) DEFAULT 'SMTB0000001',
     branch VARCHAR(100) DEFAULT 'Main Branch',
     tax_id VARCHAR(50),
+    daily_limit DECIMAL(15, 2) DEFAULT 200000.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Transactions table
-CREATE TABLE transactions (
+CREATE TABLE IF NOT EXISTS transactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     account_id INTEGER NOT NULL,
     type VARCHAR(20) NOT NULL,
@@ -118,7 +110,7 @@ CREATE TABLE transactions (
 );
 
 -- Cards table
-CREATE TABLE cards (
+CREATE TABLE IF NOT EXISTS cards (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     account_id INTEGER,
@@ -136,7 +128,7 @@ CREATE TABLE cards (
 );
 
 -- Card Requests table
-CREATE TABLE card_requests (
+CREATE TABLE IF NOT EXISTS card_requests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     account_id INTEGER,
@@ -154,7 +146,7 @@ CREATE TABLE card_requests (
 );
 
 -- Account Requests table
-CREATE TABLE account_requests (
+CREATE TABLE IF NOT EXISTS account_requests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     account_type VARCHAR(50) NOT NULL,
@@ -171,7 +163,7 @@ CREATE TABLE account_requests (
 );
 
 -- Loans table
-CREATE TABLE loans (
+CREATE TABLE IF NOT EXISTS loans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     loan_type VARCHAR(50) NOT NULL,
@@ -195,7 +187,7 @@ CREATE TABLE loans (
 );
 
 -- System Finances table for Liquidity Fund
-CREATE TABLE system_finances (
+CREATE TABLE IF NOT EXISTS system_finances (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     fund_name VARCHAR(100) UNIQUE NOT NULL,
     balance DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
@@ -203,7 +195,7 @@ CREATE TABLE system_finances (
 );
 
 -- Chat History table
-CREATE TABLE chat_history (
+CREATE TABLE IF NOT EXISTS chat_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     message TEXT NOT NULL,
@@ -214,7 +206,7 @@ CREATE TABLE chat_history (
 );
 
 -- Support Tickets table
-CREATE TABLE support_tickets (
+CREATE TABLE IF NOT EXISTS support_tickets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     subject VARCHAR(200) NOT NULL,
@@ -226,6 +218,17 @@ CREATE TABLE support_tickets (
     resolved_by INTEGER,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (resolved_by) REFERENCES staff(id) ON DELETE SET NULL
+);
+
+-- Support Messages table for real-time chat
+CREATE TABLE IF NOT EXISTS support_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticket_id INTEGER NOT NULL,
+    sender_id INTEGER NOT NULL,
+    sender_type TEXT NOT NULL, -- 'user', 'staff', or 'admin'
+    message TEXT NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE
 );
 
 -- Create indexes for better performance
@@ -243,7 +246,7 @@ CREATE INDEX idx_support_user ON support_tickets(user_id);
 CREATE INDEX idx_support_status ON support_tickets(status);
 
 -- Notifications table
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS notifications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     sender_id INTEGER,
@@ -259,7 +262,7 @@ CREATE INDEX idx_notifications_user ON notifications(user_id);
 CREATE INDEX idx_notifications_unread ON notifications(is_read);
 
 -- Attendance table
-CREATE TABLE attendance (
+CREATE TABLE IF NOT EXISTS attendance (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     staff_id INTEGER NOT NULL,
     date DATE NOT NULL,
@@ -306,4 +309,37 @@ CREATE TABLE IF NOT EXISTS service_applications (
     aadhaar_number VARCHAR(20),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL
+);
+
+-- Agriculture Loans table
+CREATE TABLE IF NOT EXISTS agriculture_loans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    farm_coordinates VARCHAR(100) NOT NULL,
+    land_size_acres DECIMAL(10, 2) NOT NULL,
+    crop_type VARCHAR(100) NOT NULL,
+    requested_amount DECIMAL(15, 2) NOT NULL,
+    ai_health_score INTEGER,
+    ai_recommendation VARCHAR(50),
+    soil_moisture DECIMAL(5, 2),
+    status VARCHAR(20) DEFAULT 'pending',
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP,
+    processed_by INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (processed_by) REFERENCES staff(id) ON DELETE SET NULL
+);
+
+-- Bank Branches and ATMs table
+CREATE TABLE IF NOT EXISTS bank_locations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(150) NOT NULL,
+    type VARCHAR(50) NOT NULL, -- 'branch' or 'atm'
+    address TEXT,
+    city VARCHAR(100),
+    lat DECIMAL(10, 6) NOT NULL,
+    lng DECIMAL(10, 6) NOT NULL,
+    status VARCHAR(20) DEFAULT 'active',
+    photo_url VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

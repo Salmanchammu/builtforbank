@@ -42,4 +42,4 @@ if _RESEND_KEY and any(dom in RESEND_FROM.lower() for dom in ['@gmail.com', '@ya
         # Fallback to onboarding if it's a known public domain (Resend requirement)
         RESEND_FROM = "Smart Bank <onboarding@resend.dev>"
 
-print(f"📧 Email Config: Resend Sender set to '{RESEND_FROM}'")
+print(f"Email Config: Resend Sender set to '{RESEND_FROM}'")

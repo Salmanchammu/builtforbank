@@ -5,11 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Bank - Sign Up</title>
+    <link rel="stylesheet" href="css/premium-ui.css">
+    <script src="js/premium-ui.js"></script>
     <!-- Modern Premium Authentication CSS -->
-    <link rel="stylesheet" href="modern-auth.css">
+    <link rel="stylesheet" href="css/modern-auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Device Detector -->
-    <script src="device-detector.js" data-auto-redirect></script>
+    <script src="js/device-detector.js" data-auto-redirect></script>
 </head>
 
 <body>
@@ -23,7 +25,7 @@
                 <div class="auth-tabs">
                     <a href="user.html" class="auth-tab">Sign In</a>
                     <a href="signup.html" class="auth-tab active">Sign Up</a>
-                    <a href="forgot-password.html" class="auth-tab">Password recovery</a>
+                    <a href="forgot-password.html" class="auth-tab">Recovery</a>
                 </div>
 
                 <div class="form-container">
@@ -88,8 +90,7 @@
                             </label>
                         </div>
 
-                        <!-- Interactive reCAPTCHA Mock -->
-                        <div class="recaptcha-mock"></div>
+                        
 
                         <button type="submit" class="btn-primary">
                             Create Account
@@ -100,8 +101,9 @@
                         <span>OR</span>
                     </div>
 
-                    <div class="additional-links">
+                    <div class="additional-links" style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
                         <a href="staff.html" class="link-secondary"><i class="fas fa-user-tie"></i> Staff Portal</a>
+                        <a href="agri-buyer-login.html" class="link-secondary" style="color:#10b981"><i class="fas fa-leaf"></i> Retail Agri Login</a>
                     </div>
                 </div>
             </div>
@@ -183,10 +185,12 @@
         <div class="toast" id="toast"></div>
 
         <!-- Scripts -->
-        <script src="auth-helper.js"></script>
-        <script src="api-config.js"></script>
-        <script src="signup.js"></script>
+        <script src="js/auth-helper.js"></script>
+        <script src="js/api-config.js"></script>
+        <script src="js/signup.js"></script>
     </div>
+    <!-- Language Switcher -->
+    <script src="js/language-switcher.js"></script>
 </body>
 
 </html>

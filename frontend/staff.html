@@ -5,8 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Bank - Staff/Admin Login</title>
-    <link rel="stylesheet" href="modern-auth.css">
-    <link rel="stylesheet" href="face-auth-fixed.css">
+    <link rel="stylesheet" href="css/premium-ui.css">
+    <script src="js/premium-ui.js"></script>
+    <link rel="stylesheet" href="css/modern-auth.css">
+    <link rel="stylesheet" href="css/face-auth-fixed.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -19,19 +21,16 @@
 
                 <!-- Tabbed Header (Acting as Role Toggle) -->
                 <div class="auth-tabs">
-                    <button type="button" class="auth-tab active" onclick="selectRole('staff')" id="staffRoleBtn"
-                        style="border-radius: 20px 0 0 0;">Staff Login</button>
-                    <button type="button" class="auth-tab" onclick="selectRole('admin')" id="adminRoleBtn"
-                        style="border-radius: 0 20px 0 0;">Admin Login</button>
+                    <button type="button" class="auth-tab active" onclick="selectRole('staff')" id="staffRoleBtn">Staff Login</button>
+                    <button type="button" class="auth-tab" onclick="selectRole('admin')" id="adminRoleBtn">Admin Login</button>
                 </div>
 
                 <div class="form-container">
                     <!-- Logo & Greeting -->
                     <div class="logo-section">
                         <div class="logo-icon">
-                            <i class="fas fa-landmark" style="margin-right: 10px; font-size: 28px; vertical-align: middle;"></i>
-                            <span style="color: var(--text-primary);">SMART</span> <span
-                                style="color: #8E2020;">BANKING</span>
+                            <i class="fas fa-university"></i>
+                            <span>SMART <span style="color: #8E2020;">BANKING</span></span>
                         </div>
                         <h2 class="page-title">Management Portal</h2>
                     </div>
@@ -63,16 +62,15 @@
                             </label>
                         </div>
 
-                        <!-- Interactive reCAPTCHA Mock (Staff) -->
-                        <div class="recaptcha-mock"></div>
-
                         <button type="submit" class="btn-primary">
                             Sign In as Staff
                         </button>
 
                         <button type="button" onclick="faceAuthManager.openLoginModal('staff')" class="btn-face-login">
-                            <img src="face-scan-icon.png" class="face-scan-img" alt="Face Scan"
-                                style="height: 20px; width: auto; filter: grayscale(1);"> Face Login
+                            <span class="face-icon-box">
+                                <div class="user-icon-simple"></div>
+                            </span>
+                            <span class="btn-text">Secure Face Login</span>
                         </button>
                     </form>
 
@@ -103,16 +101,15 @@
                             </label>
                         </div>
 
-                        <!-- Interactive reCAPTCHA Mock (Admin) -->
-                        <div class="recaptcha-mock"></div>
-
                         <button type="submit" class="btn-primary">
                             Sign In as Admin
                         </button>
 
                         <button type="button" onclick="faceAuthManager.openLoginModal('admin')" class="btn-face-login">
-                            <img src="face-scan-icon.png" class="face-scan-img" alt="Face Scan"
-                                style="height: 20px; width: auto; filter: grayscale(1);"> Face Login
+                            <span class="face-icon-box">
+                                <div class="user-icon-simple"></div>
+                            </span>
+                            <span class="btn-text">Secure Face Login</span>
                         </button>
                     </form>
 
@@ -120,8 +117,11 @@
                         <span>OR</span>
                     </div>
 
-                    <div class="additional-links">
+                    <div class="additional-links"
+                        style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
                         <a href="user.html" class="link-secondary"><i class="fas fa-user"></i> User Login</a>
+                        <a href="agri-buyer-login.html" class="link-secondary" style="color:#10b981"><i
+                                class="fas fa-leaf"></i> Retail Agri Login</a>
                     </div>
                 </div>
             </div>
@@ -172,12 +172,15 @@
     <div class="toast" id="toast"></div>
 
     <!-- Scripts -->
-    <script src="face-auth-fixed.js"></script>
-    <script src="device-detector.js"></script>
-    <script src="auth-helper.js"></script>
-    <script src="api-config.js"></script>
-    <script src="staff-auth.js"></script>
+    <script src="js/api-config.js"></script>
+    <script src="js/device-detector.js"></script>
+    <script src="js/auth-helper.js"></script>
+    <script src="js/face-api.min.js"></script>
+    <script src="js/face-auth-fixed.js"></script>
+    <script src="js/staff-auth.js"></script>
     <script>
+        // FaceAuthManager is already initialized by face-auth-fixed.js
+
         // Role selection
         function selectRole(role) {
             const staffBtn = document.getElementById('staffRoleBtn');
@@ -223,6 +226,8 @@
             }
         }
     </script>
+    <!-- Language Switcher -->
+    <script src="js/language-switcher.js"></script>
 </body>
 
 </html>

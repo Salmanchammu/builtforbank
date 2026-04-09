@@ -2,13 +2,21 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Smart Bank - Staff Dashboard</title>
-    <link rel="stylesheet" href="modern-dashboard.css">
-    <link rel="stylesheet" href="staffdash.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="face-auth-fixed.css">
+    <link rel="stylesheet" href="css/premium-ui.css">
+    <link href="css/modern-dashboard.css?v=3" rel="stylesheet"/>
+    <link href="css/staffdash.css?v=3" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+    <link href="css/face-auth-fixed.css" rel="stylesheet"/>
+    <!-- Leaflet Map -->
+    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- MapLibre for 3D Map -->
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 </head>
 
 <body>
@@ -76,6 +84,31 @@
                 <a href="#" class="nav-item" data-page="supportdesk">
                     <i class="fas fa-headset"></i>
                     <span>Support Desk</span>
+                </a>
+
+                <p class="menu-label">Agriculture</p>
+                <a href="#" class="nav-item" data-page="agrihub">
+                    <i class="fas fa-tractor"></i>
+                    <span>Agri Hub</span>
+                </a>
+                <a href="#" class="nav-item" data-page="agriaccounts">
+                    <i class="fas fa-tractor"></i>
+                    <span>Agri Approvals</span>
+                    <span class="badge" id="agriAccountsBadge" style="background:#800000; color:#fff; display:none;">0</span>
+                </a>
+                <a href="#" class="nav-item" data-page="agriloans">
+                    <i class="fas fa-leaf"></i>
+                    <span>Agri Loans</span>
+                    <span class="badge" id="agriLoanBadge" style="background:#800000; color:#fff; display:none;">0</span>
+                </a>
+                <a href="#" class="nav-item" data-page="agribuyers">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span>Retail Agri Buyers</span>
+                    <span class="badge" id="agriBuyersBadge" style="background:#800000; color:#fff; display:none;">0</span>
+                </a>
+                <a href="#" class="nav-item" data-page="map">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Live Map</span>
                 </a>
 
                 <p class="menu-label">Others</p>
@@ -213,7 +246,7 @@
                         </div>
                         <div class="stat-content">
                             <div class="stat-value-group">
-                                <div class="stat-value" id="statBalance">₹5,70,000</div>
+                                <div class="stat-value" id="statBalance">?5,70,000</div>
                             </div>
                         </div>
                     </div>
@@ -224,7 +257,7 @@
                         </div>
                         <div class="stat-content">
                             <div class="stat-value-group">
-                                <div class="stat-value" id="statLiquidityFund">₹10L</div>
+                                <div class="stat-value" id="statLiquidityFund">?10L</div>
                                 <div class="stat-text-group">
                                     <div class="stat-label">Loan Liquidity<br>Fund</div>
                                 </div>
@@ -250,6 +283,32 @@
                             <h3 class="card-title">Pending Loan Requests</h3>
                         </div>
                         <div id="pendingLoans"></div>
+                    </div>
+                </div>
+
+                <!-- Branches & ATMs -->
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #800000;"></i>Manage Branches & ATMs</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddLocationModal()">
+                            <i class="fas fa-plus"></i> Add Location
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border-color); text-align: left; background: var(--bg-light); color: var(--text-secondary);">
+                                    <th style="padding: 12px;">Name</th>
+                                    <th style="padding: 12px;">Type</th>
+                                    <th style="padding: 12px;">City</th>
+                                    <th style="padding: 12px;">Coordinates</th>
+                                    <th style="padding: 12px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="locationsTable">
+                                <!-- Locations will be loaded here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -336,7 +395,7 @@
                                             </div>
                                         </div>
                                         <div class="tx-input-group">
-                                            <label>Amount (₹)</label>
+                                            <label>Amount (?)</label>
                                             <div class="tx-input-wrapper">
                                                 <i class="fas fa-indian-rupee-sign"></i>
                                                 <input type="number" step="0.01" id="addAmount"
@@ -367,7 +426,7 @@
                                             </div>
                                         </div>
                                         <div class="tx-input-group">
-                                            <label>Amount (₹)</label>
+                                            <label>Amount (?)</label>
                                             <div class="tx-input-wrapper">
                                                 <i class="fas fa-indian-rupee-sign"></i>
                                                 <input type="number" step="0.01" id="withdrawAmount"
@@ -406,7 +465,7 @@
                                             </div>
                                         </div>
                                         <div class="tx-input-group" style="margin-bottom: 24px;">
-                                            <label>Amount (₹)</label>
+                                            <label>Amount (?)</label>
                                             <div class="tx-input-wrapper">
                                                 <i class="fas fa-indian-rupee-sign"></i>
                                                 <input type="number" step="0.01" id="transferAmount"
@@ -475,7 +534,7 @@
                         </div>
                         <div class="stat-content">
                             <div class="stat-value-group">
-                                <div class="stat-value" id="sLiqFundBalance">—</div>
+                                <div class="stat-value" id="sLiqFundBalance"></div>
                                 <div class="stat-text-group">
                                     <div class="stat-label">Fund Balance</div>
                                 </div>
@@ -765,8 +824,20 @@
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+        
+            <!-- UPI Management Page -->
+            <div id="upi-management" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-mobile-alt" style="color:#10b981;margin-right:8px;"></i>UPI Management</h3>
+                    </div>
+                    <div id="upiUsersList" style="padding: 16px;">
+                        <p style="text-align:center;padding:2rem;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading UPI data...</p>
+                    </div>
+                </div>
+            </div>
+
+
 
     <!-- User Activity Modal -->
     <div id="userActivityModal" class="modal"
@@ -936,17 +1007,58 @@
                                 style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; outline: none; transition: border-color 0.2s;"
                                 onfocus="this.style.borderColor='#a52a2a'" onblur="this.style.borderColor='#e5e7eb'">
                         </div>
-                        <div style="grid-column: span 2;">
+                        <div>
+                            <label
+                                style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">
+                                <i class="fas fa-calendar" style="margin-right: 5px; color: #a52a2a;"></i>Date of Birth
+                            </label>
+                            <input type="date" id="editCustomerDob" class="form-control"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; outline: none; transition: border-color 0.2s;"
+                                onfocus="this.style.borderColor='#a52a2a'" onblur="this.style.borderColor='#e5e7eb'">
+                        </div>
+                        <div>
+                            <label
+                                style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">
+                                <i class="fas fa-id-card" style="margin-right: 5px; color: #a52a2a;"></i>Aadhaar Number
+                            </label>
+                            <input type="text" id="editCustomerAadhaar" placeholder="12-digit Aadhaar" class="form-control"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; outline: none; transition: border-color 0.2s;"
+                                onfocus="this.style.borderColor='#a52a2a'" onblur="this.style.borderColor='#e5e7eb'">
+                        </div>
+                        <div>
+                            <label
+                                style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">
+                                <i class="fas fa-id-card" style="margin-right: 5px; color: #a52a2a;"></i>PAN Number
+                            </label>
+                            <input type="text" id="editCustomerPan" placeholder="10-digit PAN" class="form-control"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; outline: none; text-transform: uppercase; transition: border-color 0.2s;"
+                                onfocus="this.style.borderColor='#a52a2a'" onblur="this.style.borderColor='#e5e7eb'">
+                        </div>
+                        <div>
                             <label
                                 style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">
                                 <i class="fas fa-map-marker-alt" style="margin-right: 5px; color: #a52a2a;"></i>Address
                                 / KYC Details
                             </label>
-                            <textarea id="editCustomerAddress" rows="3" placeholder="Residential address"
+                            <textarea id="editCustomerAddress" rows="1" placeholder="Residential address"
                                 class="form-control"
                                 style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; outline: none; transition: border-color 0.2s; resize: none;"
                                 onfocus="this.style.borderColor='#a52a2a'"
                                 onblur="this.style.borderColor='#e5e7eb'"></textarea>
+                        </div>
+                        <div>
+                            <label
+                                style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 8px;">
+                                <i class="fas fa-toggle-on" style="margin-right: 5px; color: #a52a2a;"></i>Account Status
+                            </label>
+                            <select id="editCustomerStatus" class="form-control"
+                                style="width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; outline: none; transition: border-color 0.2s;"
+                                onfocus="this.style.borderColor='#a52a2a'" onblur="this.style.borderColor='#e5e7eb'">
+                                <option value="active">Active</option>
+                                <option value="pending">Pending</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="blocked">Blocked</option>
+                            </select>
                         </div>
                     </div>
                     <div style="display: flex; gap: 12px;">
@@ -1064,51 +1176,7 @@
         </div>
     </div>
 
-    <!-- Services Page -->
-    <div id="services" class="page-content" style="display: none;">
-        <div class="card" style="margin-bottom: 24px;">
-            <div class="card-header">
-                <h3 class="card-title">Manage Services & Applications</h3>
-            </div>
-            <div class="card-body" style="padding: 24px;">
-                <p style="color: var(--text-secondary); margin-bottom: 24px;">Offer new services to users or manage
-                    their existing applications.</p>
-                <div class="dashboard-grid"
-                    style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                    <button onclick="showMutualFundModal()" class="quick-action-btn"
-                        style="padding:15px; border-radius:12px; border:1px solid #e5e7eb; background:#fff; display:flex; flex-direction:column; align-items:center; cursor:pointer;">
-                        <i class="fas fa-chart-line"
-                            style="font-size:24px; color:var(--primary); margin-bottom:10px;"></i>
-                        <span style="font-weight: 600; font-size: 15px;">Mutual Fund</span>
-                    </button>
 
-                    <button onclick="showLifeInsuranceModal()" class="quick-action-btn"
-                        style="padding:15px; border-radius:12px; border:1px solid #e5e7eb; background:#fff; display:flex; flex-direction:column; align-items:center; cursor:pointer;">
-                        <i class="fas fa-umbrella"
-                            style="font-size:24px; color:var(--primary); margin-bottom:10px;"></i>
-                        <span style="font-weight: 600; font-size: 15px;">Life Insurance</span>
-                    </button>
-
-                    <button onclick="alert('Instant Gold Loan at 8% p.a. - Coming Soon')" class="quick-action-btn"
-                        style="padding:15px; border-radius:12px; border:1px solid #e5e7eb; background:#fff; display:flex; flex-direction:column; align-items:center; cursor:pointer;">
-                        <i class="fas fa-coins" style="font-size:24px; color:var(--primary); margin-bottom:10px;"></i>
-                        <span style="font-weight: 600; font-size: 15px;">Gold Loan</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Pending Applications</h3>
-            </div>
-            <div class="card-body" style="padding: 24px;">
-                <div id="pendingApplicationsList"
-                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">No pending applications
-                    found</div>
-            </div>
-        </div>
-    </div>
 
     <!-- Add Account Modal (Premium Redesign) -->
     <div id="addAccountModal" class="modal">
@@ -1149,7 +1217,7 @@
                         </div>
                     </div>
 
-                    <!-- Account Type — Visual Cards -->
+                    <!-- Account Type  Visual Cards -->
                     <div style="margin-bottom: 20px;">
                         <label
                             style="font-size: 13px; font-weight: 700; color: #374151; display: block; margin-bottom: 10px;">
@@ -1203,7 +1271,7 @@
                         </label>
                         <div style="position: relative;">
                             <span
-                                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; font-weight: 700; color: #9ca3af;">₹</span>
+                                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; font-weight: 700; color: #9ca3af;">?</span>
                             <input type="number" step="0.01" id="newAccountBalance" value="0.00" required
                                 class="form-control"
                                 style="width: 100%; padding: 12px 14px 12px 36px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 18px; font-weight: 700; color: #111827; box-sizing: border-box; outline: none; transition: border-color 0.2s;"
@@ -1274,7 +1342,7 @@
                         </label>
                         <div style="position: relative;">
                             <span
-                                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; font-weight: 700; color: #6b7280;">₹</span>
+                                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; font-weight: 700; color: #6b7280;">?</span>
                             <input type="number" step="0.01" min="1" id="depositModalAmount" placeholder="0.00" required
                                 class="form-control"
                                 style="width: 100%; padding: 14px 14px 14px 36px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 22px; font-weight: 700; color: #111827; box-sizing: border-box; outline: none; transition: border-color 0.2s;"
@@ -1290,23 +1358,23 @@
                             <button type="button" onclick="document.getElementById('depositModalAmount').value='500'"
                                 style="padding: 6px 14px; background: #f0fdf4; color: #059669; border: 1.5px solid #bbf7d0; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;"
                                 onmouseover="this.style.background='#dcfce7'"
-                                onmouseout="this.style.background='#f0fdf4'">₹500</button>
+                                onmouseout="this.style.background='#f0fdf4'">?500</button>
                             <button type="button" onclick="document.getElementById('depositModalAmount').value='1000'"
                                 style="padding: 6px 14px; background: #f0fdf4; color: #059669; border: 1.5px solid #bbf7d0; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;"
                                 onmouseover="this.style.background='#dcfce7'"
-                                onmouseout="this.style.background='#f0fdf4'">₹1,000</button>
+                                onmouseout="this.style.background='#f0fdf4'">?1,000</button>
                             <button type="button" onclick="document.getElementById('depositModalAmount').value='5000'"
                                 style="padding: 6px 14px; background: #f0fdf4; color: #059669; border: 1.5px solid #bbf7d0; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;"
                                 onmouseover="this.style.background='#dcfce7'"
-                                onmouseout="this.style.background='#f0fdf4'">₹5,000</button>
+                                onmouseout="this.style.background='#f0fdf4'">?5,000</button>
                             <button type="button" onclick="document.getElementById('depositModalAmount').value='10000'"
                                 style="padding: 6px 14px; background: #f0fdf4; color: #059669; border: 1.5px solid #bbf7d0; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;"
                                 onmouseover="this.style.background='#dcfce7'"
-                                onmouseout="this.style.background='#f0fdf4'">₹10,000</button>
+                                onmouseout="this.style.background='#f0fdf4'">?10,000</button>
                             <button type="button" onclick="document.getElementById('depositModalAmount').value='50000'"
                                 style="padding: 6px 14px; background: #f0fdf4; color: #059669; border: 1.5px solid #bbf7d0; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;"
                                 onmouseover="this.style.background='#dcfce7'"
-                                onmouseout="this.style.background='#f0fdf4'">₹50,000</button>
+                                onmouseout="this.style.background='#f0fdf4'">?50,000</button>
                         </div>
                     </div>
 
@@ -1375,7 +1443,7 @@
                         </label>
                         <div style="position: relative;">
                             <span
-                                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; font-weight: 700; color: #6b7280;">₹</span>
+                                style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; font-weight: 700; color: #6b7280;">?</span>
                             <input type="number" step="0.01" min="1" id="withdrawModalAmount" placeholder="0.00"
                                 required class="form-control"
                                 style="width: 100%; padding: 14px 14px 14px 36px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 22px; font-weight: 700; color: #111827; box-sizing: border-box; outline: none; transition: border-color 0.2s;"
@@ -1391,23 +1459,23 @@
                             <button type="button" onclick="document.getElementById('withdrawModalAmount').value='500'"
                                 style="padding: 6px 14px; background: #fff5f5; color: #dc2626; border: 1.5px solid #fecaca; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;"
                                 onmouseover="this.style.background='#fee2e2'"
-                                onmouseout="this.style.background='#fff5f5'">₹500</button>
+                                onmouseout="this.style.background='#fff5f5'">?500</button>
                             <button type="button" onclick="document.getElementById('withdrawModalAmount').value='1000'"
                                 style="padding: 6px 14px; background: #fff5f5; color: #dc2626; border: 1.5px solid #fecaca; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;"
                                 onmouseover="this.style.background='#fee2e2'"
-                                onmouseout="this.style.background='#fff5f5'">₹1,000</button>
+                                onmouseout="this.style.background='#fff5f5'">?1,000</button>
                             <button type="button" onclick="document.getElementById('withdrawModalAmount').value='5000'"
                                 style="padding: 6px 14px; background: #fff5f5; color: #dc2626; border: 1.5px solid #fecaca; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;"
                                 onmouseover="this.style.background='#fee2e2'"
-                                onmouseout="this.style.background='#fff5f5'">₹5,000</button>
+                                onmouseout="this.style.background='#fff5f5'">?5,000</button>
                             <button type="button" onclick="document.getElementById('withdrawModalAmount').value='10000'"
                                 style="padding: 6px 14px; background: #fff5f5; color: #dc2626; border: 1.5px solid #fecaca; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;"
                                 onmouseover="this.style.background='#fee2e2'"
-                                onmouseout="this.style.background='#fff5f5'">₹10,000</button>
+                                onmouseout="this.style.background='#fff5f5'">?10,000</button>
                             <button type="button" onclick="document.getElementById('withdrawModalAmount').value='50000'"
                                 style="padding: 6px 14px; background: #fff5f5; color: #dc2626; border: 1.5px solid #fecaca; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;"
                                 onmouseover="this.style.background='#fee2e2'"
-                                onmouseout="this.style.background='#fff5f5'">₹50,000</button>
+                                onmouseout="this.style.background='#fff5f5'">?50,000</button>
                         </div>
                     </div>
 
@@ -1451,7 +1519,7 @@
                         style="border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <h4 style="margin: 0 0 5px 0;">Alpha Growth Fund</h4>
-                            <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Min Investment: ₹5,000
+                            <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Min Investment: ?5,000
                             </p>
                         </div>
                         <div style="text-align: right;">
@@ -1467,7 +1535,7 @@
                         style="border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <h4 style="margin: 0 0 5px 0;">Smart Wealth Builder</h4>
-                            <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Min Investment: ₹2,000
+                            <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Min Investment: ?2,000
                             </p>
                         </div>
                         <div style="text-align: right;">
@@ -1483,7 +1551,7 @@
                         style="border: 1px solid var(--border); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <h4 style="margin: 0 0 5px 0;">Secure Future Flexi-Cap</h4>
-                            <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Min Investment: ₹5,000
+                            <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Min Investment: ?5,000
                             </p>
                         </div>
                         <div style="text-align: right;">
@@ -1557,7 +1625,10 @@
                     </div>
                 </div>
             </div>
-            <!-- Services Section -->
+        </div>
+    </div>
+
+            <!-- Services Section Unified -->
             <div id="services" class="page-content">
                 <div class="section-header">
                     <h2>Service Applications</h2>
@@ -1568,9 +1639,31 @@
                     </div>
                 </div>
 
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h3 class="card-title">Quick Services</h3>
+                    </div>
+                    <div class="card-body" style="padding: 24px;">
+                        <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                            <button onclick="showPage('cards')" class="quick-action-btn" style="padding:15px; border-radius:12px; border:1px solid #e5e7eb; background:#fff; display:flex; flex-direction:column; align-items:center; cursor:pointer;">
+                                <i class="fas fa-credit-card" style="font-size:24px; color:#800000; margin-bottom:10px;"></i>
+                                <span style="font-weight: 600; font-size: 14px;">Card Requests</span>
+                            </button>
+                            <button onclick="showPage('loans')" class="quick-action-btn" style="padding:15px; border-radius:12px; border:1px solid #e5e7eb; background:#fff; display:flex; flex-direction:column; align-items:center; cursor:pointer;">
+                                <i class="fas fa-hand-holding-usd" style="font-size:24px; color:#800000; margin-bottom:10px;"></i>
+                                <span style="font-weight: 600; font-size: 14px;">Loan Requests</span>
+                            </button>
+                            <button onclick="showMutualFundModal()" class="quick-action-btn" style="padding:15px; border-radius:12px; border:1px solid #e5e7eb; background:#fff; display:flex; flex-direction:column; align-items:center; cursor:pointer;">
+                                <i class="fas fa-chart-line" style="font-size:24px; color:#800000; margin-bottom:10px;"></i>
+                                <span style="font-weight: 600; font-size: 14px;">Mutual Funds</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Manage Service Requests</h3>
+                        <h3 class="card-title">Pending Service Requests</h3>
                     </div>
                     <div class="invoice-controls" style="padding: 16px; border-bottom: 1px solid var(--border-color);">
                         <div class="search-box">
@@ -1616,17 +1709,38 @@
             </div>
             <!-- END Support Desk Section -->
 
+    <!-- START Support Chat Modal -->
+    <div id="supportChatModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px; height: 80vh; display: flex; flex-direction: column; padding: 0; overflow: hidden; border-radius: 16px;">
+            <div class="modal-header" style="padding: 20px; background: var(--maroon-deep); color: white; border-radius: 0;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div id="chatUserAvatar" style="width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px;">U</div>
+                    <div>
+                        <h3 id="chatUserName" style="margin: 0; font-size: 18px; color: white;">Support Chat</h3>
+                        <p id="chatTicketId" style="margin: 0; font-size: 12px; opacity: 0.8;">Ticket #0000</p>
+                    </div>
+                </div>
+                <button class="close-modal" onclick="closeSupportChat()" style="color: white; opacity: 0.8;">&times;</button>
+            </div>
+            
+            <div id="staffChatMessages" style="flex: 1; padding: 20px; overflow-y: auto; background: #f9fafb; display: flex; flex-direction: column; gap: 12px;">
+                <!-- Messages populated via JS -->
+            </div>
+            
+            <div style="padding: 20px; background: white; border-top: 1px solid var(--border-color); display: flex; gap: 10px;">
+                <input type="text" id="staffChatInput" placeholder="Type your reply..." style="flex: 1; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 12px; outline: none;" onkeypress="if(event.key==='Enter') sendStaffReply()">
+                <button class="btn btn-primary" onclick="sendStaffReply()" style="padding: 0 24px; border-radius: 12px;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
     </div>
+    <!-- END Support Chat Modal -->
 
     <div id="privacyMask" class="privacy-mask"></div>
     <div id="screenshotFlash" class="screenshot-flash"></div>
 
-    <script src="api-config.js"></script>
-    <script src="face-auth-fixed.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="staffdash.js"></script>
-    <script src="face-auth-logic.js"></script>
+
     <!-- Send Notification Modal -->
     <div id="sendNotificationModal" class="modal">
         <div class="modal-content">
@@ -1744,14 +1858,14 @@
                                 <span
                                     style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 2px;">Type</span>
                                 <span id="viewAccType"
-                                    style="font-weight: 700; color: #1e293b; font-size: 15px;">—</span>
+                                    style="font-weight: 700; color: #1e293b; font-size: 15px;"></span>
                             </div>
                             <div>
                                 <span
                                     style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 2px;">Available
                                     Balance</span>
                                 <span id="viewAccBalance"
-                                    style="font-weight: 800; color: #800000; font-size: 18px;">—</span>
+                                    style="font-weight: 800; color: #800000; font-size: 18px;"></span>
                             </div>
                         </div>
                     </div>
@@ -1767,13 +1881,13 @@
                                     style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 2px;">Customer
                                     Name</span>
                                 <span id="viewAccCustomer"
-                                    style="font-weight: 700; color: #1e293b; font-size: 15px;">—</span>
+                                    style="font-weight: 700; color: #1e293b; font-size: 15px;"></span>
                             </div>
                             <div>
                                 <span style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 2px;">Phone
                                     Number</span>
                                 <span id="viewAccPhone"
-                                    style="font-weight: 600; color: #475569; font-size: 14px;">—</span>
+                                    style="font-weight: 600; color: #475569; font-size: 14px;"></span>
                             </div>
                         </div>
                     </div>
@@ -1788,14 +1902,14 @@
                                 <span style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 2px;">IFSC
                                     Code</span>
                                 <span id="viewAccIfsc"
-                                    style="font-weight: 700; color: #1e293b; font-size: 14px;">—</span>
+                                    style="font-weight: 700; color: #1e293b; font-size: 14px;"></span>
                             </div>
                             <div>
                                 <span
                                     style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 2px;">Branch
                                     Name</span>
                                 <span id="viewAccBranch"
-                                    style="font-weight: 600; color: #475569; font-size: 14px;">—</span>
+                                    style="font-weight: 600; color: #475569; font-size: 14px;"></span>
                             </div>
                         </div>
                     </div>
@@ -1846,6 +1960,206 @@
         </div>
     </div>
 
+    <!-- Live Map Page -->
+    <div id="map" class="page-content">
+        <!-- Map Stats Row -->
+        <div class="dashboard-grid grid-4" style="margin-bottom: 20px;">
+            <div class="stat-card" style="border-top: 4px solid #6366f1;">
+                <div class="stat-icon" style="background: rgba(99,102,241,0.1); color: #6366f1;">
+                    <i class="fas fa-users" style="font-size: 22px;"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value-group">
+                        <div class="stat-value" id="mapTotalUsers">0</div>
+                        <div class="stat-text-group"><div class="stat-label">Total<br>Users</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #10b981;">
+                <div class="stat-icon" style="background: rgba(16,185,129,0.1); color: #10b981;">
+                    <i class="fas fa-map-marker-alt" style="font-size: 22px;"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value-group">
+                        <div class="stat-value" id="mapMappedUsers">0</div>
+                        <div class="stat-text-group"><div class="stat-label">Mapped<br>Locations</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #800000;">
+                <div class="stat-icon" style="background: rgba(128,0,0,0.1); color: #800000;">
+                    <i class="fas fa-university" style="font-size: 22px;"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value-group">
+                        <div class="stat-value" id="mapBranchCount">0</div>
+                        <div class="stat-text-group"><div class="stat-label">Branches</div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #2563eb;">
+                <div class="stat-icon" style="background: rgba(37,99,235,0.1); color: #2563eb;">
+                    <i class="fas fa-credit-card" style="font-size: 22px;"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value-group">
+                        <div class="stat-value" id="mapAtmCount">0</div>
+                        <div class="stat-text-group"><div class="stat-label">ATMs</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Card -->
+        <div class="card" style="padding:0; overflow:hidden; border-radius: 20px; margin-bottom:24px;">
+            <div style="padding:16px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                <h3 style="margin:0; display:flex; align-items:center; gap:10px; font-size:18px; font-weight:800; color:var(--text-primary);">
+                    <div style="width:40px; height:40px; background:linear-gradient(135deg,#800000,#a52a2a); border-radius:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(128,0,0,0.25);">
+                        <i class="fas fa-map-marked-alt" style="color:#fff; font-size:17px;"></i>
+                    </div>
+                    Branch & ATM Locator + User Map
+                </h3>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="loc-filter-btn loc-active" id="staffLocFilterAll" onclick="staffMapFilterBy('all', this)" style="padding:7px 18px; border-radius:24px; border:1.5px solid #800000; background:#800000; color:#fff; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                        <i class="fas fa-layer-group"></i> All
+                    </button>
+                    <button class="loc-filter-btn" onclick="staffMapFilterBy('users', this)" style="padding:7px 18px; border-radius:24px; border:1.5px solid #3b82f6; background:transparent; color:#3b82f6; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                        <i class="fas fa-users"></i> Users
+                    </button>
+                    <button class="loc-filter-btn" onclick="staffMapFilterBy('branch', this)" style="padding:7px 18px; border-radius:24px; border:1.5px solid #800000; background:transparent; color:#800000; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                        <i class="fas fa-university"></i> Branches
+                    </button>
+                    <button class="loc-filter-btn" onclick="staffMapFilterBy('atm', this)" style="padding:7px 18px; border-radius:24px; border:1.5px solid #2563eb; background:transparent; color:#2563eb; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                        <i class="fas fa-credit-card"></i> ATMs
+                    </button>
+                    <button onclick="showModal('addLocationModal')" style="padding:7px 18px; border-radius:24px; border:1.5px solid #10b981; background:#10b981; color:#fff; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                        <i class="fas fa-plus"></i> Add Location
+                    </button>
+                </div>
+            </div>
+            <div style="position:relative;">
+                <div id="mapContainer" style="height:600px; width:100%; background:#0f172a;"></div>
+                <!-- Count Badge -->
+                <div id="staffLocCountBadge" style="position:absolute; top:16px; left:16px; background:rgba(255,255,255,0.95); backdrop-filter:blur(12px); padding:8px 16px; border-radius:12px; font-size:13px; font-weight:700; color:#1e293b; box-shadow: 0 4px 16px rgba(0,0,0,0.12); display:flex; align-items:center; gap:8px; z-index:5;">
+                    <i class="fas fa-map-pin" style="color:#800000;"></i>
+                    <span id="staffLocCountText">Loading...</span>
+                </div>
+                <!-- Legend -->
+                <div style="position:absolute; bottom:16px; left:16px; background:rgba(255,255,255,0.95); backdrop-filter:blur(12px); padding:10px 16px; border-radius:12px; font-size:12px; color:#475569; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index:5; display:flex; gap:16px; flex-wrap:wrap;">
+                    <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#800000;display:inline-block;"></span> Branch</span>
+                    <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#2563eb;display:inline-block;"></span> ATM</span>
+                    <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#10b981;display:inline-block;"></span> User (Active)</span>
+                    <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> User (Pending)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Locations Management Table -->
+        <div class="card" style="border-radius:20px; margin-bottom:24px;">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 class="card-title"><i class="fas fa-map-pin" style="color:#800000; margin-right:8px;"></i>Manage Branches & ATMs</h3>
+                <button onclick="showModal('addLocationModal')" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Location</button>
+            </div>
+            <div style="overflow-x:auto; padding:16px;">
+                <table class="premium-table" style="width:100%;">
+                    <thead><tr><th>Name</th><th>Type</th><th>City</th><th>Coordinates</th><th>Actions</th></tr></thead>
+                    <tbody id="locationsTable"><tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-secondary);">Loading locations...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- User Location List -->
+        <div class="card" style="border-radius:20px;">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 class="card-title"><i class="fas fa-table" style="margin-right:8px; color:#6366f1;"></i>User Location Details</h3>
+                <span id="mapUserCount" style="font-size:13px; font-weight:600; color:var(--text-secondary); background:var(--bg-light); padding:4px 14px; border-radius:12px;">0 users</span>
+            </div>
+            <div id="mapUserTable" style="overflow-x:auto;"></div>
+        </div>
+    </div>
+
+
+    <!-- Agri Hub Page -->
+    <div id="agrihub" class="page-content">
+        <div class="card">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 class="card-title"><i class="fas fa-tractor" style="color:#10b981;margin-right:8px;"></i>Agri Hub</h3>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span id="agriHubActiveCount" style="font-size:13px; font-weight:600; color:var(--text-secondary); background:var(--bg-light); padding:4px 10px; border-radius:12px;">0 Customers</span>
+                    <div class="search-box" style="margin:0;">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="agriHubSearchInput" placeholder="Search Agri Hub..." oninput="handleAgriHubSearch()">
+                    </div>
+                </div>
+            </div>
+            <div id="agriHubList" style="padding: 16px;">
+                <p style="text-align:center;padding:2rem;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading Agri Hub data...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agri Accounts Page -->
+    <div class="page-content" id="agriaccounts">
+        <div class="card">
+            <div class="card-header" style="justify-content: space-between; display: flex; align-items: center;">
+                <h3 class="card-title"><i class="fas fa-tractor" style="color: #800000; margin-right: 8px;"></i>Agriculture Account Approvals</h3>
+            </div>
+            <div id="agriAccountsList" style="padding: 20px;">
+                <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agri Loans Page -->
+    <div class="page-content" id="agriloans">
+        <div class="card">
+            <div class="card-header" style="justify-content: space-between; display: flex; align-items: center;">
+                <h3 class="card-title"><i class="fas fa-leaf" style="color: #800000; margin-right: 8px;"></i>Agri Loan Applications</h3>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="loadAgriLoansPage()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div id="agriLoansList" style="padding: 20px;">
+                <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Retail Agri Buyers Page -->
+    <div class="page-content" id="agribuyers">
+        <div class="card">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 class="card-title"><i class="fas fa-shopping-basket" style="color:#10b981;margin-right:10px;"></i>Retail Agri Buyers</h3>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="loadStaffAgriBuyers()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div style="padding:20px;">
+                <div class="premium-table-wrapper">
+                    <table class="premium-table" id="staffAgriBuyersTable">
+                        <thead>
+                            <tr>
+                                <th>Buyer ID</th>
+                                <th>Business Name</th>
+                                <th>Contact Person</th>
+                                <th>Email/Phone</th>
+                                <th>GST No.</th>
+                                <th>Turnover</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Card Action Modals -->
     <div id="cardActionModal" class="modal">
         <div class="modal-content" style="max-width: 400px; border-radius: 20px; overflow: hidden; padding: 0;">
@@ -1867,9 +2181,188 @@
         </div>
     </div>
 
-    <div id="privacyMask" class="privacy-mask"></div>
-    <div id="screenshotFlash" class="screenshot-flash"></div>
+    
+    <div id="privacyMask" class="modal" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(255,255,255,0.9);backdrop-filter:blur(10px);align-items:center;justify-content:center;flex-direction:column;">
+        <i class="fas fa-eye-slash" style="font-size:48px;color:var(--text-secondary);margin-bottom:20px;"></i>
+        <h2 style="margin:0;color:var(--text-primary);">Privacy Mode Active</h2>
+        <p style="color:var(--text-secondary);margin-top:10px;">Click anywhere to resume.</p>
+    </div>
+
+        </main>
+    <!-- Edit Account Modal -->
+    <div id="editAccountModal" class="modal" style="z-index: 10000;">
+        <div class="modal-content"
+            style="max-width: 600px; padding: 0; overflow: hidden; border-radius: 16px; border: none; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, #800000 0%, #b30000 100%); padding: 24px; border: none; align-items: center;">
+                <h2
+                    style="color: white; margin: 0; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-sliders-h" style="font-size: 18px;"></i>
+                    </div>
+                    Account Parameters
+                </h2>
+                <button class="close-modal" onclick="closeModal('editAccountModal')"
+                    style="color: rgba(255,255,255,0.8); background: transparent; border: none; font-size: 24px; cursor: pointer; transition: 0.2s;">&times;</button>
+            </div>
+
+            <form id="editAccountForm" onsubmit="submitEditAccount(event)"
+                style="padding: 32px; background: #f8fafc;">
+                <input type="hidden" id="editAccountId">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                    <!-- Branch -->
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label
+                            style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;"><i
+                                class="fas fa-code-branch" style="margin-right:6px; color:#800000;"></i>Account
+                            Branch</label>
+                        <input type="text" id="editAccountBranch" required class="form-control"
+                            style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-weight: 600; color: #1e293b; transition: all 0.2s; outline: none; box-sizing: border-box; background: white;"
+                            onfocus="this.style.borderColor='#800000'; this.style.boxShadow='0 0 0 3px rgba(128,0,0,0.1)'"
+                            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                    </div>
+
+                    <!-- IFSC -->
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label
+                            style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;"><i
+                                class="fas fa-barcode" style="margin-right:6px; color:#800000;"></i>IFSC
+                            Code</label>
+                        <input type="text" id="editAccountIfsc" required class="form-control"
+                            style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-weight: 600; color: #1e293b; font-family: monospace; transition: all 0.2s; outline: none; box-sizing: border-box; background: white;"
+                            onfocus="this.style.borderColor='#800000'; this.style.boxShadow='0 0 0 3px rgba(128,0,0,0.1)'"
+                            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+                    <!-- Account Type -->
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label
+                            style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;"><i
+                                class="fas fa-wallet" style="margin-right:6px; color:#800000;"></i>Account
+                            Type</label>
+                        <select id="editAccountType" class="form-control"
+                            style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-weight: 600; color: #1e293b; appearance: none; background: white url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E') no-repeat right 16px center / 12px; transition: all 0.2s; outline: none; box-sizing: border-box;"
+                            onfocus="this.style.borderColor='#800000'; this.style.boxShadow='0 0 0 3px rgba(128,0,0,0.1)'"
+                            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                            <option value="Savings">Savings</option>
+                            <option value="Current">Current</option>
+                            <option value="Salary">Salary</option>
+                        </select>
+                    </div>
+
+                    <!-- Status -->
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label
+                            style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;"><i
+                                class="fas fa-shield-alt" style="margin-right:6px; color:#800000;"></i>Account
+                            Status</label>
+                        <select id="editAccountStatus" class="form-control"
+                            style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-weight: 600; color: #1e293b; appearance: none; background: white url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E') no-repeat right 16px center / 12px; transition: all 0.2s; outline: none; box-sizing: border-box;"
+                            onfocus="this.style.borderColor='#800000'; this.style.boxShadow='0 0 0 3px rgba(128,0,0,0.1)'"
+                            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                            <option value="active">🟢 Active</option>
+                            <option value="frozen">🔴 Frozen</option>
+                            <option value="closed">⚫ Closed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Daily Transfer Limit -->
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px;">
+                    <label
+                        style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;"><i
+                            class="fas fa-rupee-sign" style="margin-right:6px; color:#800000;"></i>Daily Transfer
+                        Limit</label>
+                    <div style="position: relative;">
+                        <span
+                            style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #64748b; font-weight: 700; font-size: 16px;">₹</span>
+                        <input type="number" id="editAccountDailyLimit" class="form-control" min="0" step="1000"
+                            style="padding: 12px 16px 12px 36px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; font-weight: 700; color: #1e293b; width: 100%; transition: all 0.2s; outline: none; box-sizing: border-box; background: white;"
+                            onfocus="this.style.borderColor='#800000'; this.style.boxShadow='0 0 0 3px rgba(128,0,0,0.1)'"
+                            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 16px; margin-top: 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editAccountModal')"
+                        style="flex: 1; padding: 14px; font-size: 15px; font-weight: 700; border-radius: 10px; background: white; border: 2px solid #e2e8f0; color: #475569; transition: all 0.2s; cursor: pointer;"
+                        onmouseover="this.style.background='#f1f5f9'; this.style.color='#1e293b';"
+                        onmouseout="this.style.background='white'; this.style.color='#475569';">
+                        Cancel
+                    </button>
+                    <button type="submit" id="editAccountSubmitBtn" class="btn btn-primary"
+                        style="flex: 2; padding: 14px; font-size: 15px; font-weight: 700; border-radius: 10px; background: linear-gradient(to right, #800000, #b30000); border: none; box-shadow: 0 4px 12px rgba(128,0,0,0.3); color: white; transition: all 0.2s; cursor: pointer;"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(128,0,0,0.4)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(128,0,0,0.3)';">
+                        <i class="fas fa-save" style="margin-right: 8px;"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Location Modal -->
+    <div class="modal" id="addLocationModal">
+        <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; border-radius: 20px;">
+            <div style="background: linear-gradient(135deg, #800000, #a52a2a); padding: 20px; color: white; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 18px;"><i class="fas fa-map-pin" style="margin-right: 10px;"></i> Add Branch / ATM</h3>
+                <button onclick="closeModal('addLocationModal')" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <form id="addLocationForm" onsubmit="submitAddLocation(event)" style="padding: 24px;">
+                <div class="form-group">
+                    <label class="form-label">Name (e.g., Main Street ATM)</label>
+                    <input type="text" id="locName" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select id="locType" class="form-select">
+                        <option value="atm">ATM</option>
+                        <option value="branch">Branch</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" step="any" id="locLat" class="form-input" required placeholder="e.g. 21.1458" />
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" step="any" id="locLng" class="form-input" required placeholder="e.g. 79.0882" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" id="locCity" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Full Address</label>
+                    <textarea id="locAddress" class="form-input" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location Photo (Optional)</label>
+                    <input type="file" id="locPhoto" accept="image/*" class="form-input" style="padding: 8px;" />
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('addLocationModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Location</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api-config.js"></script>
+    <script src="js/device-detector.js"></script>
+    <script src="js/face-api.min.js"></script>
+    <script src="js/face-auth-fixed.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="js/language-switcher.js"></script>
+    <script src="js/premium-ui.js"></script>
+    <script src="js/staffdash.js"></script>
 </body>
-
-
 </html>

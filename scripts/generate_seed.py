@@ -3,7 +3,7 @@ import json
 import os
 
 # Configuration
-DB_PATH = os.path.join('storage', 'database', 'smart_bank.db')
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'database', 'smartbank.db')
 SEED_PATH = os.path.join('backend', 'smart_seed.json')
 
 # Tables to export (Core data only, avoiding large blobs)

@@ -13,9 +13,9 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="landing.css">
+    <link rel="stylesheet" href="css/landing.css">
     <!-- Device Detector -->
-    <script src="device-detector.js" data-auto-redirect></script>
+    <script src="js/device-detector.js" data-auto-redirect></script>
 </head>
 
 <body>
@@ -28,6 +28,7 @@
         <div class="nav-links">
             <a href="#home" class="active">Home</a>
             <a href="user.html">User Login</a>
+            <a href="agri-buyer-login.html">Retail Agri</a>
             <a href="staff.html">Staff/Admin</a>
             <a href="#about">About</a>
         </div>
@@ -56,54 +57,51 @@
             </div>
         </div>
 
-        <!-- Right Side: Illustration -->
+        <!-- Right Side: Premium 3D Illustration -->
         <div class="hero-illustration">
-            <div class="circle-bg"></div>
-
-            <!-- Left Smartphone -->
-            <div class="phone phone-left">
-                <div class="notch"></div>
-                <div class="screen">
-                    <div class="circle-icon solid">
-                        <i class="fas fa-dollar-sign"></i>
+            <div class="glow-orb orb-1"></div>
+            <div class="glow-orb orb-2"></div>
+            
+            <div class="card-container">
+                <div class="premium-card">
+                    <!-- Chip -->
+                    <div class="card-chip"></div>
+                    <!-- Contactless Icon -->
+                    <div class="card-wave">
+                        <i class="fas fa-wifi" style="transform: rotate(90deg);"></i>
+                    </div>
+                    <!-- Logo -->
+                    <div class="card-logo">SMART<span>BANKING</span></div>
+                    
+                    <!-- Card Details -->
+                    <div class="card-number">
+                        <span>****</span> <span>****</span> <span>****</span> <span>8842</span>
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-holder">
+                            <span class="label">Card Holder</span>
+                            <span class="value">ELITE MEMBER</span>
+                        </div>
+                        <div class="card-expires">
+                            <span class="label">Expires</span>
+                            <span class="value">12/28</span>
+                        </div>
+                        <div class="card-brand">
+                            <div class="circle-overlap">
+                                <div class="red-circle"></div>
+                                <div class="gold-circle"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Smartphone -->
-            <div class="phone phone-right">
-                <div class="notch"></div>
-                <div class="screen">
-                    <div class="circle-icon outline">
-                        <i class="fas fa-check"></i>
-                    </div>
-                </div>
+            <!-- Floating Elements -->
+            <div class="floating-element float-1">
+                <i class="fas fa-gem"></i>
             </div>
-
-            <!-- Connection Arrows -->
-            <div class="arrow-top">
-                <div class="line-h"></div>
-                <div class="line-v"></div>
-                <div class="head-down"></div>
-            </div>
-
-            <div class="arrow-bottom">
-                <div class="line-h"></div>
-                <div class="line-v"></div>
-                <div class="head-up"></div>
-            </div>
-
-            <!-- Floating Coins -->
-            <div class="floating-coin coin-top-right">
-                <div class="coin-inner">
-                    <i class="fas fa-dollar-sign"></i>
-                </div>
-            </div>
-
-            <div class="floating-coin coin-mid-left">
-                <div class="coin-inner">
-                    <i class="fas fa-dollar-sign"></i>
-                </div>
+            <div class="floating-element float-2">
+                <i class="fas fa-chart-line"></i>
             </div>
         </div>
     </main>
@@ -118,17 +116,17 @@
 
             <div class="features-grid">
                 <div class="feature-card">
-                    <span class="card-number">01</span>
+                    <span class="feature-number">01</span>
                     <h3>Elite Security</h3>
                     <p>Advanced biometric authentication and real-time fraud monitoring for your peace of mind.</p>
                 </div>
                 <div class="feature-card">
-                    <span class="card-number">02</span>
+                    <span class="feature-number">02</span>
                     <h3>Instant Transfers</h3>
                     <p>Move funds globally in seconds with our high-speed digital architecture.</p>
                 </div>
                 <div class="feature-card">
-                    <span class="card-number">03</span>
+                    <span class="feature-number">03</span>
                     <h3>Premium Benefits</h3>
                     <p>Exclusive access to high-yield accounts, premium cards, and 24/7 concierge support.</p>
                 </div>
@@ -138,6 +136,8 @@
 
     <!-- Bottom Gold Bar -->
     <div class="bottom-bar"></div>
+    <!-- Language Switcher -->
+    <script src="js/language-switcher.js"></script>
 </body>
 
 </html>

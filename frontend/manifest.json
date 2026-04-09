@@ -2,10 +2,10 @@
   "name": "Smart Bank V2",
   "short_name": "SmartBank",
   "description": "Smart Bank - Modern Banking Experience",
-  "start_url": "/mobile-login.html",
+  "start_url": "/mobile-auth.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4f46e5",
+  "background_color": "#120000",
+  "theme_color": "#4a0000",
   "icons": [
     {
       "src": "/assets/icon-192x192.png",

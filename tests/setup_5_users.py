@@ -11,7 +11,7 @@ import random
 import string
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'database', 'smart_bank.db')
+DB_PATH = os.path.join(BASE_DIR, '..', 'database', 'smartbank.db')
 
 def get_random_date(start_days_ago, end_days_ago=0):
     start_dt = datetime.now() - timedelta(days=start_days_ago)

@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Smart Bank | Agri Buyer Dashboard</title>
+    <link rel="stylesheet" href="css/premium-ui.css">
+    <link href="css/modern-dashboard.css?v=3" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+    <style>
+        /* GREEN THEME OVERRIDES FOR AGRI DASHBOARD */
+        :root {
+            --primary-maroon: #166534; /* Override maroon with green */
+            --primary-maroon-rgb: 22, 101, 52;
+            --maroon-light: rgba(22, 101, 52, 0.08);
+            --maroon-soft: #f0fdf4;
+            --maroon-hover: rgba(22, 101, 52, 0.04);
+            --maroon-dark: #14532d;
+            --primary-accent: #15803d;
+            --primary-cyan: #166534;
+            --primary-teal: #15803d;
+            --bg-gradient-start: #f0fdf4;
+            --bg-gradient-end: #dcfce7;
+            
+            /* Original overrides */
+            --primary-color: #166534;
+            --primary-hover: #15803d;
+            --secondary-color: #14532d;
+            --accent-color: #84cc16; /* Gold/Green accent */
+            --bg-body: #f0fdf4;
+            --sidebar-bg: #064e3b;
+            --sidebar-hover: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-body);
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, var(--sidebar-bg) 0%, #065f46 100%);
+        }
+
+        .sidebar .nav-item {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .sidebar .nav-item:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar .nav-item i {
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar .nav-item:hover i {
+            color: var(--primary-color);
+            background: #ffffff;
+            opacity: 1;
+        }
+
+        .sidebar .nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border-left-color: var(--accent-color);
+        }
+
+        .sidebar .nav-item.active i {
+            color: var(--primary-color);
+            background: #ffffff;
+        }
+
+        .sidebar .menu-label {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .sidebar .logo-text {
+            color: #ffffff;
+        }
+
+        .action-btn {
+            color: var(--primary-color);
+            background: rgba(22, 101, 52, 0.1);
+        }
+
+        .action-btn:hover {
+            background: rgba(22, 101, 52, 0.2);
+            color: var(--primary-hover);
+            border-color: rgba(22, 101, 52, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.2);
+        }
+        
+        .btn-logout {
+            background: #f0fdf4 !important;
+            color: #166534 !important;
+            border-color: #bbf7d0 !important;
+        }
+
+        .btn-logout:hover {
+            background: #166534 !important;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.2) !important;
+            border-color: transparent !important;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3);
+        }
+        
+        /* Stats Grid overrides */
+        .stat-icon {
+            background: rgba(22, 101, 52, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .stat-card {
+            border-top: 4px solid var(--primary-color);
+        }
+
+        /* Buyer specific spacing and tweaks */
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .listing-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .listing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .listing-img {
+            height: 160px;
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: var(--primary-color);
+        }
+
+        .listing-body {
+            padding: 20px;
+        }
+
+        .listing-body h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .listing-body .meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .listing-body .price {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+
+        .listing-actions {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Add Money Card */
+        .wallet-card-premium {
+            background: linear-gradient(135deg, var(--sidebar-bg) 0%, var(--primary-color) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(22, 101, 52, 0.2);
+        }
+        
+        .wallet-card-premium::after {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .search-bar input, .search-bar select {
+            padding: 12px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            flex: 1;
+        }
+        
+        .search-bar select {
+            flex: none;
+            min-width: 200px;
+        }
+
+        .search-bar input:focus, .search-bar select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            background: var(--bg-background);
+            color: var(--text-primary);
+        }
+
+        /* KYC Step Styles */
+        .kyc-step {
+            padding: 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            margin-bottom: 20px;
+            background: var(--bg-card);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .kyc-step.completed {
+            border-color: var(--primary-color);
+            background: rgba(22, 101, 52, 0.03);
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.05);
+        }
+        .kyc-step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .kyc-step-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+        .kyc-status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: #e2e8f0;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .kyc-status-badge.done {
+            background: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="brand-logo" style="background: rgba(255,255,255,0.2);">
+                    <i class="fas fa-tractor"></i>
+                </div>
+                <h1 class="logo-text">Smart<span class="logo-highlight" style="color: var(--accent-color);">Agri</span></h1>
+            </div>
+            <p class="menu-label">Menu</p>
+        </div>
+        
+        <nav class="nav-menu">
+            <a class="nav-item active" data-page="dashboard" href="#" onclick="showSection('dashboard')">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            <a class="nav-item" data-page="browse" href="#" onclick="showSection('browse')">
+                <i class="fas fa-store"></i>
+                <span>Browse Crops</span>
+            </a>
+            <a class="nav-item" data-page="mandi" href="#" onclick="showSection('mandi')">
+                <i class="fas fa-chart-line"></i>
+                <span>Mandi Prices</span>
+            </a>
+            <a class="nav-item" data-page="orders" href="#" onclick="showSection('orders')">
+                <i class="fas fa-shopping-cart"></i>
+                <span>My Orders</span>
+            </a>
+            <a class="nav-item" data-page="wallet" href="#" onclick="showSection('wallet')">
+                <i class="fas fa-wallet"></i>
+                <span>My Wallet</span>
+            </a>
+            <a class="nav-item" data-page="payments" href="#" onclick="showSection('payments')">
+                <i class="fas fa-history"></i>
+                <span>Payments</span>
+            </a>
+            
+            <p class="menu-label">Account</p>
+            <a class="nav-item" href="#" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+        
+        <div style="margin-top: auto; padding: 20px;">
+            <div style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 16px; display: flex; align-items: center; gap: 12px;">
+                <div id="sidebarAvatar" style="width: 40px; height: 40px; background: var(--accent-color); color: var(--sidebar-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;">B</div>
+                <div>
+                    <div id="sidebarName" style="color: white; font-weight: 600; font-size: 14px;">Buyer</div>
+                    <div style="color: rgba(255,255,255,0.6); font-size: 12px;">Agri Buyer</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('active')" style="margin-right: 15px;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="welcome-section">
+                <h1 id="pageTitle">Dashboard</h1>
+                <p>Welcome back, <span id="welcomeName">Buyer</span>!</p>
+            </div>
+            <div class="top-bar-actions">
+                <button class="action-btn" id="themeToggle" onclick="document.body.classList.toggle('dark-mode')">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="action-btn">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <div style="display: flex; gap: 10px; margin-left: 10px;">
+                    <button class="top-bar-btn btn-logout" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD Section -->
+        <div id="sec-dashboard" class="page-content active">
+            <div class="dashboard-grid grid-4" style="margin-bottom: 24px;" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-store"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value-group">
+                            <div class="stat-value" id="statListings">-</div>
+                            <div class="stat-text-group"><div class="stat-label">Available<br>Crops</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value-group">
+                            <div class="stat-value" id="statOrders">-</div>
+                            <div class="stat-text-group"><div class="stat-label">Total<br>Orders</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"><i class="fas fa-clock"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value-group">
+                            <div class="stat-value" id="statActive">-</div>
+                            <div class="stat-text-group"><div class="stat-label">Active<br>Orders</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i class="fas fa-rupee-sign"></i></div>
+                    <div class="stat-content">
+                        <div class="stat-value-group">
+                            <div class="stat-value" id="statSpent">-</div>
+                            <div class="stat-text-group"><div class="stat-label">Total<br>Spent</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 class="card-title">Recent Orders</h3>
+                    <button class="btn-primary" style="padding: 8px 16px; font-size: 13px; border-radius: 8px;" onclick="showSection('browse')">
+                        <i class="fas fa-store"></i> Browse Crops
+                    </button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="recentOrdersTable">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Crop</th>
+                                <th>Qty (kg)</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BROWSE Section -->
+        <div id="sec-browse" class="page-content" style="display: none;">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search crops, locations..." oninput="filterListings()">
+                <select id="categoryFilter" onchange="filterListings()">
+                    <option value="">All Categories</option>
+                    <option value="Grains">Grains</option>
+                    <option value="Vegetables">Vegetables</option>
+                    <option value="Fruits">Fruits</option>
+                    <option value="Pulses">Pulses</option>
+                    <option value="Spices">Spices</option>
+                    <option value="Oilseeds">Oilseeds</option>
+                    <option value="General">General</option>
+                </select>
+            </div>
+            <div class="listings-grid" id="listingsGrid"></div>
+        </div>
+
+        <!-- MANDI Section -->
+        <div id="sec-mandi" class="page-content" style="display: none;">
+            <div class="card" style="margin-bottom:20px;">
+                <div class="card-header"><h3 class="card-title"><i class="fas fa-broadcast-tower"></i> Live Mandi Intelligence</h3></div>
+                <div style="padding:20px; background:var(--bg-card); border-bottom:1px solid var(--border-color); display:flex; gap:12px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:150px;">
+                        <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:6px; text-transform:uppercase;">State</label>
+                        <select id="mandiStateFilter" class="form-input" onchange="loadMandiPrices()"><option value="All">All States</option></select>
+                    </div>
+                    <div style="flex:1; min-width:150px;">
+                        <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:6px; text-transform:uppercase;">Commodity</label>
+                        <select id="mandiCommodityFilter" class="form-input" onchange="loadMandiPrices()"><option value="All">All Commodities</option></select>
+                    </div>
+                    <button onclick="loadMandiPrices()" class="btn btn-primary" style="align-self:flex-end; padding:10px 20px; background:var(--primary-color); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div id="mandiPricesContent" style="padding:24px;"></div>
+            </div>
+        </div>
+
+        <!-- ORDERS Section -->
+        <div id="sec-orders" class="page-content" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">My Orders</h3>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="ordersTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Crop</th>
+                                <th>Farmer</th>
+                                <th>Qty</th>
+                                <th>₹/kg</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- WALLET Section -->
+        <div id="sec-wallet" class="page-content" style="display: none;">
+            <div class="dashboard-grid grid-1" style="max-width: 600px; margin: 0 auto;">
+                <div class="wallet-card-premium" id="walletCard">
+                    <div style="font-size: 12px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px">Business Account</div>
+                    
+                    <div id="walletActiveState" style="display: none;">
+                        <div id="walletAccNum" style="font-size: 24px; font-weight: 700; letter-spacing: 2px; margin-bottom: 30px">SB XXXX XXXX XXXX</div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <div style="font-size: 13px; opacity: 0.8; margin-bottom: 4px;">Available Balance</div>
+                                <div id="walletBalance" style="font-size: 36px; font-weight: 800;">₹0.00</div>
+                            </div>
+                            <i class="fas fa-credit-card" style="font-size: 32px; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+
+                    <div id="walletPendingState" style="display: none; text-align: center; padding: 20px 0;">
+                        <i class="fas fa-hourglass-half" style="font-size: 40px; margin-bottom: 15px; opacity: 0.8;"></i>
+                        <h3 style="margin-bottom: 10px;">Pending Approval</h3>
+                        <p style="font-size: 14px; opacity: 0.8; margin-bottom: 20px;">Your KYC details are being reviewed by our staff.</p>
+                        <div style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; display: inline-block; font-size: 12px;">
+                            <i class="fas fa-shield-alt"></i> Verification in Progress
+                        </div>
+                    </div>
+
+                    <div id="walletCreateState" style="display: block; text-align: center; padding: 20px 0;">
+                        <i class="fas fa-briefcase" style="font-size: 40px; margin-bottom: 15px; opacity: 0.8;"></i>
+                        <h3 style="margin-bottom: 10px;">No Business Account</h3>
+                        <p style="font-size: 14px; opacity: 0.8; margin-bottom: 20px;">You need a SmartBank Business Account to purchase crops.</p>
+                        <button class="btn" id="btnRequestWallet" onclick="openKYCModal()" style="background: white; color: var(--primary-color); font-weight: 700; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                            <i class="fas fa-plus-circle"></i> Apply for Business Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAYMENTS Section -->
+        <div id="sec-payments" class="page-content" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Transaction History</h3>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th>Ref #</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Order Modal -->
+<div class="modal" id="orderModal" style="z-index: 1001;">
+    <div class="modal-content" style="max-width: 500px">
+        <div class="modal-header">
+            <h2><i class="fas fa-shopping-basket" style="color: var(--primary-color);"></i> Place Crop Order</h2>
+            <span class="close-modal" onclick="closeModal()"><i class="fas fa-times"></i></span>
+        </div>
+        <div class="modal-body">
+            <div id="orderListingInfo" style="background: var(--bg-body); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; border-left: 4px solid var(--primary-color);">
+                <!-- Dynamic Content -->
+            </div>
+            
+            <input type="hidden" id="orderListingId">
+            
+            <div class="form-group">
+                <label>Quantity to Purchase (kg) *</label>
+                <input type="number" id="orderQty" class="form-control" placeholder="Enter quantity">
+            </div>
+            
+            <div class="form-group">
+                <label>Your Price Offer (₹/kg) <small>(Leave blank for listed price)</small></label>
+                <input type="number" id="orderPrice" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label>Note to Farmer</label>
+                <textarea id="orderNote" class="form-control" placeholder="Add specifications or requests..." rows="3"></textarea>
+            </div>
+            
+            <div id="orderPreview" style="background: #f0fdf4; padding: 12px; border-radius: 8px; font-size: 13px; color: #166534; margin-bottom: 20px; display: none; border: 1px dashed #166534;">
+                <!-- Live Preview -->
+            </div>
+            
+            <div id="orderPaymentSource" style="background: #ecfdf5; padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #10b981;">
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #065f46; margin-bottom: 8px; font-weight: 700;">Pay From: SmartBank Business Account</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span id="orderPayAccNum" style="font-family: monospace; font-weight: 700; color: #1e293b;">SBXXXXXXXXXXXX</span>
+                    <span id="orderPayBalance" style="font-weight: 800; color: #166534;">₹0.00</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" style="width: 100%; padding: 14px; font-weight: 700;" onclick="submitOrder()"><i class="fas fa-paper-plane"></i> Place Order Request</button>
+        </div>
+    </div>
+</div>
+
+<!-- KYC Modal -->
+<div class="modal" id="kycModal" style="z-index: 1001;">
+    <div class="modal-content" style="max-width: 550px">
+        <div class="modal-header">
+            <h2><i class="fas fa-id-card" style="color: var(--primary-color);"></i> Business KYC Application</h2>
+            <span class="close-modal" onclick="closeKYCModal()"><i class="fas fa-times"></i></span>
+        </div>
+        <div class="modal-body">
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Complete the following steps to verify your business identity.</p>
+            
+            <!-- Step 1: Info -->
+            <div class="kyc-step" id="step1">
+                <div class="kyc-step-header">
+                    <span class="kyc-step-title">Step 1: Identity Numbers</span>
+                    <span class="kyc-status-badge" id="badgeStep1">Required</span>
+                </div>
+                <div class="form-group">
+                    <label>Aadhaar Number *</label>
+                    <input type="text" class="form-control" id="kycAadhaar" placeholder="12-digit Aadhaar Number" maxlength="12">
+                </div>
+                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label>PAN Number *</label>
+                        <input type="text" class="form-control" id="kycPAN" placeholder="ABCDE1234F" maxlength="10">
+                    </div>
+                    <div>
+                        <label>GST / Tax ID *</label>
+                        <input type="text" class="form-control" id="kycGST" placeholder="GSTIN Number">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Video KYC -->
+            <div class="kyc-step" id="step2">
+                <div class="kyc-step-header">
+                    <span class="kyc-step-title">Step 2: Video KYC Verification</span>
+                    <span class="kyc-status-badge" id="badgeStep2">Action Needed</span>
+                </div>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">We'll record a 5-second video and take a photo for biometric verification.</p>
+                <button class="btn-primary" type="button" onclick="startVideoKYC()" id="btnStartVideoKYC" style="width: 100%; border-radius: 10px; padding: 10px; font-size: 13px;">
+                    <i class="fas fa-video"></i> Start Face Capture
+                </button>
+                <div id="videoKYCStatus" style="display: none; margin-top: 10px; color: var(--primary-color); font-size: 13px; text-align: center; font-weight: 600;">
+                    <i class="fas fa-check-circle"></i> Biometric Data Captured
+                </div>
+            </div>
+
+            <!-- Step 3: Documents -->
+            <div class="kyc-step" id="step3">
+                <div class="kyc-step-header">
+                    <span class="kyc-step-title">Step 3: Document Uploads</span>
+                    <span class="kyc-status-badge" id="badgeStep3">Files Needed</span>
+                </div>
+                <div class="form-group">
+                    <label>PAN Card (PDF/Image) *</label>
+                    <input type="file" id="kycPanDoc" class="form-control" accept="image/*,.pdf" style="padding: 8px;">
+                </div>
+                <div class="form-group">
+                    <label>GST Certificate (PDF/Image) *</label>
+                    <input type="file" id="kycGstDoc" class="form-control" accept="image/*,.pdf" style="padding: 8px;">
+                </div>
+            </div>
+            
+            <button class="btn-primary" id="btnSubmitKYC" style="width: 100%; padding: 16px; margin-top: 5px; font-weight: 700; border-radius: 12px;" onclick="submitKYC()">Submit Business KYC</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Order Chat Modal -->
+<div id="orderChatModal" class="modal">
+    <div class="modal-content" style="max-width:500px; display:flex; flex-direction:column; max-height:85vh; padding:0;">
+        <div class="modal-header" style="padding:16px 24px; border-bottom:1px solid var(--border-color); background:var(--main-bg);">
+            <h3 class="modal-title" style="margin:0;"><i class="fas fa-comments" style="color:var(--primary-dark)"></i> Order Chat</h3>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;" id="orderChatMetadata">Loading...</div>
+            <button class="modal-close" onclick="closeOrderChatModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="chatMessages" style="flex:1; overflow-y:auto; padding:20px; background:#f8fafc; display:flex; flex-direction:column; gap:12px; min-height:300px;">
+            <!-- Messages go here -->
+        </div>
+        <div style="padding:16px 24px; background:var(--main-bg); border-top:1px solid var(--border-color); display:flex; gap:10px;">
+            <input type="hidden" id="chatOrderId">
+            <input type="text" id="chatInputMessage" class="form-control" style="flex:1; margin:0;" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendOrderMessage()">
+            <button class="btn btn-primary" onclick="sendOrderMessage()" style="padding:0 20px;"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notifications -->
+<div class="toast" id="toast"></div>
+
+<!-- Scripts -->
+<script src="js/face-api.min.js"></script>
+<script src="js/face-auth-fixed.js"></script>
+<script src="js/api-config.js"></script>
+<script>
+    function closeModal() {
+        document.getElementById('orderModal').classList.remove('active');
+    }
+    function closeKYCModal() {
+        document.getElementById('kycModal').classList.remove('active');
+    }
+    function openKYCModal() {
+        document.getElementById('kycModal').classList.add('active');
+    }
+    function openOrderModal(listingId) {
+        // Redefining global open/close inside JS or keeping styling here
+        const l = allListings.find(x => x.id === listingId);
+        if (!l) return;
+        document.getElementById('orderListingId').value = listingId;
+        document.getElementById('orderListingInfo').innerHTML = `
+            <strong>${l.crop_name}</strong> by ${l.farmer_name || 'Farmer'}<br>
+            Price: <strong>₹${l.price_per_kg}/kg</strong> · Stock: ${l.quantity_kg} kg · Min: ${l.min_order_kg} kg`;
+        document.getElementById('orderQty').value = '';
+        document.getElementById('orderQty').min = l.min_order_kg;
+        document.getElementById('orderPrice').value = '';
+        document.getElementById('orderPrice').placeholder = `Listed: ₹${l.price_per_kg}/kg`;
+        document.getElementById('orderNote').value = '';
+        document.getElementById('orderPreview').style.display = 'none';
+        document.getElementById('orderModal').classList.add('active');
+        
+        // Live preview
+        const updatePreview = () => {
+            const qty = parseFloat(document.getElementById('orderQty').value) || 0;
+            const ppk = parseFloat(document.getElementById('orderPrice').value) || l.price_per_kg;
+            if (qty > 0) {
+                const total = qty * ppk;
+                const commission = total * 0.02;
+                document.getElementById('orderPreview').innerHTML = `<strong>Order Preview:</strong> ${qty} kg × ₹${ppk}/kg = <strong>₹${total.toLocaleString('en-IN')}</strong><br><small>2% bank commission: ₹${commission.toFixed(2)} · Farmer receives: ₹${(total - commission).toFixed(2)}</small>`;
+                document.getElementById('orderPreview').style.display = 'block';
+            }
+        };
+        document.getElementById('orderQty').oninput = updatePreview;
+        document.getElementById('orderPrice').oninput = updatePreview;
+    }
+</script>
+<script src="js/agri-buyer-dash.js"></script>
+</body>
+</html>

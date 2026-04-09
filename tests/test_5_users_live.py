@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 BASE = "http://127.0.0.1:5001"
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database', 'smart_bank.db')
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'database', 'smartbank.db')
 
 USERS = [
     {"username": "alice_johnson", "password": "Alice@123", "name": "Alice Johnson"},

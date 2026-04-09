@@ -122,14 +122,14 @@ def check_database():
     """Check database setup"""
     print_header("Checking Database")
     
-    db_file = Path(__file__).parent.parent / 'storage' / 'database' / 'smart_bank.db'
+    db_file = Path(__file__).parent.parent / 'database' / 'smartbank.db'
     
     if db_file.exists():
         print_success(f"Database found: {db_file}")
         return True
     else:
         print_warning(f"Database not found: {db_file}")
-        print_info("Run: python storage/database/migrations/init_database.py")
+        print_info("Run: python backend/schema.py (or equivalent)")
         return False
 
 def check_directory_structure():
@@ -140,8 +140,8 @@ def check_directory_structure():
     required_dirs = {
         'backend': base_dir / 'backend',
         'frontend': base_dir / 'frontend',
-        'database': base_dir / 'storage' / 'database',
-        'face_data': base_dir / 'storage' / 'face_data'
+        'database': base_dir / 'database',
+        'face_data': base_dir / 'database' / 'face_data'
     }
     
     all_exist = True
@@ -159,7 +159,7 @@ def create_face_data_dirs():
     print_header("Setting up Face Data Directories")
     
     base_dir = Path(__file__).parent.parent
-    face_data_dir = base_dir / 'storage' / 'face_data'
+    face_data_dir = base_dir / 'database' / 'face_data'
     
     dirs_to_create = [
         face_data_dir,
@@ -184,7 +184,7 @@ def initialize_database():
     """Run database initialization"""
     print_header("Initializing Database")
     
-    db_init_script = Path(__file__).parent.parent / 'storage' / 'database' / 'migrations' / 'init_database.py'
+    db_init_script = Path(__file__).parent.parent / 'backend' / 'schema.sql' 
     
     if not db_init_script.exists():
         print_error(f"Database init script not found: {db_init_script}")

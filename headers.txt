@@ -1,0 +1,29 @@
+﻿4|## 6.1 Introduction
+7|## 6.2 Development Environment
+18|## 6.3 Backend Architecture — Application Entry Point (`app.py`)
+90|## 6.4 Core Module — Database Layer (`core/db.py`)
+145|## 6.5 Core Module — Authentication & Security (`core/auth.py`)
+191|## 6.6 Core Module — Input Validation (`core/utils.py`)
+216|## 6.7 Core Module — Email Service (`core/email_utils.py`)
+261|## 6.8 Core Module — Business Logic (`core/logic.py`)
+290|## 6.9 USER MODULE — Authentication Routes (`blueprints/auth_routes.py`)
+417|## 6.10 USER MODULE — Banking Operations (`blueprints/user_routes.py`)
+652|## 6.11 STAFF MODULE — Operations (`blueprints/staff_routes.py`)
+809|## 6.12 ADMIN MODULE — System Management (`blueprints/admin_routes.py`)
+925|## 6.13 Frontend — Face Authentication (`face-auth-fixed.js`)
+981|## 6.14 Frontend — User Dashboard SPA (`userdash.js`)
+1017|## 6.15 System Integration — 3D Branch & ATM Locator
+1040|## 6.16 API Route Summary Table
+1086|## 6.17 FRONTEND — Landing Page (`index.html`)
+1172|## 6.18 FRONTEND — User Login Page (`user.html`)
+1273|## 6.19 FRONTEND — User Registration Page (`signup.html`)
+1351|## 6.20 FRONTEND — Forgot Password Page (`forgot-password.html`)
+1390|## 6.21 FRONTEND — Reset Password Page (`reset-password.html`)
+1448|## 6.22 FRONTEND — Staff & Admin Login (`staff.html`)
+1523|## 6.23 FRONTEND — Mobile Login (`mobile-auth.html`)
+1614|## 6.24 FRONTEND — Mobile Signup (`mobile-signup.html`)
+1661|## 6.25 FRONTEND — User Dashboard (`userdash.html`)
+1755|## 6.26 FRONTEND — Staff Dashboard (`staffdash.html`)
+1832|## 6.27 FRONTEND — Admin Dashboard (`admindash.html`)
+1892|## 6.28 Frontend File Map Summary
+1911|## 6.29 Conclusion

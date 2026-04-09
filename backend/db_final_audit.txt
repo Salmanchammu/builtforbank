@@ -1,0 +1,5 @@
+c:\Users\salma\Downloads\smart-bank-v2-FIXED\database\smartbank.db: NOT FOUND
+c:\Users\salma\Downloads\smart-bank-v2-FIXED\smartbank_v2\database\smartbank.db: 22 users
+c:\Users\salma\Downloads\smart-bank-v2-FIXED\smartbank_v2\backend\smartbank.db: Error -> no such table: users
+c:\Users\salma\Downloads\smart-bank-v2-FIXED\smartbank_v2\backend\database.db: Error -> no such table: users
+c:\Users\salma\Downloads\smart-bank-v2-FIXED\smartbank_v2\backend\bank.db: Error -> no such table: users

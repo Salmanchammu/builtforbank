@@ -1,0 +1,2 @@
+BASE_DIR: C:\Users\salma\Downloads\smart-bank-v2-FIXED\smartbank_v2\backend
+DATABASE: C:\Users\salma\Downloads\smart-bank-v2-FIXED\smartbank_v2\database\smartbank.db

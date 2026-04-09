@@ -5,19 +5,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Bank - User Dashboard</title>
+    <link rel="stylesheet" href="css/premium-ui.css">
+    <script src="js/premium-ui.js"></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="modern-dashboard.css">
+    <link rel="stylesheet" href="css/modern-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="face-auth-fixed.css">
-    <link rel="stylesheet" href="chatbot.css">
+    <link rel="stylesheet" href="css/face-auth-fixed.css">
+    <link rel="stylesheet" href="css/chatbot.css">
+    <!-- Leaflet mapping for Agri Loans -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- MapLibre for 3D Maps -->
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
     <!-- Device Detector -->
-    <script src="device-detector.js" data-auto-redirect></script>
+    <script src="js/device-detector.js" data-auto-redirect></script>
 </head>
 
 <body>
+    <!-- Floating Background Orbs -->
+    <div class="dashboard-bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
     <div class="dashboard-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <div class="brand-logo">
@@ -53,10 +68,6 @@
                     <i class="fas fa-credit-card"></i>
                     <span>Cards</span>
                 </a>
-                <a href="#" class="nav-item" data-page="upi">
-                    <i class="fas fa-qrcode"></i>
-                    <span>UPI Banking</span>
-                </a>
                 <a href="#" class="nav-item" data-page="loans">
                     <i class="fas fa-hand-holding-usd"></i>
                     <span>Loans</span>
@@ -65,8 +76,24 @@
                     <i class="fas fa-piggy-bank"></i>
                     <span>Fixed Deposits</span>
                 </a>
+                <a href="#" class="nav-item" data-page="beneficiaries">
+                    <i class="fas fa-user-friends"></i>
+                    <span>Beneficiaries</span>
+                </a>
+                <a href="#" class="nav-item" data-page="pockets">
+                    <i class="fas fa-bullseye"></i>
+                    <span>Savings Goals</span>
+                </a>
+                <a href="#" class="nav-item" data-page="crop-marketplace" id="navCropMarketplace" style="display:none">
+                    <i class="fas fa-store" style="color:#2d8a5e"></i>
+                    <span>Crop Marketplace</span>
+                </a>
 
                 <p class="menu-label">OTHERS</p>
+                <a href="#" class="nav-item" data-page="locator">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Branch & ATM Locator</span>
+                </a>
                 <a href="#" class="nav-item" data-page="support">
                     <i class="fas fa-headset"></i>
                     <span>Support</span>
@@ -118,34 +145,40 @@
 
             <!-- Dashboard Page -->
             <div id="dashboard" class="page-content active">
-                <!-- Welcome Section with Date/Time -->
-                <div class="card" style="margin-bottom: 24px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">Welcome back, <span
-                                    id="welcomeName">User</span>! 👋</h1>
-                            <p style="color: var(--text-secondary); font-size: 14px;" id="currentDateTime">Loading...
-                            </p>
-                        </div>
-
+                <!-- Enhanced Welcome Section -->
+                <div class="welcome-enhanced dash-animate">
+                    <div class="welcome-greeting">
+                        <span class="greeting-dot"></span>
+                        <span id="greetingText">Good Morning</span>
                     </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <h1 class="welcome-name" id="welcomeNameAnimated">Welcome back!</h1>
+                        <span class="welcome-wave">👋</span>
+                    </div>
+                    <div class="welcome-datetime">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="currentDateTime">Loading...</span>
+                    </div>
+                    <!-- Hidden span for backward compatibility -->
+                    <span id="welcomeName" style="display:none;">User</span>
                 </div>
 
                 <!-- Stats Cards Grid -->
                 <div class="dashboard-grid grid-4" style="margin-bottom: 24px;">
                     <!-- Total Balance -->
-                    <div class="stat-card">
+                    <div class="stat-card dash-animate" onclick="showPage('accounts')" style="cursor: pointer;">
+                        <div class="stat-accent-bar" style="background: linear-gradient(180deg, #800000, #b91c1c);"></div>
                         <div class="stat-card-header">
                             <div class="stat-icon"
                                 style="color: var(--primary-maroon); background: var(--maroon-light);">
                                 <i class="fas fa-wallet"></i>
                             </div>
                             <div class="stat-actions">
-                                <button onclick="toggleBalanceVisibility()" class="stat-action-btn"
+                                <button onclick="event.stopPropagation(); toggleBalanceVisibility()" class="stat-action-btn"
                                     title="Toggle Visibility">
                                     <i id="balanceHideIcon" class="fas fa-eye"></i>
                                 </button>
-                                <button onclick="manualRefreshBalance()" class="stat-action-btn"
+                                <button onclick="event.stopPropagation(); manualRefreshBalance()" class="stat-action-btn"
                                     title="Refresh Balance">
                                     <i id="balanceRefreshIcon" class="fas fa-sync-alt"></i>
                                 </button>
@@ -159,7 +192,8 @@
                     </div>
 
                     <!-- Total Income -->
-                    <div class="stat-card">
+                    <div class="stat-card dash-animate" onclick="showPage('transactions')" style="cursor: pointer;">
+                        <div class="stat-accent-bar" style="background: linear-gradient(180deg, #059669, #10b981);"></div>
                         <div class="stat-card-header">
                             <div class="stat-icon" style="color: var(--success); background: rgba(16, 185, 129, 0.1);">
                                 <i class="fas fa-arrow-up"></i>
@@ -173,7 +207,8 @@
                     </div>
 
                     <!-- Total Spending -->
-                    <div class="stat-card">
+                    <div class="stat-card dash-animate" onclick="showPage('transactions')" style="cursor: pointer;">
+                        <div class="stat-accent-bar" style="background: linear-gradient(180deg, #dc2626, #ef4444);"></div>
                         <div class="stat-card-header">
                             <div class="stat-icon" style="color: var(--danger); background: rgba(239, 68, 68, 0.1);">
                                 <i class="fas fa-arrow-down"></i>
@@ -187,7 +222,8 @@
                     </div>
 
                     <!-- Active Loans -->
-                    <div class="stat-card">
+                    <div class="stat-card dash-animate" onclick="showPage('loans')" style="cursor: pointer;">
+                        <div class="stat-accent-bar" style="background: linear-gradient(180deg, #d97706, #f59e0b);"></div>
                         <div class="stat-card-header">
                             <div class="stat-icon" style="color: var(--warning); background: rgba(245, 158, 11, 0.1);">
                                 <i class="fas fa-piggy-bank"></i>
@@ -201,68 +237,155 @@
                     </div>
                 </div>
 
+                <!-- Financial Tips Carousel -->
+                <div class="tips-carousel dash-animate" id="tipsCarousel">
+                    <div class="tips-header">
+                        <i class="fas fa-lightbulb"></i> Smart Financial Tips
+                    </div>
+                    <div class="tips-slides" id="tipsSlides">
+                        <div class="tips-slide active">
+                            <div class="tip-icon">💡</div>
+                            <div class="tip-text">Set up automatic transfers to your savings account — even ₹500/month builds a strong emergency fund over time.</div>
+                            <div class="tip-sub">Smart Saving Strategy</div>
+                        </div>
+                        <div class="tips-slide">
+                            <div class="tip-icon">🛡️</div>
+                            <div class="tip-text">Never share your UPI PIN, OTP, or card CVV with anyone — SmartBank will never ask for these details.</div>
+                            <div class="tip-sub">Security First</div>
+                        </div>
+                        <div class="tips-slide">
+                            <div class="tip-icon">📊</div>
+                            <div class="tip-text">Track your monthly spending categories to identify areas where you can reduce unnecessary expenses.</div>
+                            <div class="tip-sub">Budget Management</div>
+                        </div>
+                        <div class="tips-slide">
+                            <div class="tip-icon">🏦</div>
+                            <div class="tip-text">Fixed Deposits at SmartBank offer up to 8.5% p.a. — a safe way to grow your savings with guaranteed returns.</div>
+                            <div class="tip-sub">Investment Tip</div>
+                        </div>
+                        <div class="tips-slide">
+                            <div class="tip-icon">🌾</div>
+                            <div class="tip-text">Agriculture loans at just 7.5% p.a. with satellite-verified approvals — apply for instant pre-approval today!</div>
+                            <div class="tip-sub">Agri Finance</div>
+                        </div>
+                    </div>
+                    <div class="tips-dots" id="tipsDots">
+                        <button class="tips-dot active" onclick="showTip(0)"></button>
+                        <button class="tips-dot" onclick="showTip(1)"></button>
+                        <button class="tips-dot" onclick="showTip(2)"></button>
+                        <button class="tips-dot" onclick="showTip(3)"></button>
+                        <button class="tips-dot" onclick="showTip(4)"></button>
+                    </div>
+                </div>
+
                 <!-- Quick Actions -->
-                <div class="card" style="margin-bottom: 24px;">
-                    <h3 class="card-title" style="margin-bottom: 20px;">Quick Actions</h3>
+                <div class="card dash-animate" style="margin-bottom: 24px;">
+                    <h3 class="card-title" style="margin-bottom: 20px;"><i class="fas fa-bolt" style="color: var(--primary-maroon); margin-right: 8px;"></i>Quick Actions</h3>
                     <div class="dashboard-grid"
                         style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                        <button onclick="showTransferModal()" class="quick-action-btn">
-                            <i class="fas fa-paper-plane"></i>
-                            <span>Transfer Money</span>
+                        <button onclick="showTransferModal()" class="quick-action-btn qa-transfer">
+                            <div class="qa-top">
+                                <i class="fas fa-paper-plane"></i>
+                                <span>Transfer Money</span>
+                            </div>
+                            <div class="qa-subtitle">Send via NEFT, IMPS, RTGS</div>
                         </button>
 
-                        <button onclick="showLoanModal()" class="quick-action-btn">
-                            <i class="fas fa-hand-holding-usd"></i>
-                            <span>Apply for Loan</span>
+                        <button onclick="showLoanModal()" class="quick-action-btn qa-loan">
+                            <div class="qa-top">
+                                <i class="fas fa-hand-holding-usd"></i>
+                                <span>Apply for Loan</span>
+                            </div>
+                            <div class="qa-subtitle">Personal, Home, Vehicle</div>
                         </button>
 
-                        <button onclick="showPage('cards')" class="quick-action-btn">
-                            <i class="fas fa-credit-card"></i>
-                            <span>Request Card</span>
+                        <button onclick="showPage('cards')" class="quick-action-btn qa-card">
+                            <div class="qa-top">
+                                <i class="fas fa-credit-card"></i>
+                                <span>Request Card</span>
+                            </div>
+                            <div class="qa-subtitle">Debit & Credit cards</div>
                         </button>
 
-                        <button onclick="showPage('transactions')" class="quick-action-btn">
-                            <i class="fas fa-history"></i>
-                            <span>View Transactions</span>
+                        <button onclick="showPage('transactions')" class="quick-action-btn qa-txn">
+                            <div class="qa-top">
+                                <i class="fas fa-history"></i>
+                                <span>View Transactions</span>
+                            </div>
+                            <div class="qa-subtitle">Full statement & export</div>
                         </button>
 
-                        <button onclick="showPage('accounts')" class="quick-action-btn">
-                            <i class="fas fa-university"></i>
-                            <span>My Accounts</span>
+                        <button onclick="showPage('accounts')" class="quick-action-btn qa-accounts">
+                            <div class="qa-top">
+                                <i class="fas fa-university"></i>
+                                <span>My Accounts</span>
+                            </div>
+                            <div class="qa-subtitle">Manage all accounts</div>
                         </button>
 
-                        <button onclick="showMutualFundModal()" class="quick-action-btn">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Mutual Fund</span>
+                        <button onclick="showMutualFundModal()" class="quick-action-btn qa-mf">
+                            <div class="qa-top">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Mutual Fund</span>
+                            </div>
+                            <div class="qa-subtitle">Invest & grow wealth</div>
                         </button>
 
-                        <button onclick="showLifeInsuranceModal()" class="quick-action-btn">
-                            <i class="fas fa-umbrella"></i>
-                            <span>Life Insurance</span>
+                        <button onclick="showLifeInsuranceModal()" class="quick-action-btn qa-ins">
+                            <div class="qa-top">
+                                <i class="fas fa-umbrella"></i>
+                                <span>Life Insurance</span>
+                            </div>
+                            <div class="qa-subtitle">Secure your family</div>
                         </button>
 
-                        <button onclick="showGoldLoanModal()" class="quick-action-btn">
-                            <i class="fas fa-coins"></i>
-                            <span>Gold Loan</span>
+                        <button onclick="showGoldLoanModal()" class="quick-action-btn qa-gold">
+                            <div class="qa-top">
+                                <i class="fas fa-coins"></i>
+                                <span>Gold Loan</span>
+                            </div>
+                            <div class="qa-subtitle">Instant against gold</div>
                         </button>
-                        <button onclick="showFixedDepositModal()" class="quick-action-btn">
-                            <i class="fas fa-piggy-bank"></i>
-                            <span>Fixed Deposit</span>
+                        <button onclick="showFixedDepositModal()" class="quick-action-btn qa-fd">
+                            <div class="qa-top">
+                                <i class="fas fa-piggy-bank"></i>
+                                <span>Fixed Deposit</span>
+                            </div>
+                            <div class="qa-subtitle">Up to 8.5% p.a. returns</div>
+                        </button>
+                        <button onclick="showAgriLoanModal()" class="quick-action-btn qa-agri">
+                            <div class="qa-top">
+                                <i class="fas fa-tractor"></i>
+                                <span>Agri Loan</span>
+                            </div>
+                            <div class="qa-subtitle">AI satellite verified</div>
                         </button>
                     </div>
                 </div>
 
+                <!-- Spending Analytics -->
+                <div class="spending-analytics dash-animate" id="spendingAnalytics" style="display: none;">
+                    <h3 class="card-title" style="margin-bottom: 4px;"><i class="fas fa-chart-pie" style="color: var(--primary-maroon); margin-right: 8px;"></i>Monthly Spending Breakdown</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Where your money goes this month</p>
+                    <div class="spending-bar-container" id="spendingBar">
+                        <!-- Segments injected by JS -->
+                    </div>
+                    <div class="spending-legend" id="spendingLegend">
+                        <!-- Legend injected by JS -->
+                    </div>
+                </div>
+
                 <!-- Recent Transactions -->
-                <div class="card">
+                <div class="card dash-animate">
                     <div class="card-header">
                         <div>
-                            <h3 class="card-title">Recent Transactions</h3>
+                            <h3 class="card-title"><i class="fas fa-exchange-alt" style="color: var(--primary-maroon); margin-right: 8px;"></i>Recent Transactions</h3>
                         </div>
                         <div class="card-actions">
-                            <button class="icon-btn">
+                            <button class="icon-btn" onclick="toggleDashboardTxnSearch()" title="Search">
                                 <i class="fas fa-search"></i>
                             </button>
-                            <button class="icon-btn">
+                            <button class="icon-btn" onclick="toggleDashboardTxnFilter()" title="Filter">
                                 <i class="fas fa-filter"></i>
                             </button>
                         </div>
@@ -282,14 +405,17 @@
                             <i class="fas fa-search"></i>
                             <input type="text" placeholder="Search..." id="invoiceSearch">
                         </div>
-                        <button class="filter-btn">
-                            <i class="fas fa-filter"></i>
-                            Filter
-                        </button>
-                        <button class="export-btn">
-                            <i class="fas fa-download"></i>
-                            Export
-                        </button>
+                        <div class="period-selector-wrapper">
+                            <select id="invoicePeriod" class="filter-select" style="height: 38px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--border-color); background: white; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-primary); outline: none; min-width: 140px;">
+                                <option value="current">Current Month</option>
+                                <option value="6months">Last 6 Months</option>
+                                <option value="all">Full History</option>
+                            </select>
+                            <button class="export-btn" onclick="downloadPDFStatement('invoice')" style="background: linear-gradient(135deg, var(--primary-maroon), #5c0000); color: white; border: none; box-shadow: 0 4px 12px rgba(128,0,0,0.2); height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-file-pdf"></i>
+                                Download PDF
+                            </button>
+                        </div>
                     </div>
                     <table class="data-table" id="invoiceTable">
                         <thead>
@@ -323,14 +449,17 @@
                             <i class="fas fa-search"></i>
                             <input type="text" placeholder="Search transactions..." id="transactionSearch">
                         </div>
-                        <button class="filter-btn">
-                            <i class="fas fa-filter"></i>
-                            Filter
-                        </button>
-                        <button class="export-btn">
-                            <i class="fas fa-download"></i>
-                            Export
-                        </button>
+                        <div class="period-selector-wrapper">
+                            <select id="statementPeriod" class="filter-select" style="height: 38px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--border-color); background: white; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-primary); outline: none; min-width: 140px;">
+                                <option value="current">Current Month</option>
+                                <option value="6months">Last 6 Months</option>
+                                <option value="all">Full History</option>
+                            </select>
+                            <button class="export-btn" onclick="downloadPDFStatement('transactions')" style="background: linear-gradient(135deg, var(--primary-maroon), #5c0000); color: white; border: none; box-shadow: 0 4px 12px rgba(128,0,0,0.2); height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-file-pdf"></i>
+                                Download PDF
+                            </button>
+                        </div>
                     </div>
                     <div id="allTransactionsList"></div>
                 </div>
@@ -506,6 +635,23 @@
                         </div>
                     </button>
 
+                    <!-- Agri Loan -->
+                    <button onclick="showAgriLoanModal()"
+                        style="background:linear-gradient(145deg,#1c5b36,#0f401f);border:none;border-radius:18px;padding:24px 16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:12px;transition:all 0.25s ease;box-shadow:0 4px 15px rgba(28,91,54,0.35);color:white;text-align:center;"
+                        onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 30px rgba(28,91,54,0.5)'"
+                        onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(28,91,54,0.35)'">
+                        <div
+                            style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:none;">
+                            <i class="fas fa-tractor" style="font-size:22px;color:white;"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Agri Loan</div>
+                            <div style="font-size:11px;opacity:0.85;margin-bottom:6px;">Satellite Verification</div>
+                            <span
+                                style="background:rgba(255,255,255,0.25);padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;">7.50%
+                                p.a.</span>
+                        </div>
+                    </button>
                 </div>
 
                 <div class="card">
@@ -589,8 +735,7 @@
                             <h2>Quick & Secure UPI Payments</h2>
                             <p style="color: var(--text-secondary); margin-bottom: 24px;">Register your SmartBank VPA
                                 and start sending money instantly using NPCI UPI Sandbox.</p>
-                            <form id="upiSetupForm" onsubmit="setupUPI(event)"
-                                style="max-width: 400px; margin: 0 auto; text-align: left;">
+                            <form id="upiSetupForm" onsubmit="setupUPI(event)">
                                 <div class="form-group">
                                     <label class="form-label">Desired UPI ID</label>
                                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -618,32 +763,34 @@
                 </div>
 
                 <div id="upiMainContent" style="display: none;">
-                    <div class="dashboard-grid grid-2" style="margin-bottom: 24px;">
-                        <div class="card" id="balanceCardContainer"
-                            style="background: linear-gradient(135deg, var(--card-bg) 0%, #f8fafc 100%); position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
-                            <div
-                                style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%); border-radius: 50%;">
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                            <div>
-                                <div id="statTotalBalances"
-                                    style="font-size: 36px; font-weight: 800; color: var(--text-primary); margin: 12px 0; letter-spacing: -0.5px;">
-                                    ₹0.00</div>
-                                <div
-                                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
-                                    <span id="balanceSubLabel"
-                                        style="font-size: 13px; color: #10b981; background: #d1fae5; padding: 4px 10px; border-radius: 20px; font-weight: 600;"><i
-                                            class="fas fa-arrow-up" style="margin-right: 4px;"></i>Across all
-                                        accounts</span>
+                    <div class="card" id="balanceCardContainer" 
+                        style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 24px; padding: 36px; margin-bottom: 32px; position: relative; overflow: hidden; box-shadow: var(--shadow-md); transition: all 0.4s ease;">
+                        
+                        <!-- Background Glassy Orbs -->
+                        <div style="position: absolute; top: -50px; right: -50px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(128,0,0,0.03) 0%, transparent 70%); border-radius: 50%;"></div>
+                        <div style="position: absolute; bottom: -30px; left: -30px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(212,175,55,0.02) 0%, transparent 70%); border-radius: 50%;"></div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 2; flex-wrap: wrap; gap: 20px;">
+                            <div style="flex: 1; min-width: 250px;">
+                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                                    <div style="background: var(--maroon-light); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 12px; font-size: 13px; color: var(--primary-maroon); font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+                                        <i class="fas fa-bolt" style="color: var(--gold-accent); margin-right: 6px;"></i> SMART UPI
+                                    </div>
+                                    <span id="balanceSubLabel" style="font-size: 11px; background: #dcfce7; color: #166534; padding: 5px 12px; border-radius: 20px; font-weight: 700; text-transform: uppercase; border: 1px solid #bbf7d0;">Verified Sandbox</span>
                                 </div>
-                                <div style="margin-top: 20px;">
-                                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">My VPA
-                                    </p>
-                                    <h4 id="displayUpiId" style="font-weight: 700; color: var(--primary-blue);">...</h4>
+
+                                <div style="margin-bottom: 28px;">
+                                    <p style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800; margin-bottom: 6px;">Available Balance</p>
+                                    <div id="statTotalBalances" style="font-size: 48px; font-weight: 900; color: var(--text-primary); letter-spacing: -2px; line-height: 1;">₹0.00</div>
+                                </div>
+
+                                <div>
+                                    <p style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800; margin-bottom: 4px;">Smart VPA</p>
+                                    <h4 id="displayUpiId" style="font-weight: 800; font-size: 20px; color: var(--primary-maroon); letter-spacing: 0.5px;">...</h4>
                                 </div>
                             </div>
-                            <div id="displayUpiQr" style="text-align: center;">
+
+                            <div id="displayUpiQr" style="background: white; padding: 12px; border-radius: 16px; box-shadow: var(--shadow-md); transform: rotate(2deg); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); align-self: center; border: 1px solid var(--border-color);" onmouseover="this.style.transform='rotate(0deg) scale(1.08)'; this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='rotate(2deg)'; this.style.boxShadow='var(--shadow-md)'">
                                 <!-- QR Code will be injected here -->
                             </div>
                         </div>
@@ -677,12 +824,33 @@
                                 <small style="color: var(--text-secondary);">Sandbox accepts @smtbank, @axis,
                                     @okicici, @upi, @paytm</small>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Amount (₹)</label>
-                                <input type="number" id="upiAmount" class="form-input" placeholder="0.00" min="1"
-                                    step="0.01"
-                                    onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode == 46"
-                                    oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);" required>
+                            <div style="display: grid; grid-template-columns: 1fr 120px; gap: 12px; margin-bottom: 20px;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label class="form-label">Amount</label>
+                                    <input type="number" id="upiAmount" class="form-input" placeholder="0.00" min="0.01" step="0.01" required 
+                                           oninput="updateUpiConversion()">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label class="form-label">Currency</label>
+                                    <select id="upiCurrency" class="form-select" onchange="updateUpiConversion()">
+                                        <option value="INR">INR (₹)</option>
+                                        <option value="USD">USD ($)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                        <option value="GBP">GBP (£)</option>
+                                        <option value="AED">AED (د.إ)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div id="upiConversionPreview" style="margin-bottom: 20px; padding: 12px; background: rgba(59, 130, 246, 0.05); border-radius: 8px; font-size: 13px; display: none;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary);">
+                                    <span>Exchange Rate:</span>
+                                    <span id="upiRateDisplay">1 USD = 83.12 INR</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-weight: 700; color: var(--primary-blue);">
+                                    <span>Total Amount:</span>
+                                    <span id="upiInrDisplay">₹0.00</span>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">UPI PIN</label>
@@ -695,6 +863,175 @@
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Beneficiaries Page -->
+            <div id="beneficiaries" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Manage Beneficiaries</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddBeneficiaryModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Beneficiary
+                        </button>
+                    </div>
+                    <div id="beneficiariesContent" style="padding: 24px;">
+                        <p style="color: var(--text-secondary);">Loading beneficiaries...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Savings Goals (Pockets) Page -->
+            <div id="pockets" class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Savings Goals (Pockets)</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddGoalModal()">
+                            <i class="fas fa-plus"></i>
+                            New Goal
+                        </button>
+                    </div>
+                    <div id="pocketsContent" style="padding: 24px;">
+                        <div class="dashboard-grid grid-3" id="goalsGrid">
+                            <p style="color: var(--text-secondary);">Loading goals...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="crop-marketplace" class="page-content agri-theme">
+                <div class="card" style="margin-bottom:24px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+                        <div>
+                            <h2 style="color:#166534;font-size:24px;font-weight:800">🌾 Crop Marketplace</h2>
+                            <p style="color:#15803d;font-size:14px;margin-top:4px">List your harvest and sell to verified buyers. 2% bank commission on sales.</p>
+                        </div>
+                        <button class="btn btn-primary" style="background:#1a5c3a" onclick="showCreateListingModal()"><i class="fas fa-plus"></i> New Listing</button>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+                    <button class="mode-tab active mkt-tab" data-tab="listings" onclick="switchMarketTab('listings')" style="background:#1a5c3a"><i class="fas fa-list"></i> My Listings</button>
+                    <button class="mode-tab mkt-tab" data-tab="orders" onclick="switchMarketTab('orders')"><i class="fas fa-shopping-cart"></i> Orders</button>
+                    <button class="mode-tab mkt-tab" data-tab="escrow" onclick="switchMarketTab('escrow')"><i class="fas fa-lock"></i> Escrow</button>
+                    <button class="mode-tab mkt-tab" data-tab="mandi" onclick="switchMarketTab('mandi')"><i class="fas fa-chart-line"></i> Mandi Prices</button>
+                    <button class="mode-tab mkt-tab" data-tab="tax" onclick="switchMarketTab('tax')"><i class="fas fa-file-invoice-dollar"></i> Tax</button>
+                </div>
+                <div id="mktTabListings" class="mkt-panel"><div class="card"><div class="card-header"><h3 class="card-title">My Crop Listings</h3></div><div style="padding:16px;overflow-x:auto"><table class="data-table" id="farmerListingsTable"><thead><tr><th>Crop</th><th>Category</th><th>Qty (kg)</th><th>₹/kg</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div></div>
+                <div id="mktTabOrders" class="mkt-panel" style="display:none"><div class="card"><div class="card-header"><h3 class="card-title">Orders from Buyers</h3></div><div style="padding:16px;overflow-x:auto"><table class="data-table" id="farmerOrdersTable"><thead><tr><th>Order#</th><th>Buyer</th><th>Crop</th><th>Qty</th><th>₹/kg</th><th style="width:160px">Payment Breakup</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div></div>
+                <div id="mktTabEscrow" class="mkt-panel" style="display:none"><div class="card"><div class="card-header"><h3 class="card-title">Escrow Transactions</h3></div><div style="padding:16px" id="farmerEscrowContent"><p style="color:var(--text-secondary)">Loading...</p></div></div></div>
+                <div id="mktTabTax" class="mkt-panel" style="display:none"><div class="card"><div class="card-header"><h3 class="card-title">Tax & Financial Records</h3></div><div style="padding:16px" id="farmerTaxContent"><p style="color:var(--text-secondary)">Loading...</p></div></div></div>
+                
+                <!-- Mandi Prices Panel -->
+                <div id="mktTabMandi" class="mkt-panel" style="display:none">
+                    <div class="card" style="margin-bottom:20px;">
+                        <div class="card-header"><h3 class="card-title"><i class="fas fa-broadcast-tower"></i> Live Mandi Intelligence</h3></div>
+                        <div style="padding:20px; background:var(--main-bg); border-bottom:1px solid var(--border-color); display:flex; gap:12px; flex-wrap:wrap;">
+                            <div style="flex:1; min-width:150px;">
+                                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:6px; text-transform:uppercase;">State</label>
+                                <select id="mandiStateFilter" class="form-input" onchange="loadMandiPrices()"><option value="All">All States</option></select>
+                            </div>
+                            <div style="flex:1; min-width:150px;">
+                                <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:6px; text-transform:uppercase;">Commodity</label>
+                                <select id="mandiCommodityFilter" class="form-input" onchange="loadMandiPrices()"><option value="All">All Commodities</option></select>
+                            </div>
+                            <button onclick="loadMandiPrices()" class="btn btn-primary" style="align-self:flex-end; padding:10px 20px;"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                        <div id="mandiPricesContent" style="padding:24px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Listing Modal -->
+            <div id="createListingModal" class="modal">
+                <div class="modal-content" style="max-width:550px">
+                    <div class="modal-header">
+                        <h3 class="modal-title"><i class="fas fa-seedling"></i> New Crop Listing</h3>
+                        <button class="modal-close" onclick="closeModal('createListingModal')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="dashboard-grid grid-2">
+                            <div class="form-group"><label class="form-label">Crop Name *</label><input type="text" id="lstCropName" class="form-input" placeholder="e.g. Wheat"></div>
+                            <div class="form-group"><label class="form-label">Category</label><select id="lstCategory" class="form-input"><option>General</option><option>Grains</option><option>Vegetables</option><option>Fruits</option><option>Pulses</option><option>Spices</option><option>Oilseeds</option></select></div>
+                            <div class="form-group"><label class="form-label">Quantity (kg) *</label><input type="number" id="lstQty" class="form-input" placeholder="0"></div>
+                            <div class="form-group"><label class="form-label">Price ₹/kg *</label><input type="number" id="lstPrice" class="form-input" placeholder="0.00" step="0.01"></div>
+                            <div class="form-group"><label class="form-label">Min Order (kg)</label><input type="number" id="lstMinOrder" class="form-input" placeholder="1" value="1"></div>
+                            <div class="form-group"><label class="form-label">Harvest Date</label><input type="date" id="lstHarvestDate" class="form-input"></div>
+                        </div>
+                        <div class="form-group" style="margin-top:14px"><label class="form-label">Location</label><input type="text" id="lstLocation" class="form-input" placeholder="Farm location"></div>
+                        <div class="form-group">
+                            <label class="form-label">Photo (Optional)</label>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <input type="file" id="lstImageFile" class="form-input" accept="image/*" onchange="previewCropImage(this)" style="flex:1;">
+                                <div id="cropImagePreview" style="display:none; width:45px; height:45px; border-radius:8px; background-size:cover; background-position:center; border:1px solid var(--border-color);"></div>
+                            </div>
+                            <input type="hidden" id="lstImageUrl">
+                        </div>
+                        <div class="form-group"><label class="form-label">Description</label><textarea id="lstDescription" class="form-input" rows="3" placeholder="Describe your crop..."></textarea></div>
+                        <div class="modal-footer">
+                            <input type="hidden" id="lstId" value="">
+                            <button type="button" class="btn btn-cancel" onclick="closeModal('createListingModal')">Cancel</button>
+                            <button class="btn btn-primary" id="btnSubmitListing" style="background:#1a5c3a" onclick="submitCreateListing()"><i class="fas fa-check"></i> Save Listing</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Chat Modal -->
+            <div id="orderChatModal" class="modal">
+                <div class="modal-content" style="max-width:500px; display:flex; flex-direction:column; max-height:85vh; padding:0;">
+                    <div class="modal-header" style="padding:16px 24px; border-bottom:1px solid var(--border-color); background:var(--main-bg);">
+                        <h3 class="modal-title" style="margin:0;"><i class="fas fa-comments" style="color:var(--primary-dark)"></i> Order Chat</h3>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;" id="orderChatMetadata">Loading...</div>
+                        <button class="modal-close" onclick="closeOrderChatModal()"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div id="chatMessages" style="flex:1; overflow-y:auto; padding:20px; background:#f8fafc; display:flex; flex-direction:column; gap:12px; min-height:300px;">
+                        <!-- Messages go here -->
+                    </div>
+                    <div style="padding:16px 24px; background:var(--main-bg); border-top:1px solid var(--border-color); display:flex; gap:10px;">
+                        <input type="hidden" id="chatOrderId">
+                        <input type="text" id="chatInputMessage" class="form-input" style="flex:1; margin:0;" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendOrderMessage()">
+                        <button class="btn btn-primary" onclick="sendOrderMessage()" style="padding:0 20px;"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Branch & ATM Locator Page -->
+            <div id="locator" class="page-content">
+                <div class="card" style="padding:0; overflow:hidden; border-radius: 20px; margin-bottom:0;">
+                    <div style="padding:20px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <h3 style="margin:0; display:flex; align-items:center; gap:10px; font-size:18px; font-weight:800; color:var(--text-primary);">
+                            <div style="width:40px; height:40px; background:linear-gradient(135deg,#800000,#a52a2a); border-radius:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(128,0,0,0.25);">
+                                <i class="fas fa-map-marked-alt" style="color:#fff; font-size:17px;"></i>
+                            </div>
+                            Branch & ATM Locator
+                        </h3>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button id="locFilterAll" class="loc-filter-btn loc-active" onclick="filterLocations('all')">
+                                <i class="fas fa-layer-group"></i> All
+                            </button>
+                            <button id="locFilterBranch" class="loc-filter-btn" onclick="filterLocations('branch')">
+                                <i class="fas fa-university"></i> Branches
+                            </button>
+                            <button id="locFilterAtm" class="loc-filter-btn" onclick="filterLocations('atm')">
+                                <i class="fas fa-credit-card"></i> ATMs
+                            </button>
+                        </div>
+                    </div>
+                    <div style="position:relative;">
+                        <div id="userLocatorMap" style="height: 600px; width: 100%; background: #0f172a;"></div>
+                        <!-- Location count badge -->
+                        <div id="locCountBadge" style="position:absolute; top:16px; left:16px; background:rgba(255,255,255,0.95); backdrop-filter:blur(12px); padding:8px 16px; border-radius:12px; font-size:13px; font-weight:700; color:#1e293b; box-shadow: 0 4px 16px rgba(0,0,0,0.12); display:flex; align-items:center; gap:8px; z-index:5;">
+                            <i class="fas fa-map-pin" style="color:#800000;"></i>
+                            <span id="locCountText">Loading...</span>
+                        </div>
+                        <!-- Legend -->
+                        <div style="position:absolute; bottom:16px; left:16px; background:rgba(255,255,255,0.95); backdrop-filter:blur(12px); padding:10px 16px; border-radius:12px; font-size:12px; color:#475569; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index:5; display:flex; gap:16px;">
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#800000;display:inline-block;"></span> Branch</span>
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#2563eb;display:inline-block;"></span> ATM</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -827,11 +1164,10 @@
                             <option value="60">5 years @ 8.5% p.a.</option>
                         </select>
                     </div>
-                    <div
-                        style="background:rgba(16, 185, 129, 0.1);padding:12px;border-radius:8px;margin-bottom:20px;font-size:13px;color:var(--success);">
-                        <i class="fas fa-info-circle"></i> Interest is compounded annually and paid at maturity.
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-cancel" onclick="closeModal('fdModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Open FD Now</button>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">Open FD Now</button>
                 </form>
             </div>
         </div>
@@ -901,7 +1237,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline"
+                        <button type="button" class="btn btn-cancel"
                             onclick="closeModal('accountOpeningModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-check"></i>
@@ -984,7 +1320,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline"
+                        <button type="button" class="btn btn-cancel"
                             onclick="closeModal('loanApplicationModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-check"></i>
@@ -1045,7 +1381,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline"
+                        <button type="button" class="btn btn-cancel"
                             onclick="closeModal('cardApplicationModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-check"></i>
@@ -1113,7 +1449,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline"
+                        <button type="button" class="btn btn-cancel"
                             onclick="closeModal('supportRequestModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-paper-plane"></i>
@@ -1336,8 +1672,10 @@
                     By clicking submit, you authorize Smart Bank to process this application.
                 </div>
 
-                <button class="btn btn-primary" style="width: 100%;" onclick="submitFinancialApplication()">Submit
-                    Application</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" onclick="closeApplicationModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitFinancialApplication()">Submit Application</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1406,8 +1744,10 @@
                     Repayment will be instantly deducted from your bank account and applied to your loan.
                 </div>
 
-                <button class="btn btn-primary" id="btnConfirmRepay" style="width: 100%;"
-                    onclick="submitLoanRepayment()">Confirm Repayment</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" onclick="closeLoanRepayModal()">Cancel</button>
+                    <button class="btn btn-primary" id="btnConfirmRepay" onclick="submitLoanRepayment()">Confirm Repayment</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1415,24 +1755,132 @@
     <!-- Chatbot -->
     <div id="chatbot-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;"></div>
 
-    <div id="privacyMask" class="privacy-mask">
-        <div class="privacy-logo">Smart<span style="color:white">Bank</span></div>
-        <div class="privacy-msg">Screen hidden for your security</div>
-        <p style="margin-top: 15px; font-size: 14px; opacity: 0.8;">Return to this tab to resume your session</p>
-    </div>
-    <div id="screenshotFlash" class="screenshot-flash"></div>
-
-    <script src="api-config.js"></script>
-    <script src="chatbot.js"></script>
-    <script src="face-api.min.js"></script>
-    <script src="face-auth-fixed.js"></script>
-    <script src="userdash.js"></script>
+    <script src="js/api-config.js"></script>
+    <script src="js/chatbot.js"></script>
+    <script src="js/face-api.min.js"></script>
+    <script src="js/face-auth-fixed.js"></script>
+    <script src="js/userdash.js"></script>
     <script>
-        if (typeof FaceAuthManager !== 'undefined') {
-            window.faceAuthManager = new FaceAuthManager();
-            window.faceAuthManager.init();
-        }
+        // FaceAuthManager is already initialized by face-auth-fixed.js
     </script>
+    <!-- Agriculture Loan Modal -->
+    <div id="agriLoanModal" class="modal">
+        <div class="modal-content agri-theme" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-satellite"></i> Agriculture Loan</h3>
+                <button class="modal-close" onclick="closeAgriLoanModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">Use our satellite AI to analyze your farmland and get an instant loan pre-approval.</p>
+                
+                <form id="agriLoanForm" onsubmit="submitAgriLoan(event)">
+                    <div class="form-group" style="position: relative;" id="agriDetailsGroup">
+                        <label class="form-label">Farm Location & Identification</label>
+                        <div class="dashboard-grid grid-2" style="margin-bottom: 12px;">
+                            <input type="text" id="agriAddress" class="form-input" placeholder="Village / Area" required>
+                            <input type="text" id="agriState" class="form-input" placeholder="State / District" required>
+                        </div>
+                        <input type="text" id="agriSurvey" class="form-input" placeholder="Survey Number / Khata Number / Khasra" required>
+                        
+                        <div id="aiScannerOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: rgba(21, 128, 61, 0.1); border-radius: 12px; overflow: hidden; pointer-events: none; border: 2px solid var(--primary-green);">
+                            <div class="scanner-line" style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary-green); box-shadow: 0 0 15px var(--primary-green); animation: scan 2s infinite linear;"></div>
+                            <div class="ai-status-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; background: var(--primary-green-dark); padding: 8px 16px; border-radius: 20px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">AI SATELLITE SCANNING...</div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid grid-3" style="gap: 16px;">
+                        <div class="form-group">
+                            <label class="form-label">Land Size (Acres)</label>
+                            <input type="number" id="agriSize" class="form-input" placeholder="e.g. 5.5" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Main Crop</label>
+                            <input type="text" id="agriCrop" class="form-input" placeholder="Wheat/Rice" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Amount (₹)</label>
+                            <input type="number" id="agriAmount" class="form-input" placeholder="Request" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-cancel" onclick="closeAgriLoanModal()">Cancel</button>
+                        <button type="submit" id="agriSubmitBtn" class="btn btn-primary" style="background: var(--primary-green-dark);">
+                            <i class="fas fa-microchip"></i> Analyze & Apply
+                        </button>
+                    </div>
+                    
+                    <div id="agriResultArea" style="display: none; margin-top: 24px; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--bg-light);">
+                        <h4 style="margin-bottom: 16px; text-align: center; color: var(--text-primary); font-weight: 700;">Satellite Analysis Complete</h4>
+                        <div class="dashboard-grid grid-2">
+                            <div class="card" style="text-align: center; padding: 15px; border-radius: 12px;">
+                                <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Yield Health Score</div>
+                                <div id="agriResultScore" style="font-size: 32px; font-weight: 900; color: var(--success); margin-top: 4px;">--</div>
+                            </div>
+                            <div class="card" style="text-align: center; padding: 15px; border-radius: 12px;">
+                                <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Soil Index</div>
+                                <div id="agriResultMoisture" style="font-size: 32px; font-weight: 900; color: var(--primary-blue); margin-top: 4px;">--</div>
+                            </div>
+                        </div>
+                        <div id="agriResultRec" style="text-align: center; font-weight: 600; margin-top: 16px; padding: 14px; border-radius: 12px; background: white; border: 1px solid var(--border-color);">--</div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- (Locator page moved into main content area above) -->
+    </div>
+
+    <!-- Desktop Balance PIN Modal -->
+    <div id="desktopPinModal" class="modal" style="display:none;z-index:50000;">
+        <div class="modal-content" style="max-width:380px;padding:0;border-radius:24px;overflow:hidden;">
+            <div style="padding:32px 28px;text-align:center;">
+                <!-- Header -->
+                <div style="width:56px;height:56px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <i class="fas fa-shield-alt" style="color:#fde68a;font-size:24px;"></i>
+                </div>
+                <h3 id="deskPinTitle" style="margin:0 0 6px;font-size:20px;font-weight:800;color:var(--text-primary);">Enter Balance PIN</h3>
+                <p id="deskPinSubtitle" style="font-size:13px;color:var(--text-secondary);margin:0 0 24px;">Enter your 4-digit PIN to view your balance</p>
+
+                <!-- PIN Dots -->
+                <div style="display:flex;justify-content:center;gap:16px;margin-bottom:20px;">
+                    <div id="deskPinDot0" style="width:18px;height:18px;border-radius:50%;border:2px solid #d1d5db;background:transparent;transition:all 0.2s ease;"></div>
+                    <div id="deskPinDot1" style="width:18px;height:18px;border-radius:50%;border:2px solid #d1d5db;background:transparent;transition:all 0.2s ease;"></div>
+                    <div id="deskPinDot2" style="width:18px;height:18px;border-radius:50%;border:2px solid #d1d5db;background:transparent;transition:all 0.2s ease;"></div>
+                    <div id="deskPinDot3" style="width:18px;height:18px;border-radius:50%;border:2px solid #d1d5db;background:transparent;transition:all 0.2s ease;"></div>
+                </div>
+
+                <!-- Error Message -->
+                <p id="deskPinError" style="color:#ef4444;font-size:13px;font-weight:600;min-height:18px;margin-bottom:16px;"></p>
+
+                <!-- Number Pad -->
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:260px;margin:0 auto;">
+                    <button onclick="desktopPinInput('1')" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;font-size:20px;font-weight:700;cursor:pointer;color:#1e293b;transition:all 0.15s ease;" onmousedown="this.style.background='#e5e7eb'" onmouseup="this.style.background='#f9fafb'">1</button>
+                    <button onclick="desktopPinInput('2')" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;font-size:20px;font-weight:700;cursor:pointer;color:#1e293b;transition:all 0.15s ease;" onmousedown="this.style.background='#e5e7eb'" onmouseup="this.style.background='#f9fafb'">2</button>
+                    <button onclick="desktopPinInput('3')" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;font-size:20px;font-weight:700;cursor:pointer;color:#1e293b;transition:all 0.15s ease;" onmousedown="this.style.background='#e5e7eb'" onmouseup="this.style.background='#f9fafb'">3</button>
+                    <button onclick="desktopPinInput('4')" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;font-size:20px;font-weight:700;cursor:pointer;color:#1e293b;transition:all 0.15s ease;" onmousedown="this.style.background='#e5e7eb'" onmouseup="this.style.background='#f9fafb'">4</button>
+                    <button onclick="desktopPinInput('5')" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;font-size:20px;font-weight:700;cursor:pointer;color:#1e293b;transition:all 0.15s ease;" onmousedown="this.style.background='#e5e7eb'" onmouseup="this.style.background='#f9fafb'">5</button>
+                    <button onclick="desktopPinInput('6')" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;font-size:20px;font-weight:700;cursor:pointer;color:#1e293b;transition:all 0.15s ease;" onmousedown="this.style.background='#e5e7eb'" onmouseup="this.style.background='#f9fafb'">6</button>
+                    <button onclick="desktopPinInput('7')" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;font-size:20px;font-weight:700;cursor:pointer;color:#1e293b;transition:all 0.15s ease;" onmousedown="this.style.background='#e5e7eb'" onmouseup="this.style.background='#f9fafb'">7</button>
+                    <button onclick="desktopPinInput('8')" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;font-size:20px;font-weight:700;cursor:pointer;color:#1e293b;transition:all 0.15s ease;" onmousedown="this.style.background='#e5e7eb'" onmouseup="this.style.background='#f9fafb'">8</button>
+                    <button onclick="desktopPinInput('9')" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;font-size:20px;font-weight:700;cursor:pointer;color:#1e293b;transition:all 0.15s ease;" onmousedown="this.style.background='#e5e7eb'" onmouseup="this.style.background='#f9fafb'">9</button>
+                    <button onclick="closeDesktopPinModal()" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#fef2f2;font-size:12px;font-weight:700;cursor:pointer;color:#ef4444;">Cancel</button>
+                    <button onclick="desktopPinInput('0')" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;font-size:20px;font-weight:700;cursor:pointer;color:#1e293b;transition:all 0.15s ease;" onmousedown="this.style.background='#e5e7eb'" onmouseup="this.style.background='#f9fafb'">0</button>
+                    <button onclick="desktopPinBackspace()" style="padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;font-size:16px;cursor:pointer;color:#64748b;"><i class="fas fa-backspace"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        #desktopPinModal .filled { background: #6366f1 !important; border-color: #6366f1 !important; }
+        #desktopPinModal .success { background: #10b981 !important; border-color: #10b981 !important; }
+        #desktopPinModal .error { background: #ef4444 !important; border-color: #ef4444 !important; }
+    </style>
+
+    <!-- Language Switcher -->
+    <script src="js/language-switcher.js"></script>
 </body>
 
 </html>

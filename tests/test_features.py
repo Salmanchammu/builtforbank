@@ -4,7 +4,7 @@ import sqlite3
 import os
 
 BASE_URL = "http://localhost:5001"
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database', 'smart_bank.db')
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'database', 'smartbank.db')
 
 def print_result(name, condition, msg=""):
     print(f"{'✅ PASS' if condition else '❌ FAIL'} | {name} | {msg}")

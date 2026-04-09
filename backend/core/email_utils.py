@@ -1,0 +1,139 @@
+import os
+import threading
+import logging
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+logger = logging.getLogger('smart_bank.email')
+
+# Try importing from the config package in the parent directory
+try:
+    from ..config import email_config
+except (ImportError, ValueError):
+    try:
+        import sys
+        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+        from config import email_config
+    except ImportError:
+        email_config = None
+
+def send_email_async(to_email, subject, body_html):
+    """Send email in a separate thread to avoid blocking the main request."""
+    def send_task():
+        try:
+            if not email_config or email_config.SENDER_EMAIL == "your-email@gmail.com":
+                logger.warning(f"Email not configured. To: {to_email}")
+                return
+
+            logger.info(f"Starting email delivery to {to_email}...")
+            
+            # Try Resend HTTP API first
+            resend_api_key = os.environ.get("RESEND_API_KEY")
+            if resend_api_key:
+                try:
+                    import urllib.request as urllib_req
+                    import json as json_lib
+                    
+                    resend_sender = getattr(email_config, 'RESEND_FROM', f"Smart Bank <{email_config.SENDER_EMAIL}>")
+                    
+                    payload = json_lib.dumps({
+                        "from": resend_sender,
+                        "to": [to_email],
+                        "subject": subject,
+                        "html": body_html
+                    }).encode('utf-8')
+                    
+                    req = urllib_req.Request(
+                        "https://api.resend.com/emails",
+                        data=payload,
+                        headers={
+                            "Authorization": f"Bearer {resend_api_key}",
+                            "Content-Type": "application/json"
+                        }
+                    )
+                    
+                    with urllib_req.urlopen(req, timeout=15) as response:
+                        res_body = response.read().decode('utf-8')
+                        logger.info(f"Email sent via Resend to {to_email}. Response: {res_body}")
+                    return
+                except Exception as e:
+                    logger.error(f"Resend API fallback: {str(e)}")
+
+            # SMTP fallback
+            msg = MIMEMultipart()
+            msg['From'] = email_config.SENDER_EMAIL
+            msg['To'] = to_email
+            msg['Subject'] = subject
+            msg.attach(MIMEText(body_html, 'html'))
+
+            # Force SSL for port 465, else use STARTTLS
+            if email_config.SMTP_PORT == 465 or getattr(email_config, 'SMTP_USE_SSL', False):
+                import ssl
+                context = ssl.create_default_context()
+                with smtplib.SMTP_SSL(email_config.SMTP_SERVER, email_config.SMTP_PORT, context=context) as server:
+                    server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
+                    server.send_message(msg)
+            else:
+                with smtplib.SMTP(email_config.SMTP_SERVER, email_config.SMTP_PORT) as server:
+                    server.starttls()
+                    server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
+                    server.send_message(msg)
+            logger.info(f"Email successfully delivered to {to_email}")
+            
+        except Exception as e:
+            logger.error(f"FAILED email to {to_email}: {str(e)}")
+            print(f"DEBUG: Email failed for {to_email}: {e}")
+
+    # Synchronous delivery for debugging
+    send_task()
+
+def send_email_diagnostic(to_email, subject, body_html):
+    """Synchronous version of send_email for diagnostics. Returns detailed results."""
+    results = {"success": False, "resend": None, "smtp": None, "config": None}
+    
+    if not email_config or email_config.SENDER_EMAIL == "your-email@gmail.com":
+        results["config"] = "Email not configured (using default placeholders)"
+        return results
+        
+    resend_api_key = os.environ.get("RESEND_API_KEY")
+    if resend_api_key:
+        try:
+            import urllib.request as urllib_req
+            import json as json_lib
+            resend_sender = getattr(email_config, 'RESEND_FROM', f"Smart Bank <{email_config.SENDER_EMAIL}>")
+            payload = json_lib.dumps({
+                "from": resend_sender,
+                "to": [to_email],
+                "subject": subject,
+                "html": body_html
+            }).encode('utf-8')
+            req = urllib_req.Request("https://api.resend.com/emails", data=payload,
+                                    headers={"Authorization": f"Bearer {resend_api_key}", "Content-Type": "application/json"})
+            with urllib_req.urlopen(req, timeout=10) as response:
+                results["resend"] = f"Success: {response.read().decode('utf-8')}"
+                results["success"] = True
+        except Exception as e:
+            results["resend"] = f"FAILED: {str(e)}"
+
+    if not results["success"]:
+        try:
+            msg = MIMEMultipart(); msg['From'] = email_config.SENDER_EMAIL; msg['To'] = to_email; msg['Subject'] = subject
+            msg.attach(MIMEText(body_html, 'html'))
+            use_ssl = getattr(email_config, 'SMTP_USE_SSL', False)
+            if use_ssl:
+                import ssl; context = ssl.create_default_context()
+                with smtplib.SMTP_SSL(email_config.SMTP_SERVER, email_config.SMTP_PORT, context=context) as server:
+                    server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
+                    server.send_message(msg)
+            else:
+                with smtplib.SMTP(email_config.SMTP_SERVER, email_config.SMTP_PORT) as server:
+                    server.starttls()
+                    server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
+                    server.send_message(msg)
+            results["smtp"] = "Success via SMTP"
+            results["success"] = True
+        except Exception as e:
+            results["smtp"] = f"FAILED: {str(e)}"
+            
+    return results

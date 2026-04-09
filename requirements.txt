@@ -1,29 +1,6 @@
-# Smart Bank Backend Requirements
-# Updated: February 13, 2026
-
-# Core Flask Framework
 Flask==3.0.0
 Flask-CORS==4.0.0
 Werkzeug==3.0.1
-
-# Additional Python packages (usually included but listed for completeness)
-# These are typically part of Python standard library but ensuring compatibility:
-python-dateutil==2.8.2
-
-# For better JSON handling (optional but recommended)
-simplejson==3.19.2
-
-# Session management (optional - for Redis-based sessions if needed)
-# Flask-Session==0.5.0
-# redis==5.0.1
-
-# For production deployment
 gunicorn==21.2.0
-
-# Email functionality uses built-in smtplib (no additional packages needed)
-
-# PDF Generation
-reportlab>=4.0.0
-
-# Database Persistence
-psycopg2-binary>=2.9.9
+reportlab==4.4.10
+psycopg2-binary==2.9.9

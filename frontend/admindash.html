@@ -1,15 +1,165 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Smart Bank - Admin Dashboard</title>
+    <link rel="stylesheet" href="css/premium-ui.css">
+    <script src="js/premium-ui.js"></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="modern-dashboard.css">
-    <link rel="stylesheet" href="admindash.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="face-auth-fixed.css">
+    <link href="css/modern-dashboard.css?v=3" rel="stylesheet" />
+    <link href="css/admindash.css?v=2" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link href="css/face-auth-fixed.css" rel="stylesheet" />
+    <!-- Leaflet Map -->
+    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" />
+    <!-- MapLibre for 3D Map -->
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        #mapContainer {
+            height: 520px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .map-stat-bar {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .map-stat {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 160px;
+        }
+
+        .map-stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .map-stat-val {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .map-stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .map-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .map-filter-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .map-filter-btn.active {
+            background: #800000;
+            color: #fff;
+            border-color: #800000;
+        }
+
+        .leaflet-popup-content {
+            min-width: 180px;
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 12px 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .map-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        /* Agri Hub Styles */
+        .map-layer-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+        }
+
+        .map-layer-btn.active {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .map-filter-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .map-filter-btn.active {
+            background: #800000;
+            color: #fff;
+            border-color: #800000;
+        }
+
+        .agri-asset-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .land-map-details-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+    </style>
 </head>
 
 <body>
@@ -25,95 +175,128 @@
                 </div>
                 <p class="menu-label">Menu</p>
             </div>
-
             <nav class="nav-menu">
-                <a href="#" class="nav-item active" data-page="dashboard">
+                <a class="nav-item active" data-page="dashboard" href="#">
                     <i class="fas fa-chart-line"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="nav-item" data-page="users">
+                <a class="nav-item" data-page="users" href="#">
                     <i class="fas fa-users"></i>
                     <span>Users</span>
                 </a>
-                <a href="#" class="nav-item" data-page="staff">
+                <a class="nav-item" data-page="staff" href="#">
                     <i class="fas fa-user-tie"></i>
                     <span>Staff Management</span>
                 </a>
-                <a href="#" class="nav-item" data-page="admin-mgmt">
+                <a class="nav-item" data-page="admin-mgmt" href="#">
                     <i class="fas fa-user-shield"></i>
                     <span>Admin Management</span>
                 </a>
-                <a href="#" class="nav-item" data-page="transactions">
+                <a class="nav-item" data-page="transactions" href="#">
                     <i class="fas fa-exchange-alt"></i>
                     <span>Transactions</span>
                 </a>
-                <a href="#" class="nav-item" data-page="accounts">
+                <a class="nav-item" data-page="agrihub" href="#">
+                    <i class="fas fa-tractor"></i>
+                    <span>Agri Hub</span>
+                </a>
+                <a class="nav-item" data-page="agri-approvals" href="#">
+                    <i class="fas fa-tractor"></i>
+                    <span>Agri Approvals</span>
+                    <span class="badge" id="agriSideBadge"
+                        style="background:#800000; color:#fff; display:none;">0</span>
+                </a>
+                <a class="nav-item" data-page="agri-loans" href="#">
+                    <i class="fas fa-leaf"></i>
+                    <span>Agri Loans</span>
+                    <span class="badge" id="agriLoanSideBadge"
+                        style="background:#800000; color:#fff; display:none;">0</span>
+                </a>
+                <a class="nav-item" data-page="salary-approvals" href="#">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Salary Approvals</span>
+                    <span class="badge" id="salarySideBadge"
+                        style="background:#800000; color:#fff; display:none;">0</span>
+                </a>
+                <a class="nav-item" data-page="business-approvals" href="#">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Business Approvals</span>
+                    <span class="badge" id="businessSideBadge"
+                        style="background:#800000; color:#fff; display:none;">0</span>
+                </a>
+                <a class="nav-item" data-page="accounts" href="#">
                     <i class="fas fa-university"></i>
                     <span>All Accounts</span>
                 </a>
-                <a href="#" class="nav-item" data-page="loans">
+                <a class="nav-item" data-page="loans" href="#">
                     <i class="fas fa-hand-holding-usd"></i>
                     <span>Loans</span>
                 </a>
-                <a href="#" class="nav-item" data-page="services">
+                <a class="nav-item" data-page="services" href="#">
                     <i class="fas fa-concierge-bell"></i>
                     <span>Services</span>
                 </a>
-                <a href="#" class="nav-item" data-page="liquidity">
+                <a class="nav-item" data-page="liquidity" href="#">
                     <i class="fas fa-piggy-bank"></i>
                     <span>Loan Liquidity Fund</span>
                 </a>
-                <a href="#" class="nav-item" data-page="reports">
+                <a class="nav-item" data-page="reports" href="#">
                     <i class="fas fa-chart-bar"></i>
                     <span>Reports</span>
                 </a>
-                <a href="#" class="nav-item" data-page="audit">
+                <a class="nav-item" data-page="audit" href="#">
                     <i class="fas fa-clipboard-list"></i>
                     <span>Audit Logs</span>
                 </a>
-                <a href="#" class="nav-item" data-page="attendance">
+                <a class="nav-item" data-page="attendance" href="#">
                     <i class="fas fa-calendar-check"></i>
                     <span>Staff Attendance</span>
                 </a>
-                <a href="#" class="nav-item" data-page="salary">
+                <a class="nav-item" data-page="salary" href="#">
                     <i class="fas fa-coins"></i>
                     <span>Salary Management</span>
                 </a>
-
+                <a class="nav-item" data-page="map" href="#">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Live Map</span>
+                </a>
+                <a class="nav-item" data-page="upi-management" href="#">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span>UPI Management</span>
+                </a>
                 <p class="menu-label">System</p>
-                <a href="#" class="nav-item" data-page="settings">
+                <a class="nav-item" data-page="settings" href="#">
                     <i class="fas fa-cog"></i>
                     <span>System Settings</span>
                 </a>
-                <a href="#" class="nav-item" data-page="backup">
+                <a class="nav-item" data-page="backup" href="#">
                     <i class="fas fa-database"></i>
-                    <span>Backup & Restore</span>
+                    <span>Backup &amp; Restore</span>
                 </a>
-                <a href="#" onclick="logout()" class="nav-item">
+                <a class="nav-item" href="#" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
             </nav>
-
         </aside>
-
         <!-- Main Content -->
         <main class="main-content">
             <!-- Top Bar -->
             <div class="top-bar">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()" style="margin-right: 15px;">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <div class="welcome-section">
                     <h1 id="pageTitle">Admin Dashboard</h1>
-                    <p>System Overview & Management</p>
+                    <p>System Overview &amp; Management</p>
                 </div>
                 <div class="top-bar-actions">
-                    <button class="mobile-menu-btn" onclick="toggleSidebar()">
-                        <i class="fas fa-bars"></i>
-                    </button>
                     <!-- Global Search Button / Input -->
                     <div class="search-container"
                         style="position: relative; margin-right: 12px; display: flex; align-items: center;">
-                        <input type="text" id="globalSearchInput" placeholder="Search..."
-                            style="padding: 8px 16px 8px 36px; border: 1px solid var(--border-color); border-radius: 20px; outline: none; background: var(--bg-card); color: var(--text-primary); width: 200px; font-family: inherit; transition: all 0.3s ease;">
+                        <input id="globalSearchInput" placeholder="Search..."
+                            style="padding: 8px 16px 8px 36px; border: 1px solid var(--border-color); border-radius: 20px; outline: none; background: var(--bg-card); color: var(--text-primary); width: 200px; font-family: inherit; transition: all 0.3s ease;"
+                            type="text" />
                         <i class="fas fa-search"
                             style="position: absolute; left: 12px; color: var(--text-secondary); pointer-events: none;"></i>
                     </div>
@@ -134,24 +317,9 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Notifications Modal -->
-            <div id="notificationsModal" class="modal">
-                <div class="modal-content" style="max-width: 400px; padding: 0;">
-                    <div
-                        style="padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="margin: 0; font-size: 16px;">System Notifications</h3>
-                        <button onclick="closeModal('notificationsModal')"
-                            style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">&times;</button>
-                    </div>
-                    <div id="notificationsList" style="max-height: 300px; overflow-y: auto; padding: 16px;">
-                        <p style="text-align: center; color: var(--text-secondary); margin: 0;">No new alerts</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Dashboard Page -->
-            <div id="dashboard" class="page-content active">
+            <!-- Dashboard Page -->
+            <div class="page-content active" id="dashboard">
                 <!-- Stats Cards -->
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -162,7 +330,7 @@
                             <div class="stat-value-group">
                                 <div class="stat-value" id="statTotalUsers">0</div>
                                 <div class="stat-text-group">
-                                    <div class="stat-label">Total<br>Users</div>
+                                    <div class="stat-label">Total<br />Users</div>
                                 </div>
                             </div>
                             <div class="stat-trend" id="statUsersTrend">
@@ -170,7 +338,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="stat-card" style="border-top: 4px solid #10b981;">
                         <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
                             <i class="fas fa-hand-holding-usd" style="font-size: 24px;"></i>
@@ -179,12 +346,11 @@
                             <div class="stat-value-group">
                                 <div class="stat-value" id="statLiquidityFund">₹10L</div>
                                 <div class="stat-text-group">
-                                    <div class="stat-label">Loan Liquidity<br>Fund</div>
+                                    <div class="stat-label">Loan Liquidity<br />Fund</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                     <div class="stat-card">
                         <div class="stat-icon" style="background: rgba(128, 0, 0, 0.1); color: #800000;">
                             <i class="fas fa-user-tie" style="font-size: 24px;"></i>
@@ -193,21 +359,20 @@
                             <div class="stat-value-group">
                                 <div class="stat-value" id="statActiveStaff">0</div>
                                 <div class="stat-text-group">
-                                    <div class="stat-label">Active<br>Staff</div>
+                                    <div class="stat-label">Active<br />Staff</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                     <div class="stat-card">
                         <div class="stat-icon" style="background: rgba(128, 0, 0, 0.1); color: #800000;">
-                            <i class="fas fa-rupee-sign" style="font-size: 24px;"></i>
+                            <i class="fas fa-vault" style="font-size: 24px;"></i>
                         </div>
                         <div class="stat-content">
                             <div class="stat-value-group">
                                 <div class="stat-value" id="statTotalDeposits">₹0</div>
                                 <div class="stat-text-group">
-                                    <div class="stat-label">Total<br>Deposits</div>
+                                    <div class="stat-label">Total<br />Deposits</div>
                                 </div>
                             </div>
                             <div class="stat-trend" id="statDepositsTrend">
@@ -215,7 +380,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="stat-card">
                         <div class="stat-icon" style="background: rgba(128, 0, 0, 0.1); color: #800000;">
                             <i class="fas fa-exchange-alt" style="font-size: 24px;"></i>
@@ -224,7 +388,7 @@
                             <div class="stat-value-group">
                                 <div class="stat-value" id="statTodayTransactions">0</div>
                                 <div class="stat-text-group">
-                                    <div class="stat-label">Today's<br>Trans.</div>
+                                    <div class="stat-label">Today's<br />Trans.</div>
                                 </div>
                             </div>
                             <div class="stat-trend" id="statTransactionsTrend">
@@ -233,8 +397,6 @@
                         </div>
                     </div>
                 </div>
-
-
                 <div class="dashboard-grid grid-2">
                     <!-- Recent Users -->
                     <div class="card">
@@ -243,7 +405,6 @@
                         </div>
                         <div id="recentUsersList"></div>
                     </div>
-
                     <!-- System Alerts -->
                     <div class="card">
                         <div class="card-header">
@@ -252,32 +413,108 @@
                         <div id="systemAlerts"></div>
                     </div>
                 </div>
+                <!-- Global User Map Card -->
+                <div class="card" style="margin-top: 24px; padding: 0; overflow: hidden; min-height: 350px;">
+                    <div
+                        style="padding: 20px 28px; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="card-title"><i class="fas fa-globe-americas"
+                                style="margin-right: 8px; color: #800000;"></i>User Distribution Map</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showPage('map')">View Full Map</button>
+                    </div>
+                    <div id="dashboardMap" style="height: 280px; width: 100%;"></div>
+                </div>
+                
+                <!-- Branches & ATMs -->
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #800000;"></i>Manage Branches & ATMs</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddLocationModal()">
+                            <i class="fas fa-plus"></i> Add Location
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border-color); text-align: left; background: var(--bg-light); color: var(--text-secondary);">
+                                    <th style="padding: 12px;">Name</th>
+                                    <th style="padding: 12px;">Type</th>
+                                    <th style="padding: 12px;">City</th>
+                                    <th style="padding: 12px;">Coordinates</th>
+                                    <th style="padding: 12px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="locationsTable">
+                                <!-- Locations will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
                 <!-- Transaction Overview -->
                 <div class="card" style="margin-top: 24px;">
                     <div class="card-header">
                         <h3 class="card-title">Transaction Overview</h3>
+
                     </div>
                     <div class="invoice-controls">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search..." id="transactionSearch">
+                            <input id="transactionSearch" placeholder="Search..." type="text" />
                         </div>
                         <button class="filter-btn">
                             <i class="fas fa-filter"></i>
                             Filter
                         </button>
-                        <button class="export-btn">
-                            <i class="fas fa-download"></i>
-                            Export
+                        <button class="export-btn" onclick="downloadReport('transactions')" style="background: linear-gradient(135deg, var(--primary-maroon), #5c0000); color: white; border: none; box-shadow: 0 4px 12px rgba(128,0,0,0.2);">
+                            <i class="fas fa-file-pdf"></i>
+                            Download PDF
                         </button>
                     </div>
                     <div id="transactionsList"></div>
                 </div>
             </div>
+            <!-- Agriculture Hub Unified View -->
+            <div class="page-content" id="agrihub">
+                <div class="section-header" style="margin-bottom: 24px;">
+                    <h2 style="margin:0; font-size: 24px; font-weight: 800; color: var(--text-primary);"><i
+                            class="fas fa-tractor" style="color:var(--success);margin-right:12px;"></i>Agriculture Hub
+                    </h2>
+                    <p style="margin: 4px 0 0; color: var(--text-secondary); font-size: 14px;">Unified management of
+                        agricultural accounts, loans, and land verification</p>
+                </div>
+                <div class="card">
+                    <div class="card-header"
+                        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+                        <h3 class="card-title">Agriculture Customers</h3>
+                        <div style="display:flex; gap:12px; flex:1; justify-content:flex-end; align-items:center;">
+                            <div style="position:relative; max-width:300px; width:100%;">
+                                <i class="fas fa-search"
+                                    style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:14px;"></i>
+                                <input type="text" id="agriHubSearchInput" onkeyup="handleAgriHubSearch()"
+                                    placeholder="Search Name, UID, or Acc No..."
+                                    style="width:100%; padding:10px 15px 10px 35px; border:1px solid #e2e8f0; border-radius:10px; font-size:13px; outline:none; transition:all 0.2s; border: 2px solid #f1f5f9;"
+                                    onfocus="this.style.borderColor='var(--success)';"
+                                    onblur="this.style.borderColor='#f1f5f9';">
+                            </div>
+                            <span class="status-badge success" id="agriHubActiveCount">0 Active</span>
+                            <button class="btn btn-primary btn-sm" onclick="showAddAgriCustomerModal()"><i
+                                    class="fas fa-plus-circle"></i> Add Customer</button>
+                            <button class="btn btn-secondary btn-sm" onclick="loadAgriHubPage()"><i
+                                    class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                    </div>
+                    <div id="agriHubList">
+                        <div style="padding: 60px; text-align: center; color: var(--text-secondary);">
+                            <i class="fas fa-tractor fa-spin"
+                                style="font-size: 32px; margin-bottom: 15px; color: var(--success);"></i>
+                            <p>Loading Agricultural Portfolio...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Users Page -->
-            <div id="users" class="page-content">
+            <div class="page-content" id="users">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">User Management</h3>
@@ -293,15 +530,15 @@
                     <div class="invoice-controls">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search users..." id="userSearch">
+                            <input id="userSearch" placeholder="Search users..." type="text" />
                         </div>
                         <button class="filter-btn">
                             <i class="fas fa-filter"></i>
                             Filter
                         </button>
-                        <button class="export-btn">
-                            <i class="fas fa-download"></i>
-                            Export
+                        <button class="export-btn" onclick="downloadReport('users')" style="background: linear-gradient(135deg, var(--primary-maroon), #5c0000); color: white; border: none; box-shadow: 0 4px 12px rgba(128,0,0,0.2);">
+                            <i class="fas fa-file-pdf"></i>
+                            Download PDF
                         </button>
                     </div>
                     <div class="table-container">
@@ -326,9 +563,8 @@
                     </div>
                 </div>
             </div>
-
             <!-- Staff Page -->
-            <div id="staff" class="page-content">
+            <div class="page-content" id="staff">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Staff Management</h3>
@@ -340,9 +576,8 @@
                     <div id="staffList"></div>
                 </div>
             </div>
-
             <!-- Admin Management Page -->
-            <div id="admin-mgmt" class="page-content">
+            <div class="page-content" id="admin-mgmt">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Administrator Management</h3>
@@ -354,19 +589,185 @@
                     <div id="adminList"></div>
                 </div>
             </div>
-
             <!-- Transactions Page -->
-            <div id="transactions" class="page-content">
+            <div class="page-content" id="transactions">
                 <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">User Quick Transactions</h3>
+                    </div>
+                    <div class="card-body" style="padding: 24px;">
+                        <div class="dashboard-grid grid-3"
+                            style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                            <!-- Add Money Form -->
+                            <div class="tx-card-premium success">
+                                <div class="tx-card-header">
+                                    <i class="fas fa-plus-circle" style="color:#10b981;"></i>
+                                    <h4 style="color:#10b981;">Add Money</h4>
+                                </div>
+                                <div class="tx-card-body">
+                                    <form id="adminAddMoneyForm" onsubmit="submitAdminAddMoney(event)">
+                                        <div class="tx-input-group">
+                                            <label>Account Number / ID</label>
+                                            <div class="tx-input-wrapper">
+                                                <i class="fas fa-university"></i>
+                                                <input id="addAccountId" placeholder="e.g. SB... or ID" required=""
+                                                    type="text" />
+                                            </div>
+                                        </div>
+                                        <div class="tx-input-group">
+                                            <label>Amount (₹)</label>
+                                            <div class="tx-input-wrapper">
+                                                <i class="fas fa-coins"></i>
+                                                <input id="addAmount" placeholder="Enter amount" required="" step="0.01"
+                                                    type="number" />
+                                            </div>
+                                        </div>
+                                        <button class="btn-tx-submit success" type="submit">
+                                            <i class="fas fa-check-double"></i> Add Funds
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <!-- Withdraw Money Form -->
+                            <div class="tx-card-premium danger">
+                                <div class="tx-card-header">
+                                    <i class="fas fa-minus-circle" style="color:#ef4444;"></i>
+                                    <h4 style="color:#ef4444;">Withdraw Money</h4>
+                                </div>
+                                <div class="tx-card-body">
+                                    <form id="adminWithdrawMoneyForm" onsubmit="submitAdminWithdrawMoney(event)">
+                                        <div class="tx-input-group">
+                                            <label>Account Number / ID</label>
+                                            <div class="tx-input-wrapper">
+                                                <i class="fas fa-university"></i>
+                                                <input id="withdrawAccountId" placeholder="e.g. SB... or ID" required=""
+                                                    type="text" />
+                                            </div>
+                                        </div>
+                                        <div class="tx-input-group">
+                                            <label>Amount (₹)</label>
+                                            <div class="tx-input-wrapper">
+                                                <i class="fas fa-coins"></i>
+                                                <input id="withdrawAmount" placeholder="Enter amount" required=""
+                                                    step="0.01" type="number" />
+                                            </div>
+                                        </div>
+                                        <button class="btn-tx-submit danger" type="submit">
+                                            <i class="fas fa-hand-holding-dollar"></i> Withdraw Funds
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <!-- Transfer Money Form -->
+                            <div class="tx-card-premium info">
+                                <div class="tx-card-header">
+                                    <i class="fas fa-exchange-alt" style="color:#3b82f6;"></i>
+                                    <h4 style="color:#3b82f6;">Transfer Money</h4>
+                                </div>
+                                <div class="tx-card-body">
+                                    <form id="adminTransferMoneyForm" onsubmit="submitAdminTransferMoney(event)">
+                                        <div class="tx-input-group">
+                                            <label>From Acc. No / ID</label>
+                                            <div class="tx-input-wrapper">
+                                                <i class="fas fa-arrow-right-from-bracket"></i>
+                                                <input id="transferSenderId" placeholder="Sender Account" required=""
+                                                    type="text" />
+                                            </div>
+                                        </div>
+                                        <div class="tx-input-group">
+                                            <label>To Account Number</label>
+                                            <div class="tx-input-wrapper">
+                                                <i class="fas fa-arrow-right-to-bracket"></i>
+                                                <input id="transferReceiverAcc" placeholder="Receiver Acc No"
+                                                    required="" type="text" />
+                                            </div>
+                                        </div>
+                                        <div class="tx-input-group" style="margin-bottom: 24px;">
+                                            <label>Amount (₹)</label>
+                                            <div class="tx-input-wrapper">
+                                                <i class="fas fa-coins"></i>
+                                                <input id="transferAmount" placeholder="Enter amount" required=""
+                                                    step="0.01" type="number" />
+                                            </div>
+                                        </div>
+                                        <button class="btn-tx-submit info" type="submit">
+                                            <i class="fas fa-paper-plane"></i> Execute Transfer
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top: 24px;">
                     <div class="card-header">
                         <h3 class="card-title">All Transactions</h3>
                     </div>
                     <div id="allTransactionsList"></div>
                 </div>
             </div>
-
+            <!-- Agri Approvals Page -->
+            <div class="page-content" id="agri-approvals">
+                <div class="card">
+                    <div class="card-header"
+                        style="justify-content: space-between; display: flex; align-items: center;">
+                        <h3 class="card-title"><i class="fas fa-tractor"
+                                style="color: #800000; margin-right: 8px;"></i>Agriculture Account Approvals</h3>
+                        <span class="badge" id="agriApprovalsBadge"
+                            style="background: rgba(128, 0, 0, 0.1); color: #800000;">0</span>
+                    </div>
+                    <div id="agriApprovalsList" style="padding: 20px;">
+                        <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Loading...</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Agri Loans Page -->
+            <div class="page-content" id="agri-loans">
+                <div class="card">
+                    <div class="card-header"
+                        style="justify-content: space-between; display: flex; align-items: center;">
+                        <h3 class="card-title"><i class="fas fa-leaf"
+                                style="color: #800000; margin-right: 8px;"></i>Agri Loan Applications</h3>
+                        <span class="badge" id="agriLoansBadge"
+                            style="background: rgba(128, 0, 0, 0.1); color: #800000;">0</span>
+                    </div>
+                    <div id="agriLoansList" style="padding: 20px;">
+                        <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Loading...</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Salary Approvals Page -->
+            <div class="page-content" id="salary-approvals">
+                <div class="card">
+                    <div class="card-header"
+                        style="justify-content: space-between; display: flex; align-items: center;">
+                        <h3 class="card-title"><i class="fas fa-file-invoice-dollar"
+                                style="color: #800000; margin-right: 8px;"></i>Salary Account Approvals</h3>
+                        <span class="badge" id="salaryApprovalsBadge"
+                            style="background: rgba(128, 0, 0, 0.1); color: #800000;">0</span>
+                    </div>
+                    <div id="salaryApprovalsList" style="padding: 20px;">
+                        <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Loading...</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Business Approvals Page -->
+            <div class="page-content" id="business-approvals">
+                <div class="card">
+                    <div class="card-header"
+                        style="justify-content: space-between; display: flex; align-items: center;">
+                        <h3 class="card-title"><i class="fas fa-briefcase"
+                                style="color: #800000; margin-right: 8px;"></i>Business Account Approvals</h3>
+                        <span class="badge" id="businessApprovalsBadge"
+                            style="background: rgba(128, 0, 0, 0.1); color: #800000;">0</span>
+                    </div>
+                    <div id="businessApprovalsList" style="padding: 20px;">
+                        <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Loading...</p>
+                    </div>
+                </div>
+            </div>
             <!-- Accounts Page -->
-            <div id="accounts" class="page-content">
+            <div class="page-content" id="accounts">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">All Accounts</h3>
@@ -391,19 +792,19 @@
                     </div>
                 </div>
             </div>
-
             <!-- Services Page -->
-            <div id="services" class="page-content">
+            <div class="page-content" id="services">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Manage Services & Applications</h3>
+                        <h3 class="card-title">Manage Services &amp; Applications</h3>
                     </div>
                     <div class="invoice-controls">
                         <div class="search-box"
                             style="display: flex; align-items: center; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 4px 12px; width: 250px;">
                             <i class="fas fa-search" style="color: var(--text-secondary); margin-right: 8px;"></i>
-                            <input type="text" placeholder="Search applications..." id="serviceSearch"
-                                style="border: none; background: transparent; outline: none; color: var(--text-primary); width: 100%;">
+                            <input id="serviceSearch" placeholder="Search applications..."
+                                style="border: none; background: transparent; outline: none; color: var(--text-primary); width: 100%;"
+                                type="text" />
                         </div>
                     </div>
                     <div id="pendingApplicationsList">
@@ -411,9 +812,8 @@
                     </div>
                 </div>
             </div>
-
             <!-- Loans Page -->
-            <div id="loans" class="page-content">
+            <div class="page-content" id="loans">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Loan Management</h3>
@@ -439,9 +839,8 @@
                     </div>
                 </div>
             </div>
-
             <!-- Loan Liquidity Fund Page -->
-            <div id="liquidity" class="page-content">
+            <div class="page-content" id="liquidity">
                 <div class="stats-grid" style="margin-bottom: 24px;">
                     <div class="stat-card" style="border-top: 4px solid #10b981;">
                         <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
@@ -451,7 +850,7 @@
                             <div class="stat-value-group">
                                 <div class="stat-value" id="liqFundBalance">—</div>
                                 <div class="stat-text-group">
-                                    <div class="stat-label">Current Fund<br>Balance</div>
+                                    <div class="stat-label">Current Fund<br />Balance</div>
                                 </div>
                             </div>
                         </div>
@@ -464,7 +863,7 @@
                             <div class="stat-value-group">
                                 <div class="stat-value" id="liqTotalPaid">0</div>
                                 <div class="stat-text-group">
-                                    <div class="stat-label">Loans<br>Fully Paid</div>
+                                    <div class="stat-label">Loans<br />Fully Paid</div>
                                 </div>
                             </div>
                         </div>
@@ -477,7 +876,7 @@
                             <div class="stat-value-group">
                                 <div class="stat-value" id="liqActiveLoans">0</div>
                                 <div class="stat-text-group">
-                                    <div class="stat-label">Active<br>Loans</div>
+                                    <div class="stat-label">Active<br />Loans</div>
                                 </div>
                             </div>
                         </div>
@@ -490,21 +889,20 @@
                             <div class="stat-value-group">
                                 <div class="stat-value" id="liqOverdueLoans">0</div>
                                 <div class="stat-text-group">
-                                    <div class="stat-label">Overdue<br>Loans</div>
+                                    <div class="stat-label">Overdue<br />Loans</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
                 <div class="card">
                     <div class="card-header"
                         style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <h3 class="card-title"><i class="fas fa-history"
                                 style="color: #10b981; margin-right: 8px;"></i>Loan Repayment History</h3>
                         <div style="display: flex; gap: 10px; align-items: center;">
-                            <select id="liqFilterStatus" class="form-input" style="width: auto; padding: 6px 12px;"
-                                onchange="loadLiquidityPage()">
+                            <select class="form-input" id="liqFilterStatus" onchange="loadLiquidityPage()"
+                                style="width: auto; padding: 6px 12px;">
                                 <option value="">All Loans</option>
                                 <option value="approved">Active</option>
                                 <option value="closed">Fully Paid</option>
@@ -520,23 +918,37 @@
                     </div>
                 </div>
             </div>
-
             <!-- Reports Page -->
-            <div id="reports" class="page-content">
+            <div class="page-content" id="reports">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Reports & Analytics</h3>
+                        <h3 class="card-title">Reports &amp; Analytics</h3>
+                    </div>
+                    <div
+                        style="padding: 15px 20px; display: flex; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid var(--border-color);">
+                        <button class="btn btn-primary btn-sm" onclick="downloadReport('all')"><i
+                                class="fas fa-file-pdf"></i> Premium Data</button>
+                        <button class="btn btn-secondary btn-sm" onclick="downloadReport('loans')"><i
+                                class="fas fa-file-pdf"></i> Premium Loans</button>
+                        <button class="btn btn-secondary btn-sm" onclick="downloadReport('transactions')"><i
+                                class="fas fa-file-pdf"></i> Premium Transactions</button>
+                        <button class="btn btn-secondary btn-sm" onclick="downloadReport('users')"><i
+                                class="fas fa-file-pdf"></i> Premium Users</button>
+                        <button class="btn btn-secondary btn-sm" onclick="downloadReport('saving_acc')"><i
+                                class="fas fa-file-pdf"></i> Premium Saving Acc</button>
+                        <button class="btn btn-secondary btn-sm" onclick="downloadReport('current_acc')"><i
+                                class="fas fa-file-pdf"></i> Premium Current Acc</button>
+                        <button class="btn btn-secondary btn-sm" onclick="downloadReport('salary_acc')"><i
+                                class="fas fa-file-pdf"></i> Premium Salary Acc</button>
                     </div>
                     <div id="reportsContent"></div>
                 </div>
             </div>
-
             <!-- Audit Page -->
-            <div id="audit" class="page-content">
+            <div class="page-content" id="audit">
                 <div id="auditLogs"></div>
             </div>
-
-            <div id="attendance" class="page-content">
+            <div class="page-content" id="attendance">
                 <div class="dashboard-grid grid-3" style="margin-bottom: 24px;">
                     <div class="stat-card">
                         <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
@@ -566,7 +978,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="card">
                     <div class="card-header"
                         style="justify-content: space-between; display: flex; align-items: center;">
@@ -574,18 +985,19 @@
                         <div class="header-actions">
                             <button class="btn btn-secondary btn-sm" onclick="loadAttendanceTrackingPage()"><i
                                     class="fas fa-sync-alt"></i> Refresh</button>
-                            <button class="btn btn-primary btn-sm" onclick="exportAttendance()"><i
-                                    class="fas fa-file-export"></i> Export Report</button>
+                            <button class="btn  btn-sm" onclick="exportAttendance()"><i class="fas fa-file-export"></i>
+                                Export Report</button>
                         </div>
                     </div>
                     <div class="invoice-controls">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search staff name or ID..." id="attendanceSearch">
+                            <input id="attendanceSearch" placeholder="Search staff name or ID..." type="text" />
                         </div>
                         <div class="filters" style="display: flex; gap: 10px;">
-                            <input type="date" id="attendanceDateFilter" class="form-control"
-                                style="padding: 8px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            <input class="form-control" id="attendanceDateFilter"
+                                style="padding: 8px; border: 1px solid var(--border-color); border-radius: 6px;"
+                                type="date" />
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -608,9 +1020,8 @@
                     </div>
                 </div>
             </div>
-
             <!-- Salary Management Page -->
-            <div id="salary" class="page-content">
+            <div class="page-content" id="salary">
                 <div class="card">
                     <div class="card-header" style="justify-content: space-between;">
                         <h3 class="card-title">Salary Management - <span id="currentSalaryMonth">...</span></h3>
@@ -631,13 +1042,12 @@
                         style="padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search staff..." id="salarySearch">
+                            <input id="salarySearch" placeholder="Search staff..." type="text" />
                         </div>
                         <p class="text-secondary" style="font-size: 13px; margin: 0; opacity: 0.8;">
                             <i class="fas fa-info-circle"></i> Formula: <code>(Base Salary / Days) * Attendance</code>
                         </p>
                     </div>
-
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
@@ -658,69 +1068,384 @@
                     </div>
                 </div>
             </div>
-
             <!-- Settings Page -->
-            <div id="settings" class="page-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">System Settings</h3>
-                        <button class="btn btn-primary" onclick="openFaceRegistration()">
-                            <i class="fas fa-user-plus"></i> Register Face
-                        </button>
+            <div class="page-content" id="settings">
+                <div id="settingsContent"></div>
+            </div>
+            <!-- UPI Management Page -->
+            <div class="page-content" id="upi-management">
+                <div class="section-header" style="margin-bottom:24px;">
+                    <h2 style="margin:0;font-size:24px;font-weight:800;color:var(--text-primary);"><i
+                            class="fas fa-mobile-alt" style="color:#800000;margin-right:12px;"></i>UPI Management</h2>
+                    <p style="margin:4px 0 0;color:var(--text-secondary);font-size:14px;">Track and manage all user UPI
+                        IDs and transactions</p>
+                </div>
+                <!-- Stats Row -->
+                <div class="stats-grid" style="margin-bottom:24px;">
+                    <div class="stat-card" style="border-top:4px solid #800000;">
+                        <div class="stat-icon" style="background:rgba(128,0,0,0.1);color:#800000;"><i
+                                class="fas fa-users" style="font-size:22px;"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value-group">
+                                <div class="stat-value" id="upiStatUsers">0</div>
+                                <div class="stat-label">UPI Enabled<br />Users</div>
+                            </div>
+                        </div>
                     </div>
-                    <div id="settingsContent"></div>
+                    <div class="stat-card" style="border-top:4px solid #3b82f6;">
+                        <div class="stat-icon" style="background:rgba(59,130,246,0.1);color:#3b82f6;"><i
+                                class="fas fa-exchange-alt" style="font-size:22px;"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value-group">
+                                <div class="stat-value" id="upiStatTxTotal">0</div>
+                                <div class="stat-label">Total UPI<br />Transactions</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="border-top:4px solid #10b981;">
+                        <div class="stat-icon" style="background:#ecfdf5;color:#10b981;"><i class="fas fa-rupee-sign"
+                                style="font-size:22px;"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value-group">
+                                <div class="stat-value" id="upiStatVolume">₹0</div>
+                                <div class="stat-label">Total UPI<br />Volume</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="border-top:4px solid #f59e0b;">
+                        <div class="stat-icon" style="background:#fffbeb;color:#f59e0b;"><i class="fas fa-calendar-day"
+                                style="font-size:22px;"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-value-group">
+                                <div class="stat-value" id="upiStatToday">0</div>
+                                <div class="stat-label">Today's UPI<br />Transactions</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- UPI Users Table -->
+                <div class="card" style="margin-bottom:24px;">
+                    <div class="card-header"
+                        style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                        <h3 class="card-title"><i class="fas fa-id-badge"
+                                style="color:#800000;margin-right:8px;"></i>UPI Registered Users</h3>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <div style="position:relative;">
+                                <i class="fas fa-search"
+                                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:12px;"></i>
+                                <input id="upiUserSearch" type="text" placeholder="Search users..."
+                                    oninput="filterUpiUsers()"
+                                    style="padding:8px 12px 8px 30px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-card);color:var(--text-primary);font-size:13px;outline:none;width:220px;">
+                            </div>
+                            <button class="btn btn-secondary btn-sm" onclick="loadUpiManagementPage()"><i
+                                    class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                    </div>
+                    <div id="upiUsersList" style="overflow-x:auto;padding:8px;">
+                        <p style="text-align:center;padding:2rem;color:var(--text-secondary);">Loading...</p>
+                    </div>
+                </div>
+                <!-- UPI Transactions Table -->
+                <div class="card">
+                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                        <h3 class="card-title"><i class="fas fa-list-alt"
+                                style="color:#800000;margin-right:8px;"></i>Recent UPI Transactions</h3>
+                        <select id="upiTxFilter" onchange="loadUpiTransactions()"
+                            style="padding:6px 12px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-card);color:var(--text-primary);font-size:13px;">
+                            <option value="">All Users</option>
+                        </select>
+                    </div>
+                    <div id="upiTransactionsList" style="overflow-x:auto;padding:8px;">
+                        <p style="text-align:center;padding:2rem;color:var(--text-secondary);">Select a filter or load
+                            all transactions above.</p>
+                    </div>
                 </div>
             </div>
-
             <!-- Backup Page -->
-            <div id="backup" class="page-content">
+            <div class="page-content" id="backup">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Backup & Restore</h3>
+                        <h3 class="card-title">Backup &amp; Restore</h3>
                     </div>
                     <div id="backupContent"></div>
                 </div>
             </div>
-        </main>
-    </div>
+            <!-- Live Map Page -->
+            <div class="page-content" id="map">
+                <!-- Map Stats Row -->
+                <div class="map-stat-bar" id="mapStatBar">
+                    <div class="map-stat">
+                        <div class="map-stat-icon" style="background:rgba(128,0,0,.1);color:#800000;"><i class="fas fa-users"></i></div>
+                        <div>
+                            <div class="map-stat-val" id="mapTotalUsers">—</div>
+                            <div class="map-stat-label">Total Users</div>
+                        </div>
+                    </div>
+                    <div class="map-stat">
+                        <div class="map-stat-icon" style="background:rgba(16,185,129,.1);color:#10b981;"><i class="fas fa-map-pin"></i></div>
+                        <div>
+                            <div class="map-stat-val" id="mapMappedUsers">—</div>
+                            <div class="map-stat-label">Mapped Users</div>
+                        </div>
+                    </div>
+                    <div class="map-stat">
+                        <div class="map-stat-icon" style="background:rgba(128,0,0,.1);color:#800000;"><i class="fas fa-university"></i></div>
+                        <div>
+                            <div class="map-stat-val" id="mapBranchCount">—</div>
+                            <div class="map-stat-label">Branches</div>
+                        </div>
+                    </div>
+                    <div class="map-stat">
+                        <div class="map-stat-icon" style="background:rgba(37,99,235,.1);color:#2563eb;"><i class="fas fa-credit-card"></i></div>
+                        <div>
+                            <div class="map-stat-val" id="mapAtmCount">—</div>
+                            <div class="map-stat-label">ATMs</div>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- Add Staff Modal -->
-    <div id="addStaffModal" class="modal">
-        <div
-            style="background:#fff;border-radius:16px;width:100%;max-width:520px;padding:32px;margin:20px;box-shadow:0 24px 60px rgba(0,0,0,.2);position:relative;">
-            <button onclick="closeAddStaffModal()"
-                style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;">&times;</button>
-            <h2 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#1f2937;">
-                <i class="fas fa-user-plus" style="color:#800000;margin-right:8px;"></i>Add New Staff Member
-            </h2>
-            <p style="color:#6b7280;font-size:14px;margin:0 0 24px;">Fill in the details to create a staff account. A
-                login ID will be auto-generated.</p>
-            <form id="addStaffForm" onsubmit="submitAddStaff(event)">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                    <div style="grid-column:span 2;">
-                        <label
-                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Full
-                            Name *</label>
-                        <input id="staffName" type="text" placeholder="e.g. Priya Sharma" required
-                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                <!-- Filter Buttons -->
+                <div class="map-filters" style="margin-bottom:16px;">
+                    <button class="loc-filter-btn loc-active" id="adminLocFilterAll" onclick="adminMapFilterBy('all', this)" style="padding:7px 18px; border-radius:24px; border:1.5px solid #800000; background:#800000; color:#fff; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                        <i class="fas fa-layer-group"></i> All
+                    </button>
+                    <button class="loc-filter-btn" onclick="adminMapFilterBy('users', this)" style="padding:7px 18px; border-radius:24px; border:1.5px solid #3b82f6; background:transparent; color:#3b82f6; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                        <i class="fas fa-users"></i> Users
+                    </button>
+                    <button class="loc-filter-btn" onclick="adminMapFilterBy('branch', this)" style="padding:7px 18px; border-radius:24px; border:1.5px solid #800000; background:transparent; color:#800000; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                        <i class="fas fa-university"></i> Branches
+                    </button>
+                    <button class="loc-filter-btn" onclick="adminMapFilterBy('atm', this)" style="padding:7px 18px; border-radius:24px; border:1.5px solid #2563eb; background:transparent; color:#2563eb; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+                        <i class="fas fa-credit-card"></i> ATMs
+                    </button>
+                    <button onclick="loadMapPage()" style="padding:7px 18px; border-radius:24px; border:1.5px solid #6b7280; background:transparent; color:#6b7280; font-size:12px; font-weight:700; cursor:pointer; margin-left:auto;">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+
+                <!-- Map Card -->
+                <div class="card" style="padding:0;overflow:hidden;border-radius:20px;margin-bottom:24px;">
+                    <div style="position:relative;">
+                        <div id="mapContainer"></div>
+                        <!-- Count Badge -->
+                        <div style="position:absolute; top:16px; left:16px; background:rgba(255,255,255,0.95); backdrop-filter:blur(12px); padding:8px 16px; border-radius:12px; font-size:13px; font-weight:700; color:#1e293b; box-shadow:0 4px 16px rgba(0,0,0,0.12); display:flex; align-items:center; gap:8px; z-index:5;">
+                            <i class="fas fa-map-pin" style="color:#800000;"></i>
+                            <span id="adminLocCountText">Loading...</span>
+                        </div>
+                        <!-- Legend -->
+                        <div style="position:absolute; bottom:16px; left:16px; background:rgba(255,255,255,0.95); backdrop-filter:blur(12px); padding:10px 16px; border-radius:12px; font-size:12px; color:#475569; box-shadow:0 4px 16px rgba(0,0,0,0.12); z-index:5; display:flex; gap:16px; flex-wrap:wrap;">
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#800000;display:inline-block;"></span> Branch</span>
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#2563eb;display:inline-block;"></span> ATM</span>
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#10b981;display:inline-block;"></span> User (Active)</span>
+                            <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px;height:12px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> User (Pending)</span>
+                        </div>
                     </div>
-                    <div>
-                        <label
-                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Email
-                            *</label>
-                        <input id="staffEmail" type="email" placeholder="priya@smartbank.in" required
-                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                </div>
+
+                <!-- User Location Details Table -->
+                <div class="card" style="margin-top:20px;border-radius:20px;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-table" style="margin-right:8px;color:#800000;"></i>User Location Details</h3>
                     </div>
-                    <div>
-                        <label
-                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Phone</label>
-                        <input id="staffPhone" type="text" placeholder="+91 9876543210"
-                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                    <div id="mapUserTable" style="overflow-x:auto;"></div>
+                </div>
+            </div>
+
+            <!-- Agri Hub Page -->
+            <div id="agrihub" class="page-content" style="display:none;">
+                <div class="card">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3 class="card-title"><i class="fas fa-tractor" style="color:#10b981;margin-right:8px;"></i>Agri Hub</h3>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <span id="agriHubActiveCount" style="font-size:13px; font-weight:600; color:var(--text-secondary); background:var(--bg-light); padding:4px 10px; border-radius:12px;">0 Customers</span>
+                            <div class="search-box" style="margin:0;">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="agriHubSearchInput" placeholder="Search Agri Hub..." oninput="handleAgriHubSearch()">
+                            </div>
+                        </div>
                     </div>
-                    <div>
+                    <div id="agriHubList" style="padding: 16px;">
+                        <p style="text-align:center;padding:2rem;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading Agri Hub data...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agri Approvals Page -->
+            <div id="agri-approvals" class="page-content" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-check-circle" style="color:#10b981;margin-right:8px;"></i>Agri Account Approvals</h3>
+                    </div>
+                    <div id="agriApprovalsList" style="padding: 16px;">
+                        <p style="text-align:center;padding:2rem;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading approvals...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agri Loans Page -->
+            <div id="agri-loans" class="page-content" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-leaf" style="color:#10b981;margin-right:8px;"></i>Agri Loans</h3>
+                    </div>
+                    <div id="agriLoansList" style="padding: 16px;">
+                        <p style="text-align:center;padding:2rem;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading agri loans...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Staff Modal -->
+            <div class="modal" id="addStaffModal">
+                <div
+                    style="background:#fff;border-radius:16px;width:100%;max-width:520px;padding:32px;margin:20px;box-shadow:0 24px 60px rgba(0,0,0,.2);position:relative;">
+                    <button onclick="closeAddStaffModal()"
+                        style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;">×</button>
+                    <h2 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#1f2937;">
+                        <i class="fas fa-user-plus" style="color:#800000;margin-right:8px;"></i>Add New Staff Member
+                    </h2>
+                    <p style="color:#6b7280;font-size:14px;margin:0 0 24px;">Fill in the details to create a staff
+                        account. A
+                        login ID will be auto-generated.</p>
+                    <form id="addStaffForm" onsubmit="submitAddStaff(event)">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div style="grid-column:span 2;">
+                                <label
+                                    style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Full
+                                    Name *</label>
+                                <input id="staffName" placeholder="e.g. Priya Sharma" required=""
+                                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;"
+                                    type="text" />
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Email
+                                    *</label>
+                                <input id="staffEmail" placeholder="priya@smartbank.in" required=""
+                                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;"
+                                    type="email" />
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Phone</label>
+                                <input id="staffPhone" placeholder="+91 9876543210"
+                                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;"
+                                    type="text" />
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Department</label>
+                                <select id="staffDepartment"
+                                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                                    <option value="Customer Service">Customer Service</option>
+                                    <option value="Loans">Loans Department</option>
+                                    <option value="Cards">Cards Department</option>
+                                    <option value="Technical Support">Technical Support</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="General">General</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Position</label>
+                                <select id="staffPosition"
+                                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                                    <option value="Staff">Staff</option>
+                                    <option value="Senior Staff">Senior Staff</option>
+                                    <option value="Team Lead">Team Lead</option>
+                                    <option value="Manager">Manager</option>
+                                    <option value="Junior Manager">Junior Manager (Admin)</option>
+                                    <option value="Senior Manager">Senior Manager (Admin)</option>
+                                </select>
+                            </div>
+                            <div style="grid-column:span 2;">
+                                <label
+                                    style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Password
+                                    *</label>
+                                <input id="staffPassword" minlength="6" placeholder="Min. 6 characters" required=""
+                                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;"
+                                    type="password" />
+                            </div>
+                        </div>
+                        <div id="staffFormError"
+                            style="display:none;background:#fee2e2;color:#991b1b;padding:10px 14px;border-radius:8px;font-size:13px;margin-top:16px;">
+                        </div>
+                        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                            <button onclick="closeAddStaffModal()"
+                                style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;"
+                                type="button">Cancel</button>
+                            <button id="addStaffBtn"
+                                style="padding:10px 24px;background:#800000;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;"
+                                type="submit">
+                                <i class="fas fa-user-plus"></i> Add Staff
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Promote Staff Modal -->
+            <div id="promoteStaffModal"
+                style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+                <div
+                    style="background:white;width:100%;max-width:400px;border-radius:12px;padding:24px;box-shadow:0 10px 25px rgba(0,0,0,0.1);">
+                    <div
+                        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid #e5e7eb;padding-bottom:12px;">
+                        <h3 style="margin:0;font-size:18px;color:#111827;">Promote Staff: <span
+                                id="promoteStaffName"></span>
+                        </h3>
+                        <button onclick="closePromoteModal()"
+                            style="background:none;border:none;font-size:20px;color:#6b7280;cursor:pointer;">×</button>
+                    </div>
+                    <p style="font-size:14px;color:#4b5563;margin-bottom:16px;">Select the new role for this staff
+                        member:</p>
+                    <div style="margin-bottom:20px;">
                         <label
-                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Department</label>
-                        <select id="staffDepartment"
+                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Target
+                            Level</label>
+                        <select id="promoteRoleSelect"
+                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                            <option value="Senior Staff">Senior Staff</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Junior Manager">Junior Manager (Admin)</option>
+                            <option value="Senior Manager">Senior Manager (Admin)</option>
+                            <option value="System Admin">System Admin</option>
+                        </select>
+                        <p style="font-size:12px;color:#6b7280;margin-top:8px;">* System Admins will be migrated to the
+                            master
+                            admin database.</p>
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:flex-end;">
+                        <button onclick="closePromoteModal()"
+                            style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;"
+                            type="button">Cancel</button>
+                        <button onclick="confirmPromotion()"
+                            style="padding:10px 24px;background:#f59e0b;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;"
+                            type="button">
+                            <i class="fas fa-crown"></i> Promote
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Change Department Modal -->
+            <div id="changeDeptModal"
+                style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+                <div
+                    style="background:white;width:100%;max-width:400px;border-radius:12px;padding:24px;box-shadow:0 10px 25px rgba(0,0,0,0.1);">
+                    <div
+                        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid #e5e7eb;padding-bottom:12px;">
+                        <h3 style="margin:0;font-size:18px;color:#111827;">Change Dept: <span
+                                id="changeDeptStaffName"></span>
+                        </h3>
+                        <button onclick="closeChangeDeptModal()"
+                            style="background:none;border:none;font-size:20px;color:#6b7280;cursor:pointer;">×</button>
+                    </div>
+                    <p style="font-size:14px;color:#4b5563;margin-bottom:16px;">Assign this staff member to a new
+                        department:
+                    </p>
+                    <div style="margin-bottom:20px;">
+                        <label
+                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Target
+                            Department</label>
+                        <select id="changeDeptSelect"
                             style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
                             <option value="Customer Service">Customer Service</option>
                             <option value="Loans">Loans Department</option>
@@ -730,396 +1455,982 @@
                             <option value="General">General</option>
                         </select>
                     </div>
-                    <div>
-                        <label
-                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Position</label>
-                        <select id="staffPosition"
-                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
-                            <option value="Staff">Staff</option>
-                            <option value="Senior Staff">Senior Staff</option>
-                            <option value="Team Lead">Team Lead</option>
-                            <option value="Manager">Manager</option>
-                            <option value="Junior Manager">Junior Manager (Admin)</option>
-                            <option value="Senior Manager">Senior Manager (Admin)</option>
-                        </select>
-                    </div>
-                    <div style="grid-column:span 2;">
-                        <label
-                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Password
-                            *</label>
-                        <input id="staffPassword" type="password" placeholder="Min. 6 characters" required minlength="6"
-                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                    <div style="display:flex;gap:12px;justify-content:flex-end;">
+                        <button onclick="closeChangeDeptModal()"
+                            style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;"
+                            type="button">Cancel</button>
+                        <button onclick="confirmDepartmentChange()"
+                            style="padding:10px 24px;background:#800000;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;"
+                            type="button">
+                            <i class="fas fa-building"></i> Update
+                        </button>
                     </div>
                 </div>
-                <div id="staffFormError"
-                    style="display:none;background:#fee2e2;color:#991b1b;padding:10px 14px;border-radius:8px;font-size:13px;margin-top:16px;">
+            </div>
+            <!-- Add Admin Modal -->
+            <div class="modal" id="addAdminModal">
+                <div
+                    style="background:#fff;border-radius:16px;width:100%;max-width:520px;padding:32px;margin:20px;box-shadow:0 24px 60px rgba(0,0,0,.2);position:relative;">
+                    <button onclick="closeAddAdminModal()"
+                        style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;">×</button>
+                    <h2 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#1f2937;">
+                        <i class="fas fa-user-shield" style="color:var(--primary);margin-right:8px;"></i>Add New Admin
+                    </h2>
+                    <p style="color:#6b7280;font-size:14px;margin:0 0 24px;">Create a new administrator account with
+                        specific
+                        access levels.</p>
+                    <form id="addAdminForm" onsubmit="submitAddAdmin(event)">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div style="grid-column:span 2;">
+                                <label
+                                    style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Full
+                                    Name *</label>
+                                <input id="adminFullName" placeholder="e.g. Administrator" required=""
+                                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;"
+                                    type="text" />
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Username
+                                    *</label>
+                                <input id="adminUsername" placeholder="unique_username" required=""
+                                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;"
+                                    type="text" />
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Email
+                                    *</label>
+                                <input id="adminEmail" placeholder="admin@smartbank.in" required=""
+                                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;"
+                                    type="email" />
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Access
+                                    Level</label>
+                                <select id="adminLevel"
+                                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                                    <option value="Junior Manager">Junior Manager</option>
+                                    <option value="Senior Manager">Senior Manager</option>
+                                    <option value="System Admin">System Admin</option>
+                                </select>
+                            </div>
+                            <div style="grid-column:span 2;">
+                                <label
+                                    style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Password
+                                    *</label>
+                                <input id="adminPassword" minlength="8" placeholder="Min. 8 characters" required=""
+                                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;"
+                                    type="password" />
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                            <button onclick="closeAddAdminModal()"
+                                style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;"
+                                type="button">Cancel</button>
+                            <button class="btn btn-primary"
+                                style="padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;"
+                                type="submit">
+                                <i class="fas fa-plus"></i> Create Admin
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                    <button type="button" onclick="closeAddStaffModal()"
-                        style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;">Cancel</button>
-                    <button type="submit" id="addStaffBtn"
-                        style="padding:10px 24px;background:#800000;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;">
-                        <i class="fas fa-user-plus"></i> Add Staff
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Promote Staff Modal -->
-    <div id="promoteStaffModal"
-        style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-        <div
-            style="background:white;width:100%;max-width:400px;border-radius:12px;padding:24px;box-shadow:0 10px 25px rgba(0,0,0,0.1);">
-            <div
-                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid #e5e7eb;padding-bottom:12px;">
-                <h3 style="margin:0;font-size:18px;color:#111827;">Promote Staff: <span id="promoteStaffName"></span>
-                </h3>
-                <button onclick="closePromoteModal()"
-                    style="background:none;border:none;font-size:20px;color:#6b7280;cursor:pointer;">&times;</button>
             </div>
-
-            <p style="font-size:14px;color:#4b5563;margin-bottom:16px;">Select the new role for this staff member:</p>
-
-            <div style="margin-bottom:20px;">
-                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Target
-                    Level</label>
-                <select id="promoteRoleSelect"
-                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
-                    <option value="Senior Staff">Senior Staff</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Junior Manager">Junior Manager (Admin)</option>
-                    <option value="Senior Manager">Senior Manager (Admin)</option>
-                    <option value="System Admin">System Admin</option>
-                </select>
-                <p style="font-size:12px;color:#6b7280;margin-top:8px;">* System Admins will be migrated to the master
-                    admin database.</p>
-            </div>
-
-            <div style="display:flex;gap:12px;justify-content:flex-end;">
-                <button type="button" onclick="closePromoteModal()"
-                    style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;">Cancel</button>
-                <button type="button" onclick="confirmPromotion()"
-                    style="padding:10px 24px;background:#f59e0b;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;">
-                    <i class="fas fa-crown"></i> Promote
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Change Department Modal -->
-    <div id="changeDeptModal"
-        style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-        <div
-            style="background:white;width:100%;max-width:400px;border-radius:12px;padding:24px;box-shadow:0 10px 25px rgba(0,0,0,0.1);">
-            <div
-                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid #e5e7eb;padding-bottom:12px;">
-                <h3 style="margin:0;font-size:18px;color:#111827;">Change Dept: <span id="changeDeptStaffName"></span>
-                </h3>
-                <button onclick="closeChangeDeptModal()"
-                    style="background:none;border:none;font-size:20px;color:#6b7280;cursor:pointer;">&times;</button>
-            </div>
-
-            <p style="font-size:14px;color:#4b5563;margin-bottom:16px;">Assign this staff member to a new department:
-            </p>
-
-            <div style="margin-bottom:20px;">
-                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Target
-                    Department</label>
-                <select id="changeDeptSelect"
-                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
-                    <option value="Customer Service">Customer Service</option>
-                    <option value="Loans">Loans Department</option>
-                    <option value="Cards">Cards Department</option>
-                    <option value="Technical Support">Technical Support</option>
-                    <option value="Operations">Operations</option>
-                    <option value="General">General</option>
-                </select>
-            </div>
-
-            <div style="display:flex;gap:12px;justify-content:flex-end;">
-                <button type="button" onclick="closeChangeDeptModal()"
-                    style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;">Cancel</button>
-                <button type="button" onclick="confirmDepartmentChange()"
-                    style="padding:10px 24px;background:#800000;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;">
-                    <i class="fas fa-building"></i> Update
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add User Modal -->
-    <div id="addUserModal" class="modal">
-        <div class="modal-content"
-            style="background:#ffffff; border-radius:20px; max-width:520px; width:90%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid rgba(0,0,0,0.1); transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-            <div
-                style="background:linear-gradient(135deg,#800000,#a52a2a); padding:24px; border-radius:16px 16px 0 0; display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0; color:white; font-size:18px;"><i class="fas fa-user-plus"
-                        style="margin-right:10px;"></i>Add New User</h3>
-                <button onclick="closeModal('addUserModal')"
-                    style="background:none; border:none; color:white; font-size:22px; cursor:pointer; line-height:1;">&times;</button>
-            </div>
-            <form id="addUserForm" onsubmit="submitAddUser(event)" style="padding:24px;">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-                    <div style="grid-column:span 2;">
-                        <label
-                            style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Full
-                            Name *</label>
-                        <input type="text" id="newUserName" required placeholder="e.g. Rahul Sharma"
-                            style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;">
+            <!-- Promote Admin Modal -->
+            <div class="modal" id="promoteAdminModal">
+                <div
+                    style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:400px;box-shadow:0 10px 25px rgba(0,0,0,0.1);">
+                    <div
+                        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid #e5e7eb;padding-bottom:12px;">
+                        <h3 style="margin:0;font-size:18px;color:#111827;">Modify Level: <span
+                                id="promoteAdminNameDisplay"></span></h3>
+                        <button onclick="closePromoteAdminModal()"
+                            style="background:none;border:none;font-size:20px;color:#6b7280;cursor:pointer;">×</button>
                     </div>
-                    <div>
+                    <div style="margin-bottom:20px;">
                         <label
-                            style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Username
-                            *</label>
-                        <input type="text" id="newUserUsername" required placeholder="e.g. rahul123"
-                            style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;">
-                    </div>
-                    <div>
-                        <label
-                            style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Phone</label>
-                        <input type="tel" id="newUserPhone" placeholder="e.g. 9876543210"
-                            style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;">
-                    </div>
-                    <div style="grid-column:span 2;">
-                        <label
-                            style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Email
-                            *</label>
-                        <input type="email" id="newUserEmail" required placeholder="e.g. builtforbank@gmail.com"
-                            style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;">
-                    </div>
-                    <div>
-                        <label
-                            style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Password
-                            *</label>
-                        <input type="password" id="newUserPassword" required minlength="6"
-                            placeholder="Min 6 characters"
-                            style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;">
-                    </div>
-                    <div>
-                        <label
-                            style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Date
-                            of Birth</label>
-                        <input type="date" id="newUserDob"
-                            style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;">
-                    </div>
-                </div>
-                <div id="addUserError"
-                    style="display:none; background:#fef2f2; color:#b91c1c; padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:16px;">
-                </div>
-                <div style="display:flex; justify-content:flex-end; gap:12px;">
-                    <button type="button" onclick="closeModal('addUserModal')"
-                        style="padding:10px 20px; border:1px solid var(--border-color); border-radius:8px; background:none; color:var(--text-primary); cursor:pointer; font-size:14px;">Cancel</button>
-                    <button type="submit" id="addUserSubmitBtn"
-                        style="padding:10px 24px; background:linear-gradient(135deg,#800000,#a52a2a); color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600;">
-                        <i class="fas fa-user-plus"></i> Create User
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-    <!-- Add Admin Modal -->
-    <div id="addAdminModal" class="modal">
-        <div
-            style="background:#fff;border-radius:16px;width:100%;max-width:520px;padding:32px;margin:20px;box-shadow:0 24px 60px rgba(0,0,0,.2);position:relative;">
-            <button onclick="closeAddAdminModal()"
-                style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;">&times;</button>
-            <h2 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#1f2937;">
-                <i class="fas fa-user-shield" style="color:var(--primary);margin-right:8px;"></i>Add New Admin
-            </h2>
-            <p style="color:#6b7280;font-size:14px;margin:0 0 24px;">Create a new administrator account with specific
-                access levels.</p>
-            <form id="addAdminForm" onsubmit="submitAddAdmin(event)">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                    <div style="grid-column:span 2;">
-                        <label
-                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Full
-                            Name *</label>
-                        <input id="adminFullName" type="text" placeholder="e.g. Administrator" required
-                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
-                    </div>
-                    <div>
-                        <label
-                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Username
-                            *</label>
-                        <input id="adminUsername" type="text" placeholder="unique_username" required
-                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
-                    </div>
-                    <div>
-                        <label
-                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Email
-                            *</label>
-                        <input id="adminEmail" type="email" placeholder="admin@smartbank.in" required
-                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
-                    </div>
-                    <div>
-                        <label
-                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Access
+                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Target
                             Level</label>
-                        <select id="adminLevel"
+                        <select id="promoteAdminLevelSelect"
                             style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
                             <option value="Junior Manager">Junior Manager</option>
                             <option value="Senior Manager">Senior Manager</option>
                             <option value="System Admin">System Admin</option>
                         </select>
                     </div>
-                    <div style="grid-column:span 2;">
-                        <label
-                            style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Password
-                            *</label>
-                        <input id="adminPassword" type="password" placeholder="Min. 8 characters" required minlength="8"
-                            style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                    <div style="display:flex;gap:12px;justify-content:flex-end;">
+                        <button onclick="closePromoteAdminModal()"
+                            style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;"
+                            type="button">Cancel</button>
+                        <button onclick="confirmAdminPromotion()"
+                            style="padding:10px 24px;background:var(--primary);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;"
+                            type="button">
+                            <i class="fas fa-check"></i> Update Level
+                        </button>
                     </div>
                 </div>
-                <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                    <button type="button" onclick="closeAddAdminModal()"
-                        style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;">Cancel</button>
-                    <button type="submit" class="btn btn-primary"
-                        style="padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;">
-                        <i class="fas fa-plus"></i> Create Admin
-                    </button>
+            </div>
+            <!-- Update Salary Modal -->
+            <div class="modal" id="updateSalaryModal">
+                <div
+                    style="background:#fff;border-radius:16px;width:100%;max-width:400px;padding:32px;margin:20px;box-shadow:0 24px 60px rgba(0,0,0,.2);position:relative;">
+                    <button onclick="closeModal('updateSalaryModal')"
+                        style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;">×</button>
+                    <h2 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#1f2937;">
+                        <i class="fas fa-money-bill-wave" style="color:#10b981;margin-right:8px;"></i>Update Base Salary
+                    </h2>
+                    <p style="color:#6b7280;font-size:14px;margin:0 0 24px;">Set the monthly base salary for <span
+                            id="targetStaffSalaryName" style="font-weight: 600;"></span>.</p>
+                    <form id="updateSalaryForm" onsubmit="submitSalaryUpdate(event)">
+                        <input id="targetStaffSalaryId" type="hidden" />
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label
+                                style="font-size:13px;font-weight:700;color:#111827;display:block;margin-bottom:6px;">Base
+                                Salary (₹)</label>
+                            <input id="newBaseSalaryInput" placeholder="e.g. 50000" required="" step="0.01"
+                                style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;"
+                                type="number" />
+                        </div>
+                        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                            <button onclick="closeModal('updateSalaryModal')"
+                                style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;"
+                                type="button">Cancel</button>
+                            <button class="btn btn-primary"
+                                style="padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;background:#10b981;border:none;color:white;"
+                                type="submit">
+                                Update Salary
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Promote Admin Modal -->
-    <div id="promoteAdminModal" class="modal">
-        <div
-            style="background:#fff;border-radius:12px;padding:24px;width:100%;max-width:400px;box-shadow:0 10px 25px rgba(0,0,0,0.1);">
-            <div
-                style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid #e5e7eb;padding-bottom:12px;">
-                <h3 style="margin:0;font-size:18px;color:#111827;">Modify Level: <span
-                        id="promoteAdminNameDisplay"></span></h3>
-                <button onclick="closePromoteAdminModal()"
-                    style="background:none;border:none;font-size:20px;color:#6b7280;cursor:pointer;">&times;</button>
             </div>
-            <div style="margin-bottom:20px;">
-                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Target
-                    Level</label>
-                <select id="promoteAdminLevelSelect"
-                    style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
-                    <option value="Junior Manager">Junior Manager</option>
-                    <option value="Senior Manager">Senior Manager</option>
-                    <option value="System Admin">System Admin</option>
-                </select>
-            </div>
-            <div style="display:flex;gap:12px;justify-content:flex-end;">
-                <button type="button" onclick="closePromoteAdminModal()"
-                    style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;">Cancel</button>
-                <button type="button" onclick="confirmAdminPromotion()"
-                    style="padding:10px 24px;background:var(--primary);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;">
-                    <i class="fas fa-check"></i> Update Level
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Update Salary Modal -->
-    <div id="updateSalaryModal" class="modal">
-        <div
-            style="background:#fff;border-radius:16px;width:100%;max-width:400px;padding:32px;margin:20px;box-shadow:0 24px 60px rgba(0,0,0,.2);position:relative;">
-            <button onclick="closeModal('updateSalaryModal')"
-                style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;">&times;</button>
-            <h2 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#1f2937;">
-                <i class="fas fa-money-bill-wave" style="color:#10b981;margin-right:8px;"></i>Update Base Salary
-            </h2>
-            <p style="color:#6b7280;font-size:14px;margin:0 0 24px;">Set the monthly base salary for <span
-                    id="targetStaffSalaryName" style="font-weight: 600;"></span>.</p>
-            <form id="updateSalaryForm" onsubmit="submitSalaryUpdate(event)">
-                <input type="hidden" id="targetStaffSalaryId">
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label style="font-size:13px;font-weight:700;color:#111827;display:block;margin-bottom:6px;">Base
-                        Salary (₹)</label>
-                    <input id="newBaseSalaryInput" type="number" step="0.01" placeholder="e.g. 50000" required
-                        style="width:100%;padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;box-sizing:border-box;">
+            <!-- User Activity Modal -->
+            <div class="modal" id="userActivityModal">
+                <div class="modal-content"
+                    style="max-width: 900px; width:95%; padding: 0; overflow: hidden; max-height:90vh;">
+                    <div
+                        style="background: var(--primary-color); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 18px;"><i class="fas fa-history"></i> User Activity: <span
+                                id="activityUserName"></span></h3>
+                        <button onclick="closeModal('userActivityModal')"
+                            style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">×</button>
+                    </div>
+                    <div id="activityDetails"
+                        style="padding: 20px; max-height: 80vh; overflow-y: auto; background: var(--bg-card);">
+                    </div>
                 </div>
-                <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                    <button type="button" onclick="closeModal('updateSalaryModal')"
-                        style="padding:10px 20px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-weight:600;color:#374151;">Cancel</button>
-                    <button type="submit" class="btn btn-primary"
-                        style="padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;background:#10b981;border:none;color:white;">
-                        Update Salary
-                    </button>
+            </div>
+            <!-- Notifications Modal -->
+            <div class="modal" id="notificationsModal">
+                <div class="modal-content" style="max-width: 400px; padding: 0;">
+                    <div
+                        style="padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 16px;">System Notifications</h3>
+                        <button onclick="closeModal('notificationsModal')"
+                            style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">×</button>
+                    </div>
+                    <div id="notificationsList" style="max-height: 300px; overflow-y: auto; padding: 16px;">
+                        <p style="text-align: center; color: var(--text-secondary); margin: 0;">No new alerts</p>
+                    </div>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- User Activity Modal -->
-    <div id="userActivityModal" class="modal">
-        <div class="modal-content" style="max-width: 900px; width:95%; padding: 0; overflow: hidden; max-height:90vh;">
-            <div
-                style="background: var(--primary-color); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; font-size: 18px;"><i class="fas fa-history"></i> User Activity: <span
-                        id="activityUserName"></span></h3>
-                <button onclick="closeModal('userActivityModal')"
-                    style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
             </div>
-            <div id="activityDetails"
-                style="padding: 20px; max-height: 80vh; overflow-y: auto; background: var(--bg-card);">
+            <!-- Add User Modal -->
+            <div class="modal" id="addUserModal">
+                <div class="modal-content"
+                    style="background:#ffffff; border-radius:20px; max-width:520px; width:90%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid rgba(0,0,0,0.1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+                    <div
+                        style="background:linear-gradient(135deg,#800000,#a52a2a); padding:24px; border-radius:16px 16px 0 0; display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="margin:0; color:white; font-size:18px;"><i class="fas fa-user-plus"
+                                style="margin-right:10px;"></i>Add New User</h3>
+                        <button onclick="closeModal('addUserModal')"
+                            style="background:none; border:none; color:white; font-size:22px; cursor:pointer; line-height:1;">×</button>
+                    </div>
+                    <form id="addUserForm" onsubmit="submitAddUser(event)" style="padding:24px;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                            <div style="grid-column:span 2;">
+                                <label
+                                    style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Full
+                                    Name *</label>
+                                <input id="newUserName" placeholder="e.g. Rahul Sharma" required=""
+                                    style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;"
+                                    type="text" />
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Username
+                                    *</label>
+                                <input id="newUserUsername" placeholder="e.g. rahul123" required=""
+                                    style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;"
+                                    type="text" />
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Phone</label>
+                                <input id="newUserPhone" placeholder="e.g. 9876543210"
+                                    style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;"
+                                    type="tel" />
+                            </div>
+                            <div style="grid-column:span 2;">
+                                <label
+                                    style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Email
+                                    *</label>
+                                <input id="newUserEmail" placeholder="e.g. builtforbank@gmail.com" required=""
+                                    style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;"
+                                    type="email" />
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Password
+                                    *</label>
+                                <input id="newUserPassword" minlength="6" placeholder="Min 6 characters" required=""
+                                    style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;"
+                                    type="password" />
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;">Date
+                                    of Birth</label>
+                                <input id="newUserDob"
+                                    style="width:100%; padding:10px 14px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-primary); font-size:14px; box-sizing:border-box;"
+                                    type="date" />
+                            </div>
+                        </div>
+                        <div id="addUserError"
+                            style="display:none; background:#fef2f2; color:#b91c1c; padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:16px;">
+                        </div>
+                        <div style="display:flex; justify-content:flex-end; gap:12px;">
+                            <button onclick="closeModal('addUserModal')"
+                                style="padding:10px 20px; border:1px solid var(--border-color); border-radius:8px; background:none; color:var(--text-primary); cursor:pointer; font-size:14px;"
+                                type="button">Cancel</button>
+                            <button id="addUserSubmitBtn"
+                                style="padding:10px 24px; background:linear-gradient(135deg,#800000,#a52a2a); color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600;"
+                                type="submit">
+                                <i class="fas fa-user-plus"></i> Create User
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <script src="api-config.js"></script>
-    <script src="face-auth-fixed.js"></script>
-    <div id="privacyMask" class="privacy-mask"></div>
-    <div id="screenshotFlash" class="screenshot-flash"></div>
-
-    <script src="admindash.js"></script>
-
-    <!-- Send Notification Modal -->
-    <div id="sendNotificationModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Send Notification</h3>
-                <button class="modal-close" onclick="closeModal('sendNotificationModal')">
-                    <i class="fas fa-times"></i>
-                </button>
+            <!-- Send Notification Modal -->
+            <div class="modal" id="sendNotificationModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Send Notification</h3>
+                        <button class="modal-close" onclick="closeModal('sendNotificationModal')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="sendNotificationForm" onsubmit="submitSendNotification(event)">
+                            <div class="form-group">
+                                <label class="form-label">Recipient User ID</label>
+                                <input class="form-input" id="notifUserId" placeholder="User ID or 'ALL' for everyone"
+                                    required="" type="text" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Title</label>
+                                <input class="form-input" id="notifTitle" placeholder="Notification Title" required=""
+                                    type="text" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Message</label>
+                                <textarea class="form-input" id="notifMessage" placeholder="Notification Message"
+                                    required="" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Type</label>
+                                <select class="form-select" id="notifType">
+                                    <option value="info">Info</option>
+                                    <option value="success">Success</option>
+                                    <option value="warning">Warning</option>
+                                    <option value="error">Alert</option>
+                                </select>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-cancel" onclick="closeModal('sendNotificationModal')"
+                                    type="button">Cancel</button>
+                                <button class="btn btn-primary" id="sendNotifSubmitBtn" type="submit">
+                                    <i class="fas fa-paper-plane"></i> Send
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                <form id="sendNotificationForm" onsubmit="submitSendNotification(event)">
-                    <div class="form-group">
-                        <label class="form-label">Recipient User ID</label>
-                        <input type="text" id="notifUserId" class="form-input"
-                            placeholder="User ID or 'ALL' for everyone" required>
-                    </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Title</label>
-                        <input type="text" id="notifTitle" class="form-input" placeholder="Notification Title" required>
+            <!-- Add Location Modal -->
+            <div class="modal" id="addLocationModal">
+                <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; border-radius: 20px;">
+                    <div style="background: linear-gradient(135deg, #800000, #a52a2a); padding: 20px; color: white; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 18px;"><i class="fas fa-map-pin" style="margin-right: 10px;"></i> Add Branch / ATM</h3>
+                        <button onclick="closeModal('addLocationModal')" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
                     </div>
+                    <form id="addLocationForm" onsubmit="submitAddLocation(event)" style="padding: 24px;">
+                        <div class="form-group">
+                            <label class="form-label">Name (e.g., Main Street ATM)</label>
+                            <input type="text" id="locName" class="form-input" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Type</label>
+                            <select id="locType" class="form-select">
+                                <option value="atm">ATM</option>
+                                <option value="branch">Branch</option>
+                            </select>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Latitude</label>
+                                <input type="number" step="any" id="locLat" class="form-input" required placeholder="e.g. 21.1458" />
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Longitude</label>
+                                <input type="number" step="any" id="locLng" class="form-input" required placeholder="e.g. 79.0882" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">City</label>
+                            <input type="text" id="locCity" class="form-input" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Full Address</label>
+                            <textarea id="locAddress" class="form-input" rows="2" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Location Photo (Optional)</label>
+                            <input type="file" id="locPhoto" accept="image/*" class="form-input" style="padding: 8px;" />
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                            <button type="button" class="btn btn-cancel" onclick="closeModal('addLocationModal')">Cancel</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Location</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
+            <!-- Scripts -->
+
+
+                        <!-- START Land Map Modal -->
+                        <div class="modal" id="landMapModal"
+                            style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+                            <div class="modal-content"
+                                style="max-width: 1000px; width:95%; height:90vh; padding: 0; overflow: hidden; border-radius: 24px; position:relative; display:flex; flex-direction:column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+                                <!-- Header -->
+                                <div
+                                    style="background: linear-gradient(135deg, #065f46 0%, #047857 100%); color: white; padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; flex-shrink:0;">
+                                    <div style="display: flex; align-items: center; gap: 15px;">
+                                        <div
+                                            style="width: 42px; height: 42px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                                            <i class="fas fa-satellite"></i>
+                                        </div>
+                                        <div>
+                                            <h3
+                                                style="margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.5px;">
+                                                Agri Land Verification</h3>
+                                            <p style="margin: 2px 0 0; font-size: 12px; color: rgba(255,255,255,0.8);"
+                                                id="landMapSubtitle">Satellite Property Analysis</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="closeModal('landMapModal')"
+                                        style="background: rgba(255,255,255,0.15); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; color: white; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">&times;</button>
+                                </div>
+
+                                <!-- Main Content Area (Two Column Layout) -->
+                                <div style="flex: 1; display: flex; overflow: hidden; background: #f1f5f9;">
+                                    <!-- Left Panel: Application Details -->
+                                    <div
+                                        style="width: 320px; background: white; border-right: 1px solid #e2e8f0; overflow-y: auto; display: flex; flex-direction: column;">
+                                        <div style="padding: 24px;" class="land-map-details-grid">
+                                            <h4
+                                                style="margin: 0 0 16px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 700;">
+                                                Applicant Identity</h4>
+                                            <div style="display: flex; flex-direction: column; gap: 15px;">
+                                                <div>
+                                                    <span
+                                                        style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 2px; font-weight: 600;">FULL
+                                                        NAME</span>
+                                                    <span id="landDetailName"
+                                                        style="font-weight: 700; color: #1e293b; font-size: 15px;">—</span>
+                                                </div>
+                                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                                    <div>
+                                                        <span
+                                                            style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 2px; font-weight: 600;">AADHAAR</span>
+                                                        <span id="landDetailAadhaar"
+                                                            style="font-weight: 600; color: #475569; font-size: 13px; font-family: monospace;">—</span>
+                                                    </div>
+                                                    <div>
+                                                        <span
+                                                            style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 2px; font-weight: 600;">PAN</span>
+                                                        <span id="landDetailPan"
+                                                            style="font-weight: 600; color: #475569; font-size: 13px; font-family: monospace;">—</span>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <span
+                                                        style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 2px; font-weight: 600;">EMAIL
+                                                        ADDRESS</span>
+                                                    <span id="landDetailEmail"
+                                                        style="font-weight: 500; color: #475569; font-size: 13px; word-break: break-all;">—</span>
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                style="margin-top: 32px; padding-top: 24px; border-top: 1px dashed #e2e8f0;">
+                                                <h4
+                                                    style="margin: 0 0 16px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 700;">
+                                                    Farm Specifications</h4>
+                                                <div style="display: flex; flex-direction: column; gap: 15px;">
+                                                    <div
+                                                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                                        <div>
+                                                            <span
+                                                                style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 2px; font-weight: 600;">CROP
+                                                                TYPE</span>
+                                                            <span id="landDetailCrop"
+                                                                style="font-weight: 700; color: #065f46; font-size: 14px;">—</span>
+                                                        </div>
+                                                        <div>
+                                                            <span
+                                                                style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 2px; font-weight: 600;">AREA
+                                                                SIZE</span>
+                                                            <span id="landDetailSize"
+                                                                style="font-weight: 700; color: #1e293b; font-size: 14px;">—</span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <span
+                                                            style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 2px; font-weight: 600;">AI
+                                                            HEALTH SCORE</span>
+                                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                                            <div
+                                                                style="flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                                                                <div id="landScoreProgress"
+                                                                    style="width: 0%; height: 100%; background: #10b981; transition: width 1s ease-out;">
+                                                                </div>
+                                                            </div>
+                                                            <span id="landDetailScore"
+                                                                style="font-weight: 800; color: #10b981; font-size: 18px;">0</span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <span
+                                                            style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 2px; font-weight: 600;">LOCATION
+                                                            COORDS</span>
+                                                        <span id="landDetailCoords"
+                                                            style="font-weight: 600; color: #64748b; font-size: 12px; font-family: monospace;">0.000,
+                                                            0.000</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            style="margin-top: auto; padding: 24px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+                                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                                <button class="btn btn-secondary w-100"
+                                                    style="display: flex; align-items: center; justify-content: center; gap: 8px;"
+                                                    onclick="loadKYCReport()">
+                                                    <i class="fas fa-file-invoice"></i> Full KYC Report
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right Panel: Live Map -->
+                                    <div style="flex: 1; position: relative; background: #f1f5f9;">
+                                        <div id="agriLandMap" style="height: 100%; width: 100%;"></div>
+
+                                        <!-- Map Layer Toggle -->
+                                        <div
+                                            style="position: absolute; top: 20px; left: 20px; z-index: 1000; display: flex; gap: 8px;">
+                                            <button onclick="changeAgriMapLayer('satellite')"
+                                                class="map-layer-btn active" id="agriSatBtn">Satellite</button>
+                                            <button onclick="changeAgriMapLayer('terrain')" class="map-layer-btn"
+                                                id="agriTerrBtn">Terrain Layers</button>
+                                        </div>
+
+                                        <!-- Floating Legend -->
+                                        <div
+                                            style="position: absolute; top: 20px; right: 20px; z-index: 1000; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); padding: 10px 15px; border-radius: 12px; color: white; font-size: 11px;">
+                                            <div
+                                                style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                                <span
+                                                    style="width: 10px; height: 10px; border-radius: 2px; border: 2px solid #10b981; background: rgba(16,185,129,0.3);"></span>
+                                                <span>Verified Land Boundary</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <i class="fas fa-location-dot" style="color: #ef4444;"></i>
+                                                <span>Geotagged Center</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Footer -->
+                                <div
+                                    style="padding: 16px 28px; background: #f9fafb; display: flex; justify-content: flex-end; align-items: center; gap: 12px; border-top: 1px solid #e5e7eb; flex-shrink:0;">
+                                    <span style="margin-right: auto; font-size: 12px; color: #6b7280;">
+                                        <i class="fas fa-info-circle"></i> Boundary box represents total area in acres
+                                        centered on provided coordinates.
+                                    </span>
+                                    <button class="btn btn-secondary" onclick="closeModal('landMapModal')">Close
+                                        View</button>
+                                    <button class="btn btn-primary" onclick="openAgriStatusInModal()"><i
+                                            class="fas fa-file-signature"></i> Final Review</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- END Land Map Modal -->
+                        </script>
+        </main>
+        <!-- Edit Customer Modal -->
+        <div id="editCustomerModal" class="modal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2><i class="fas fa-user-edit"></i> Edit Customer</h2>
+                    <button class="close-modal" onclick="closeModal('editCustomerModal')">&times;</button>
+                </div>
+                <form onsubmit="submitEditCustomer(event)" style="padding: 20px;">
+                    <input type="hidden" id="editCustomerId">
                     <div class="form-group">
-                        <label class="form-label">Message</label>
-                        <textarea id="notifMessage" class="form-input" rows="3" placeholder="Notification Message"
-                            required></textarea>
+                        <label>Full Name</label>
+                        <input type="text" id="editCustomerName" required class="form-control">
                     </div>
-
                     <div class="form-group">
-                        <label class="form-label">Type</label>
-                        <select id="notifType" class="form-select">
-                            <option value="info">Info</option>
-                            <option value="success">Success</option>
-                            <option value="warning">Warning</option>
-                            <option value="error">Alert</option>
+                        <label>Email Address</label>
+                        <input type="email" id="editCustomerEmail" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="editCustomerPhone" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Aadhaar Number</label>
+                        <input type="text" id="editCustomerAadhaar" class="form-control" placeholder="12-digit Aadhaar"
+                            maxlength="12">
+                    </div>
+                    <div class="form-group">
+                        <label>PAN Number</label>
+                        <input type="text" id="editCustomerPan" class="form-control" placeholder="10-digit PAN"
+                            maxlength="10" style="text-transform:uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label>Address / KYC Details</label>
+                        <textarea id="editCustomerAddress" class="form-control" rows="2"
+                            placeholder="Residential address"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" id="editCustomerDob" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Account Status</label>
+                        <select id="editCustomerStatus" class="form-control">
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="blocked">Blocked</option>
                         </select>
                     </div>
+                    <div class="modal-actions" style="margin-top:20px; text-align:right;">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeModal('editCustomerModal')">Cancel</button>
+                        <button type="submit" id="editCustomerSubmitBtn" class="btn btn-primary"><i
+                                class="fas fa-save"></i> Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline"
-                            onclick="closeModal('sendNotificationModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="sendNotifSubmitBtn">
-                            <i class="fas fa-paper-plane"></i> Send
+        <!-- Edit Account Modal -->
+        <div id="editAccountModal" class="modal" style="z-index: 10000;">
+            <div class="modal-content"
+                style="max-width: 600px; padding: 0; overflow: hidden; border-radius: 16px; border: none; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+                <div class="modal-header"
+                    style="background: linear-gradient(135deg, #800000 0%, #b30000 100%); padding: 24px; border: none; align-items: center;">
+                    <h2
+                        style="color: white; margin: 0; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 12px;">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-sliders-h" style="font-size: 18px;"></i>
+                        </div>
+                        Account Parameters
+                    </h2>
+                    <button class="close-modal" onclick="closeModal('editAccountModal')"
+                        style="color: rgba(255,255,255,0.8); background: transparent; border: none; font-size: 24px; cursor: pointer; transition: 0.2s;">&times;</button>
+                </div>
+
+                <form id="editAccountForm" onsubmit="submitEditAccount(event)"
+                    style="padding: 32px; background: #f8fafc;">
+                    <input type="hidden" id="editAccountId">
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                        <!-- Branch -->
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label
+                                style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;"><i
+                                    class="fas fa-code-branch" style="margin-right:6px; color:#800000;"></i>Account
+                                Branch</label>
+                            <input type="text" id="editAccountBranch" required class="form-control"
+                                style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-weight: 600; color: #1e293b; transition: all 0.2s; outline: none; box-sizing: border-box; background: white;"
+                                onfocus="this.style.borderColor='#800000'; this.style.boxShadow='0 0 0 3px rgba(128,0,0,0.1)'"
+                                onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                        </div>
+
+                        <!-- IFSC -->
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label
+                                style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;"><i
+                                    class="fas fa-barcode" style="margin-right:6px; color:#800000;"></i>IFSC
+                                Code</label>
+                            <input type="text" id="editAccountIfsc" required class="form-control"
+                                style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-weight: 600; color: #1e293b; font-family: monospace; transition: all 0.2s; outline: none; box-sizing: border-box; background: white;"
+                                onfocus="this.style.borderColor='#800000'; this.style.boxShadow='0 0 0 3px rgba(128,0,0,0.1)'"
+                                onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+                        <!-- Account Type -->
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label
+                                style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;"><i
+                                    class="fas fa-wallet" style="margin-right:6px; color:#800000;"></i>Account
+                                Type</label>
+                            <select id="editAccountType" class="form-control"
+                                style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-weight: 600; color: #1e293b; appearance: none; background: white url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E') no-repeat right 16px center / 12px; transition: all 0.2s; outline: none; box-sizing: border-box;"
+                                onfocus="this.style.borderColor='#800000'; this.style.boxShadow='0 0 0 3px rgba(128,0,0,0.1)'"
+                                onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                                <option value="Savings">Savings</option>
+                                <option value="Current">Current</option>
+                                <option value="Salary">Salary</option>
+                            </select>
+                        </div>
+
+                        <!-- Status -->
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <label
+                                style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;"><i
+                                    class="fas fa-shield-alt" style="margin-right:6px; color:#800000;"></i>Account
+                                Status</label>
+                            <select id="editAccountStatus" class="form-control"
+                                style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-weight: 600; color: #1e293b; appearance: none; background: white url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E') no-repeat right 16px center / 12px; transition: all 0.2s; outline: none; box-sizing: border-box;"
+                                onfocus="this.style.borderColor='#800000'; this.style.boxShadow='0 0 0 3px rgba(128,0,0,0.1)'"
+                                onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                                <option value="active">🟢 Active</option>
+                                <option value="frozen">🔴 Frozen</option>
+                                <option value="closed">⚫ Closed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Daily Transfer Limit -->
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px;">
+                        <label
+                            style="font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;"><i
+                                class="fas fa-rupee-sign" style="margin-right:6px; color:#800000;"></i>Daily Transfer
+                            Limit</label>
+                        <div style="position: relative;">
+                            <span
+                                style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #64748b; font-weight: 700; font-size: 16px;">₹</span>
+                            <input type="number" id="editAccountDailyLimit" class="form-control" min="0" step="1000"
+                                style="padding: 12px 16px 12px 36px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; font-weight: 700; color: #1e293b; width: 100%; transition: all 0.2s; outline: none; box-sizing: border-box; background: white;"
+                                onfocus="this.style.borderColor='#800000'; this.style.boxShadow='0 0 0 3px rgba(128,0,0,0.1)'"
+                                onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; margin-top: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('editAccountModal')"
+                            style="flex: 1; padding: 14px; font-size: 15px; font-weight: 700; border-radius: 10px; background: white; border: 2px solid #e2e8f0; color: #475569; transition: all 0.2s; cursor: pointer;"
+                            onmouseover="this.style.background='#f1f5f9'; this.style.color='#1e293b';"
+                            onmouseout="this.style.background='white'; this.style.color='#475569';">
+                            Cancel
+                        </button>
+                        <button type="submit" id="editAccountSubmitBtn" class="btn btn-primary"
+                            style="flex: 2; padding: 14px; font-size: 15px; font-weight: 700; border-radius: 10px; background: linear-gradient(to right, #800000, #b30000); border: none; box-shadow: 0 4px 12px rgba(128,0,0,0.3); color: white; transition: all 0.2s; cursor: pointer;"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(128,0,0,0.4)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(128,0,0,0.3)';">
+                            <i class="fas fa-save" style="margin-right: 8px;"></i> Save Changes
                         </button>
                     </div>
                 </form>
             </div>
         </div>
+
     </div>
+    <!-- Add Agriculture Customer Modal -->
+    <div class="modal" id="addAgriCustomerModal">
+        <div class="modal-content"
+            style="max-width: 650px; border-radius: 24px; overflow: hidden; padding: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); border: none;">
+            <!-- Modal Header -->
+            <div
+                style="background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); padding: 32px; position: relative;">
+                <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px;">
+                    <div
+                        style="width: 60px; height: 60px; background: rgba(255,255,255,0.15); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #34d399; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2);">
+                        <i class="fas fa-tractor"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 24px; font-weight: 800; color: white; letter-spacing: -0.5px;">
+                            Register Agriculture Customer</h3>
+                        <p style="margin: 4px 0 0; font-size: 14px; color: rgba(255,255,255,0.7); font-weight: 500;">
+                            Onboard a new verified farmer to the marketplace</p>
+                    </div>
+                </div>
+                <button onclick="closeAddAgriCustomerModal()"
+                    style="position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.2); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; color: white; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                    onmouseover="this.style.background='rgba(0,0,0,0.4)'"
+                    onmouseout="this.style.background='rgba(0,0,0,0.2)'">&times;</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div style="padding: 32px; background: #ffffff;">
+                <form id="addAgriCustomerForm" onsubmit="submitAddAgriCustomer(event)">
+                    <!-- Basic Info Section -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+                        <div style="grid-column: span 2;">
+                            <label
+                                style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;">Personal
+                                Information</label>
+                            <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 0;">
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label
+                                style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 8px; display: block;">Full
+                                Name</label>
+                            <div style="position: relative;">
+                                <i class="fas fa-user"
+                                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px;"></i>
+                                <input type="text" name="name" required placeholder="e.g. Ramesh Kumar"
+                                    style="width: 100%; padding: 12px 14px 12px 40px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-weight: 500; transition: all 0.2s; outline: none;"
+                                    onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 4px rgba(16,185,129,0.1)';"
+                                    onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label
+                                style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 8px; display: block;">Email
+                                Address</label>
+                            <div style="position: relative;">
+                                <i class="fas fa-envelope"
+                                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px;"></i>
+                                <input type="email" name="email" required placeholder="farmer@example.com"
+                                    style="width: 100%; padding: 12px 14px 12px 40px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-weight: 500; transition: all 0.2s; outline: none;"
+                                    onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 4px rgba(16,185,129,0.1)';"
+                                    onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label
+                                style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 8px; display: block;">Phone
+                                Number</label>
+                            <div style="position: relative;">
+                                <i class="fas fa-phone"
+                                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px;"></i>
+                                <input type="text" name="phone" required placeholder="+91 00000 00000"
+                                    style="width: 100%; padding: 12px 14px 12px 40px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-weight: 500; transition: all 0.2s; outline: none;"
+                                    onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 4px rgba(16,185,129,0.1)';"
+                                    onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label
+                                style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 8px; display: block;">Username</label>
+                            <div style="position: relative;">
+                                <i class="fas fa-at"
+                                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px;"></i>
+                                <input type="text" name="username" required placeholder="farmer_user"
+                                    style="width: 100%; padding: 12px 14px 12px 40px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-weight: 500; transition: all 0.2s; outline: none;"
+                                    onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 4px rgba(16,185,129,0.1)';"
+                                    onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label
+                                style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 8px; display: block;">Password</label>
+                            <div style="position: relative;">
+                                <i class="fas fa-lock"
+                                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px;"></i>
+                                <input type="password" name="password" required placeholder="••••••••"
+                                    style="width: 100%; padding: 12px 14px 12px 40px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-weight: 500; transition: all 0.2s; outline: none;"
+                                    onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 4px rgba(16,185,129,0.1)';"
+                                    onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label
+                                style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 8px; display: block;">Date
+                                of Birth</label>
+                            <div style="position: relative;">
+                                <i class="fas fa-calendar"
+                                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px;"></i>
+                                <input type="date" name="dob" required
+                                    style="width: 100%; padding: 12px 14px 12px 40px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-weight: 500; transition: all 0.2s; outline: none; appearance: none; background: white;"
+                                    onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 4px rgba(16,185,129,0.1)';"
+                                    onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agriculture KYC Section -->
+                    <div
+                        style="background: #f0fdf4; padding: 28px; border-radius: 20px; border: 1px solid #dcfce7; margin-bottom: 32px; box-shadow: inset 0 2px 4px rgba(16,185,129,0.03);">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                            <i class="fas fa-shield-check" style="color: #10b981; font-size: 18px;"></i>
+                            <h4
+                                style="margin: 0; font-size: 15px; font-weight: 700; color: #064e3b; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Agriculture KYC Verification</h4>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <label
+                                    style="font-size: 12px; font-weight: 700; color: #065f46; margin-bottom: 6px; display: block;">Aadhaar
+                                    Number</label>
+                                <input type="text" name="aadhaar" required placeholder="12 Digit Aadhaar No"
+                                    style="width: 100%; padding: 12px; border: 1px solid #bdf2d5; border-radius: 10px; font-size: 14px; transition: all 0.2s; outline: none; background: white;"
+                                    onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16,185,129,0.1)';"
+                                    onblur="this.style.borderColor='#bdf2d5'; this.style.boxShadow='none';">
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size: 12px; font-weight: 700; color: #065f46; margin-bottom: 6px; display: block;">PAN
+                                    Number</label>
+                                <input type="text" name="pan" required placeholder="ABCDE1234F"
+                                    style="width: 100%; padding: 12px; border: 1px solid #bdf2d5; border-radius: 10px; font-size: 14px; transition: all 0.2s; outline: none; background: white;"
+                                    onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16,185,129,0.1)';"
+                                    onblur="this.style.borderColor='#bdf2d5'; this.style.boxShadow='none';">
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label
+                                    style="font-size: 12px; font-weight: 700; color: #065f46; margin-bottom: 6px; display: block;">Farm
+                                    Address / GPS Coordinates</label>
+                                <input type="text" name="farm_address" required
+                                    placeholder="Enter farm address or Lat, Lng coordinates"
+                                    style="width: 100%; padding: 12px; border: 1px solid #bdf2d5; border-radius: 10px; font-size: 14px; transition: all 0.2s; outline: none; background: white;"
+                                    onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16,185,129,0.1)';"
+                                    onblur="this.style.borderColor='#bdf2d5'; this.style.boxShadow='none';">
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size: 12px; font-weight: 700; color: #065f46; margin-bottom: 6px; display: block;">Land
+                                    Size (Acres)</label>
+                                <div style="position: relative;">
+                                    <input type="number" name="land_size" step="0.01" required placeholder="0.00"
+                                        style="width: 100%; padding: 12px 40px 12px 12px; border: 1px solid #bdf2d5; border-radius: 10px; font-size: 14px; transition: all 0.2s; outline: none; background: white;"
+                                        onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16,185,129,0.1)';"
+                                        onblur="this.style.borderColor='#bdf2d5'; this.style.boxShadow='none';">
+                                    <span
+                                        style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 12px; font-weight: 600;">ACRE</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size: 12px; font-weight: 700; color: #065f46; margin-bottom: 6px; display: block;">Passport
+                                    Size Photo</label>
+                                <div style="position: relative;">
+                                    <input type="file" name="passport_photo" accept="image/*" required
+                                        style="width: 100%; font-size: 12px; color: #64748b; cursor: pointer; padding: 10px; border: 1px dashed #bdf2d5; border-radius: 10px; background: white;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 16px;">
+                        <button type="submit" id="addAgriCustomerBtn"
+                            style="flex: 2; background: linear-gradient(to right, #10b981, #059669); color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 10px 15px -3px rgba(16,185,129,0.25); transition: all 0.3s;"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 20px -3px rgba(16,185,129,0.35)';"
+                            onmouseout="this.style.transform='none'; this.style.boxShadow='0 10px 15px -3px rgba(16,185,129,0.25)';">
+                            <i class="fas fa-check-circle" style="font-size: 18px;"></i> Create Agriculture Profile
+                        </button>
+                        <button type="button" onclick="closeAddAgriCustomerModal()"
+                            style="flex: 1; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 16px; border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.background='#f1f5f9'; this.style.color='#1e293b';"
+                            onmouseout="this.style.background='#f8fafc'; this.style.color='#64748b';">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Add Location Modal -->
+    <div class="modal" id="addLocationModal">
+        <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; border-radius: 20px;">
+            <div style="background: linear-gradient(135deg, #800000, #a52a2a); padding: 20px; color: white; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 18px;"><i class="fas fa-map-pin" style="margin-right: 10px;"></i> Add Branch / ATM</h3>
+                <button onclick="closeModal('addLocationModal')" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <form id="addLocationForm" onsubmit="submitAddLocation(event)" style="padding: 24px;">
+                <div class="form-group">
+                    <label class="form-label">Name (e.g., Main Street ATM)</label>
+                    <input type="text" id="locName" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select id="locType" class="form-select">
+                        <option value="atm">ATM</option>
+                        <option value="branch">Branch</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" step="any" id="locLat" class="form-input" required placeholder="e.g. 21.1458" />
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" step="any" id="locLng" class="form-input" required placeholder="e.g. 79.0882" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" id="locCity" class="form-input" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Full Address</label>
+                    <textarea id="locAddress" class="form-input" rows="2" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location Photo (Optional)</label>
+                    <input type="file" id="locPhoto" accept="image/*" class="form-input" style="padding: 8px;" />
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('addLocationModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Location</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Language Switcher -->
+    <!-- Scripts -->
+    <script src="js/api-config.js"></script>
+    <script src="js/device-detector.js"></script>
+    <script src="js/face-api.min.js"></script>
+    <script src="js/face-auth-fixed.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/premium-ui.js"></script>
+    <script src="js/language-switcher.js"></script>
+    <script src="js/admindash.js"></script>
+    <script>
+        // FaceAuthManager is completely handled globally by face-auth-fixed.js
+    </script>
 </body>
 
 </html>
