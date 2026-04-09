@@ -4,17 +4,32 @@ import sys
 import json
 from datetime import datetime
 
-# Add the root directory and backend directory to sys.path
+# Add the root directory and backend directory to sys.path (High Priority)
 root_dir = os.path.dirname(os.path.abspath(__file__))
 backend_dir = os.path.join(root_dir, 'backend')
+
+# Highly aggressive path insertion
 if backend_dir not in sys.path:
-    sys.path.append(backend_dir)
+    sys.path.insert(0, backend_dir)
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
+
+print(f"Deployment Boot: Root={root_dir}, Backend={backend_dir}")
+print(f"Current Sys Path: {sys.path[:3]}") # Debug top 3 paths
 
 # Now we can import from the backend folder
 try:
-    from app import app, init_db, migrate_db, DATABASE, get_db
+    # We try both methods for maximum compatibility
+    try:
+        from app import app, init_db, migrate_db, DATABASE, get_db
+    except ImportError:
+        from backend.app import app, init_db, migrate_db, DATABASE, get_db
 except ImportError as e:
-    print(f"Error: Could not import backend.app. Ensure 'backend' folder exists. {e}")
+    print(f"❌ CRITICAL IMPORT ERROR: {e}")
+    print(f"Working Directory: {os.getcwd()}")
+    print(f"Files in root: {os.listdir(root_dir)}")
+    if os.path.exists(backend_dir):
+        print(f"Files in backend: {os.listdir(backend_dir)}")
     sys.exit(1)
 
 from werkzeug.security import generate_password_hash
