@@ -156,3 +156,22 @@ if __name__ == '__main__':
     
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
+else:
+    # Production Auto-Initialization (Render/Other Cloud)
+    # This runs when imported by Gunicorn
+    if os.environ.get('RENDER') or os.environ.get('FLASK_ENV') == 'production':
+        from core.constants import DATABASE
+        from core.db import init_db, migrate_db
+        try:
+            with app.app_context():
+                # Ensure directory exists for SQLite
+                os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
+                
+                if not os.path.exists(DATABASE) or os.path.getsize(DATABASE) == 0:
+                    print(f"✅ Production Boot: Initializing fresh database at {DATABASE}")
+                    init_db()
+                else:
+                    print(f"✅ Production Boot: Verifying database migrations at {DATABASE}")
+                    migrate_db()
+        except Exception as e:
+            print(f"⚠️ Production Boot Warning: Database initialization skipped/failed: {e}")
