@@ -80,6 +80,34 @@ def verify_otp():
     except Exception as e:
         db.rollback(); return jsonify({'error': str(e)}), 500
 
+@auth_bp.route('/resend-otp', methods=['POST'])
+def resend_otp():
+    data = request.json
+    username = data.get('username')
+    if not username:
+        return jsonify({'error': 'Username is required'}), 400
+    
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    if user['status'] == 'active':
+        return jsonify({'success': True, 'message': 'Account is already active'}), 200
+    
+    try:
+        otp = str(random.randint(100000, 999999))
+        otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
+        db.execute('UPDATE users SET otp = ?, otp_expiry = ? WHERE id = ?', (otp, otp_expiry, user['id']))
+        db.commit()
+        
+        body = f"<h3>Verify your Smart Bank Account</h3><p>Your new code: <b>{otp}</b></p>"
+        send_email_async(user['email'], "Smart Bank - New Verification Code", body)
+        
+        return jsonify({'success': True, 'message': 'New code sent to your email'}), 200
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.json
