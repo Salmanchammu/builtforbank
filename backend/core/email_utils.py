@@ -71,11 +71,11 @@ def send_email_async(to_email, subject, body_html):
             if email_config.SMTP_PORT == 465 or getattr(email_config, 'SMTP_USE_SSL', False):
                 import ssl
                 context = ssl.create_default_context()
-                with smtplib.SMTP_SSL(email_config.SMTP_SERVER, email_config.SMTP_PORT, context=context) as server:
+                with smtplib.SMTP_SSL(email_config.SMTP_SERVER, email_config.SMTP_PORT, context=context, timeout=10) as server:
                     server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
                     server.send_message(msg)
             else:
-                with smtplib.SMTP(email_config.SMTP_SERVER, email_config.SMTP_PORT) as server:
+                with smtplib.SMTP(email_config.SMTP_SERVER, email_config.SMTP_PORT, timeout=10) as server:
                     server.starttls()
                     server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
                     server.send_message(msg)
@@ -85,8 +85,9 @@ def send_email_async(to_email, subject, body_html):
             logger.error(f"FAILED email to {to_email}: {str(e)}")
             print(f"DEBUG: Email failed for {to_email}: {e}")
 
-    # Synchronous delivery for debugging
-    send_task()
+    # Execute asynchronously
+    import threading
+    threading.Thread(target=send_task, daemon=True).start()
 
 def send_email_diagnostic(to_email, subject, body_html):
     """Synchronous version of send_email for diagnostics. Returns detailed results."""
