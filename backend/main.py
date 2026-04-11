@@ -82,9 +82,28 @@ def diag_logs():
     if request.remote_addr not in ['127.0.0.1', 'localhost']:
         return jsonify({'error': 'Unauthorized'}), 403
     
-    # Return last 100 lines of console output if possible, 
-    # but for simplicity let's just return a confirmation for now
+    # Return last 100 lines of console output if possible
     return jsonify({'message': 'Diag endpoint active', 'cwd': os.getcwd()})
+
+@app.route('/api/diag/email', methods=['GET'])
+def diag_email():
+    """Diagnostic route to test email delivery from server."""
+    from core.email_utils import send_email_diagnostic
+    
+    # Optional destination
+    to_email = request.args.get('to', 'cat674624@gmail.com')
+    subject = "Smart Bank - Diagnostic Test"
+    body = f"<h1>Smart Bank Test</h1><p>Sent at: {datetime.now()}</p>"
+    
+    logger.info(f"Triggering diagnostic email to: {to_email}")
+    results = send_email_diagnostic(to_email, subject, body)
+    
+    status_code = 200 if results.get("success") else 500
+    return jsonify({
+        "status": "success" if results.get("success") else "failure",
+        "results": results,
+        "note": "If success=False, check SMTP credentials in Render Dashboard."
+    }), status_code
 
 @app.route('/<path:path>')
 def serve_static(path):

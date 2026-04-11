@@ -91,11 +91,14 @@ def send_email_async(to_email, subject, body_html):
 
 def send_email_diagnostic(to_email, subject, body_html):
     """Synchronous version of send_email for diagnostics. Returns detailed results."""
-    results = {"success": False, "resend": None, "smtp": None, "config": None}
+    import traceback
+    results = {"success": False, "resend": None, "smtp": None, "config": "Unknown"}
     
     if not email_config or email_config.SENDER_EMAIL == "your-email@gmail.com":
         results["config"] = "Email not configured (using default placeholders)"
         return results
+    
+    results["config"] = f"Configured sender: {email_config.SENDER_EMAIL}"
         
     resend_api_key = os.environ.get("RESEND_API_KEY")
     if resend_api_key:
@@ -115,26 +118,34 @@ def send_email_diagnostic(to_email, subject, body_html):
                 results["resend"] = f"Success: {response.read().decode('utf-8')}"
                 results["success"] = True
         except Exception as e:
-            results["resend"] = f"FAILED: {str(e)}"
+            results["resend"] = f"FAILED: {str(e)}\n{traceback.format_exc()}"
 
     if not results["success"]:
         try:
-            msg = MIMEMultipart(); msg['From'] = email_config.SENDER_EMAIL; msg['To'] = to_email; msg['Subject'] = subject
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+            
+            msg = MIMEMultipart()
+            msg['From'] = email_config.SENDER_EMAIL
+            msg['To'] = to_email
+            msg['Subject'] = subject
             msg.attach(MIMEText(body_html, 'html'))
-            use_ssl = getattr(email_config, 'SMTP_USE_SSL', False)
+            
+            use_ssl = email_config.SMTP_PORT == 465 or getattr(email_config, 'SMTP_USE_SSL', False)
             if use_ssl:
                 import ssl; context = ssl.create_default_context()
-                with smtplib.SMTP_SSL(email_config.SMTP_SERVER, email_config.SMTP_PORT, context=context) as server:
+                with smtplib.SMTP_SSL(email_config.SMTP_SERVER, email_config.SMTP_PORT, context=context, timeout=10) as server:
                     server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
                     server.send_message(msg)
             else:
-                with smtplib.SMTP(email_config.SMTP_SERVER, email_config.SMTP_PORT) as server:
+                with smtplib.SMTP(email_config.SMTP_SERVER, email_config.SMTP_PORT, timeout=10) as server:
                     server.starttls()
                     server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
                     server.send_message(msg)
             results["smtp"] = "Success via SMTP"
             results["success"] = True
         except Exception as e:
-            results["smtp"] = f"FAILED: {str(e)}"
+            results["smtp"] = f"FAILED: {str(e)}\n{traceback.format_exc()}"
             
     return results
