@@ -1263,16 +1263,16 @@ function renderDashboard(data) {
             displayCards = (data.cards || []).filter(c => c.card_type && String(c.card_type).toLowerCase() === 'credit');
             displayRequests = allRequests.filter(r => {
                 const status = String(r.status || '').toLowerCase();
-                const isRejected = ['rejected', 'declined', 'expired', 'cancelled', 'canceled', 'closed'].includes(status);
-                return isCredit(r) && !isRejected;
+                const isCompleted = ['rejected', 'declined', 'expired', 'cancelled', 'canceled', 'closed', 'approved', 'completed', 'issued'].includes(status);
+                return isCredit(r) && !isCompleted;
             });
         } else {
             // Debit / Savings tab
             displayCards = (data.cards || []).filter(c => !c.card_type || String(c.card_type).toLowerCase() !== 'credit');
             displayRequests = allRequests.filter(r => {
                 const status = String(r.status || '').toLowerCase();
-                const isRejected = ['rejected', 'declined', 'expired', 'cancelled', 'canceled', 'closed'].includes(status);
-                return !isCredit(r) && !isRejected;
+                const isCompleted = ['rejected', 'declined', 'expired', 'cancelled', 'canceled', 'closed', 'approved', 'completed', 'issued'].includes(status);
+                return !isCredit(r) && !isCompleted;
             });
         }
 
