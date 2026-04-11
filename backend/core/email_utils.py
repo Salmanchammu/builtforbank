@@ -49,7 +49,8 @@ def send_email_async(to_email, subject, body_html):
                         data=payload,
                         headers={
                             "Authorization": f"Bearer {resend_api_key}",
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
+                            "User-Agent": "SmartBank/2.0"
                         }
                     )
                     
@@ -114,7 +115,7 @@ def send_email_diagnostic(to_email, subject, body_html):
                 "html": body_html
             }).encode('utf-8')
             req = urllib_req.Request("https://api.resend.com/emails", data=payload,
-                                    headers={"Authorization": f"Bearer {resend_api_key}", "Content-Type": "application/json"})
+                                    headers={"Authorization": f"Bearer {resend_api_key}", "Content-Type": "application/json", "User-Agent": "SmartBank/2.0"})
             with urllib_req.urlopen(req, timeout=10) as response:
                 results["resend"] = f"Success: {response.read().decode('utf-8')}"
                 results["success"] = True
