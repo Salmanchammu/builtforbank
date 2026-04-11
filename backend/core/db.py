@@ -517,6 +517,8 @@ def migrate_db():
         ('agri_buyers', 'signup_lng', 'DECIMAL(10, 7)'),
         ('agri_buyers', 'signup_city', 'VARCHAR(100)'),
         ('agri_buyers', 'signup_country', 'VARCHAR(100)'),
+        ('users', 'otp', 'VARCHAR(10)'),
+        ('users', 'otp_expiry', 'TIMESTAMP'),
     ]
 
     for table, col, col_type in migrations:

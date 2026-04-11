@@ -42,39 +42,58 @@ def get_exchange_rates():
 def get_user_dashboard():
     db = get_db()
     try:
-        apply_loan_penalties(db)
-    except Exception as e:
-        logger.error(f"Error applying penalties during dashboard load: {e}")
+        # 1. Apply periodic logic
+        try:
+            apply_loan_penalties(db)
+        except Exception as e:
+            logger.error(f"Error applying penalties during dashboard load: {e}")
+            
+        user_id = session['user_id']
         
-    user_id = session['user_id']
-    user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
-    accounts = db.execute('SELECT * FROM accounts WHERE user_id = ?', (user_id,)).fetchall()
-    account_requests = db.execute('SELECT * FROM account_requests WHERE user_id = ? AND status = "pending"', (user_id,)).fetchall()
-    transactions = db.execute('SELECT t.*, a.account_number FROM transactions t JOIN accounts a ON t.account_id = a.id WHERE a.user_id = ? ORDER BY t.transaction_date DESC LIMIT 10', (user_id,)).fetchall()
-    notifications = db.execute('SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC', (user_id,)).fetchall()
-    cards = db.execute('SELECT * FROM cards WHERE user_id = ?', (user_id,)).fetchall()
-    card_requests = db.execute('SELECT * FROM card_requests WHERE user_id = ?', (user_id,)).fetchall()
-    loans = db.execute('SELECT * FROM loans WHERE user_id = ?', (user_id,)).fetchall()
-    total_balance = sum(acc['balance'] for acc in accounts)
-    
-    user_dict = dict(user)
-    profile_img = user_dict.get('profile_image')
-    # Use formatted last_login if it exists
-    l_login = user_dict.get('last_login')
-    
-    return jsonify({
-        'user': user_dict,
-        'last_login': l_login,
-        'accounts': [dict(a) for a in accounts],
-        'account_requests': [dict(ar) for ar in account_requests],
-        'transactions': [dict(t) for t in transactions],
-        'notifications': [dict(n) for n in notifications],
-        'cards': [dict(c) for c in cards],
-        'card_requests': [dict(cr) for cr in card_requests],
-        'loans': [dict(l) for l in loans],
-        'total_balance': float(total_balance),
-        'profile_image_url': f"/api/user/profile-image/{profile_img}" if profile_img else None
-    })
+        # 2. Fetch all required data
+        user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+            
+        accounts = db.execute('SELECT * FROM accounts WHERE user_id = ?', (user_id,)).fetchall()
+        account_requests = db.execute('SELECT * FROM account_requests WHERE user_id = ? AND status = "pending"', (user_id,)).fetchall()
+        transactions = db.execute('SELECT t.*, a.account_number FROM transactions t JOIN accounts a ON t.account_id = a.id WHERE a.user_id = ? ORDER BY t.transaction_date DESC LIMIT 10', (user_id,)).fetchall()
+        notifications = db.execute('SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC', (user_id,)).fetchall()
+        cards = db.execute('SELECT * FROM cards WHERE user_id = ?', (user_id,)).fetchall()
+        card_requests = db.execute('SELECT * FROM card_requests WHERE user_id = ?', (user_id,)).fetchall()
+        loans = db.execute('SELECT * FROM loans WHERE user_id = ?', (user_id,)).fetchall()
+        
+        # 3. Calculate total balance safely
+        try:
+            total_balance = sum(float(acc['balance'] if acc['balance'] is not None else 0) for acc in accounts)
+        except Exception:
+            total_balance = 0.0
+        
+        user_dict = dict(user)
+        # Ensure password hash is never sent to frontend
+        user_dict.pop('password', None)
+        user_dict.pop('upi_pin', None)
+        user_dict.pop('mobile_passcode', None)
+        
+        profile_img = user_dict.get('profile_image')
+        l_login = user_dict.get('last_login')
+        
+        return jsonify({
+            'user': user_dict,
+            'last_login': l_login,
+            'accounts': [dict(a) for a in accounts],
+            'account_requests': [dict(ar) for ar in account_requests],
+            'transactions': [dict(t) for t in transactions],
+            'notifications': [dict(n) for n in notifications],
+            'cards': [dict(c) for c in cards],
+            'card_requests': [dict(cr) for cr in card_requests],
+            'loans': [dict(l) for l in loans],
+            'total_balance': float(total_balance),
+            'profile_image_url': f"/api/user/profile-image/{profile_img}" if profile_img else None
+        })
+    except Exception as e:
+        logger.error(f"FATAL Dashboard Error: {e}", exc_info=True)
+        return jsonify({'error': 'Internal Server Error', 'details': str(e)}), 500
 
 @user_bp.route('/transactions', methods=['GET'])
 @login_required
