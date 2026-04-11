@@ -480,15 +480,12 @@ def open_new_account():
         # If we have lat/lng from mobile, update user's last known location
         if lat and lng:
             db.execute('UPDATE users SET signup_ip=?, signup_lat=?, signup_lng=? WHERE id=?', (client_ip, lat, lng, user_id))
-            # Start background lookup for city/country if needed (using existing helper if possible)
-            from blueprints.auth_routes import geo_lookup_async
-            import threading
-            threading.Thread(target=geo_lookup_async, args=(user_id, client_ip), daemon=True).start()
+            from core.auth import trigger_geo_lookup
+            trigger_geo_lookup(user_id, 'users')
         else:
             # Fallback to IP lookup
-            from blueprints.auth_routes import geo_lookup_async
-            import threading
-            threading.Thread(target=geo_lookup_async, args=(user_id, client_ip), daemon=True).start()
+            from core.auth import trigger_geo_lookup
+            trigger_geo_lookup(user_id, 'users')
 
         import json
         db.execute('INSERT INTO account_requests (user_id, account_type, aadhaar_number, pan_number, tax_id, face_descriptor, kyc_photo, kyc_video, status, signup_ip, signup_lat, signup_lng, agri_address, agri_proof, salary_proof, current_proof) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "pending", ?, ?, ?, ?, ?, ?, ?)',
