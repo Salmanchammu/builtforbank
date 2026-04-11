@@ -106,6 +106,7 @@ def send_email_diagnostic(to_email, subject, body_html):
             import urllib.request as urllib_req
             import json as json_lib
             resend_sender = getattr(email_config, 'RESEND_FROM', f"Smart Bank <{email_config.SENDER_EMAIL}>")
+            results["resend_from"] = resend_sender
             payload = json_lib.dumps({
                 "from": resend_sender,
                 "to": [to_email],
@@ -117,6 +118,9 @@ def send_email_diagnostic(to_email, subject, body_html):
             with urllib_req.urlopen(req, timeout=10) as response:
                 results["resend"] = f"Success: {response.read().decode('utf-8')}"
                 results["success"] = True
+        except urllib_req.HTTPError as he:
+            error_body = he.read().decode('utf-8') if he.fp else 'No body'
+            results["resend"] = f"HTTP {he.code}: {error_body}"
         except Exception as e:
             results["resend"] = f"FAILED: {str(e)}\n{traceback.format_exc()}"
 
