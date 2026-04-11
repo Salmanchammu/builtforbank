@@ -4998,3 +4998,20 @@ h1, h2, h3, h4, h5, h6, .logo-text, .welcome-name {
 .settings-toggle-switch input:checked + .toggle-slider::before {
     transform: translateX(20px);
 }
+
+/* GLOBAL MODAL SCROLL FIX (v3 layout patch) */
+.modal-content[style*="overflow: hidden"] {
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 90vh !important;
+}
+
+.modal-content[style*="overflow: hidden"] > :first-child {
+    flex-shrink: 0 !important;
+}
+
+.modal-content[style*="overflow: hidden"] > :nth-child(2) {
+    overflow-y: auto !important;
+    flex-grow: 1 !important;
+    min-height: 0 !important;
+}

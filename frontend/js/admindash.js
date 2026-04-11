@@ -2275,6 +2275,15 @@ async function submitAddStaff(event) {
         password: document.getElementById('staffPassword').value
     };
 
+    const pwd = document.getElementById('staffPassword').value;
+    if (!pwd || !/^[A-Z]/.test(pwd)) {
+        errBox.textContent = 'Password must start with an uppercase letter.';
+        errBox.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = 'Add Staff Member';
+        return;
+    }
+
     // Clear previous error
     errBox.style.display = 'none';
     errBox.textContent = '';
@@ -3142,11 +3151,17 @@ function closeAddAdminModal() {
 
 async function submitAddAdmin(e) {
     e.preventDefault();
+    const pwd = document.getElementById('adminPassword').value;
+    if (!pwd || !/^[A-Z]/.test(pwd)) {
+        showToast('Password must start with an uppercase letter', 'error');
+        return;
+    }
+
     const payload = {
         name: document.getElementById('adminFullName').value.trim(),
         username: document.getElementById('adminUsername').value.trim(),
         email: document.getElementById('adminEmail').value.trim(),
-        password: document.getElementById('adminPassword').value,
+        password: pwd,
         level: document.getElementById('adminLevel').value
     };
 

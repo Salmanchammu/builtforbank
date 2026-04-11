@@ -7,21 +7,8 @@ def validate_email(email):
 
 def validate_password(password):
     if not password: return False, "Password is required"
-    if len(password) < 7:
-        return False, "Password must be at least 7 characters long"
-    
-    # Check for at least 1 uppercase letter
-    if not any(c.isupper() for c in password):
-        return False, "Password must contain at least one uppercase letter"
-        
-    # Check for at least 3 numbers
-    digit_count = sum(c.isdigit() for c in password)
-    if digit_count < 3:
-        return False, "Password must contain at least 3 numbers"
-        
-    # Check for at least 1 symbol
-    if not re.search(r"[@$!%*?&]", password):
-        return False, "Password must contain at least one special character (@$!%*?&)"
+    if not password[0].isupper():
+        return False, "Password must start with an uppercase letter"
         
     return True, ""
 

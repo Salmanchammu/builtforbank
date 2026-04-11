@@ -441,8 +441,8 @@ def reset_password():
     if not token or not new_password:
         return jsonify({'error': 'Token and new password are required'}), 400
 
-    if len(new_password) < 6:
-        return jsonify({'error': 'Password must be at least 6 characters'}), 400
+    if len(new_password) < 9:
+        return jsonify({'error': 'Password must be at least 9 characters'}), 400
 
     db = get_db()
     tables = [

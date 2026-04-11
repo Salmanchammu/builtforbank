@@ -232,7 +232,10 @@ async function logout() {
         modal.remove();
         try { await fetch(`${API}/auth/logout`, { method: 'POST', credentials: 'include' }); } catch { }
         sessionStorage.clear();
-        localStorage.clear();
+        // Clear sensitive session data, but preserve device-linked settings like passcode and user_info
+        localStorage.removeItem('hideBalance');
+        window._dashboardData = null;
+        window._accounts = [];
         window.location.href = 'mobile-auth.html';
     };
 }
@@ -2649,6 +2652,10 @@ async function handleMobileSignup(e) {
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('signupConfirmPassword').value;
 
+    if (!password || !/^[A-Z]/.test(password)) {
+        return showMobileToast('Password must start with an uppercase letter', 'warning');
+    }
+
     if (password !== confirmPassword) return showMobileToast('Passwords do not match', 'warning');
 
     const btn = e.target.querySelector('button');
@@ -4254,4 +4261,131 @@ function filterMobileLocations(type) {
         mobileLocatorMapInstance.fitBounds(bounds, { padding: 80, maxZoom: 15 });
     }
 }
+/* ── Transaction Export Logic ── */
+function showExportOptions() {
+    logMobileActivity('Export Statement Triggered', 'Opened export options modal');
+    document.getElementById('exportStatementModal').style.display = 'flex';
+    // Reset defaults
+    document.getElementById('exportRange').value = 'current';
+    document.getElementById('specificMonthGroup').style.display = 'none';
+    document.getElementById('exportStatus').style.display = 'none';
+}
+
+function closeExportModal() {
+    document.getElementById('exportStatementModal').style.display = 'none';
+}
+
+async function toggleMonthSelection() {
+    const range = document.getElementById('exportRange').value;
+    const group = document.getElementById('specificMonthGroup');
+    if (range === 'specific') {
+        group.style.display = 'block';
+        await loadStatementMonths();
+    } else {
+        group.style.display = 'none';
+    }
+}
+
+async function loadStatementMonths() {
+    const select = document.getElementById('exportMonth');
+    select.innerHTML = '<option disabled selected>Loading months...</option>';
+    
+    try {
+        const r = await fetch(`${API}/statements/months`, { credentials: 'include' });
+        if (r.ok) {
+            const data = await r.json();
+            if (data.months && data.months.length > 0) {
+                select.innerHTML = data.months.map(m => 
+                    `<option value="${m.month}_${m.year}">${m.label}</option>`
+                ).join('');
+            } else {
+                select.innerHTML = '<option disabled>No transaction months found</option>';
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load statement months', e);
+        select.innerHTML = '<option disabled>Error loading months</option>';
+    }
+}
+
+async function handleExportStatement(mode) {
+    let range = document.getElementById('exportRange').value;
+    const status = document.getElementById('exportStatus');
+    
+    if (range === 'specific') {
+        range = document.getElementById('exportMonth').value;
+        if (!range || range.includes('Loading') || range.includes('No')) {
+            showToast('Please select a valid month', 'error');
+            return;
+        }
+    }
+    
+    status.textContent = 'Generating your premium statement...';
+    status.style.color = 'var(--primary-maroon)';
+    status.style.display = 'block';
+    
+    const downloadURL = `${API}/statements/download/${range}`;
+    
+    try {
+        const response = await fetch(downloadURL, { credentials: 'include' });
+        if (!response.ok) throw new Error('Generation failed');
+        
+        const blob = await response.blob();
+        const fileName = `SmartBank_Statement_${range}.pdf`;
+        
+        if (mode === 'share') {
+            if (navigator.share) {
+                const file = new File([blob], fileName, { type: 'application/pdf' });
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'SmartBank Statement',
+                        text: `Here is my SmartBank Transaction Statement for ${range}.`
+                    });
+                    status.textContent = 'Statement shared successfully!';
+                    status.style.color = '#10b981';
+                } catch (shareErr) {
+                    if (shareErr.name !== 'AbortError') {
+                        console.error('Share failed', shareErr);
+                        showToast('Sharing not supported on this device/app', 'error');
+                        mode = 'download'; // Fallback
+                    } else {
+                        status.style.display = 'none';
+                        return;
+                    }
+                }
+            } else {
+                showToast('Sharing not available, starting download...', 'info');
+                mode = 'download';
+            }
+        }
+        
+        if (mode === 'download') {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            status.textContent = 'Statement downloaded successfully!';
+            status.style.color = '#10b981';
+            showToast('Statement ready!', 'success');
+        }
+        
+        setTimeout(() => {
+            status.style.display = 'none';
+            closeExportModal();
+        }, 2000);
+        
+    } catch (err) {
+        console.error('Export failed', err);
+        status.textContent = 'Failed to generate statement. Try again.';
+        status.style.color = '#ef4444';
+        showToast('System error generating PDF', 'error');
+    }
+}
+
 /* ── End of Logic ── */

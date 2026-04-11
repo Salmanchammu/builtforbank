@@ -255,7 +255,12 @@
         <div id="historyPage" class="page-content" style="display: none;">
             <div class="welcome-section" style="padding-top: 40px;">
                 <h1 class="welcome-title">Transactions</h1>
-                <p style="color: var(--text-grey); margin-bottom: 20px;">Your recent account activity</p>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <p style="color: var(--text-grey); margin: 0;">Your recent account activity</p>
+                    <button onclick="showExportOptions()" style="background: var(--primary-maroon); color: white; border: none; padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(128,0,0,0.15);">
+                        <i class="fas fa-file-export"></i> Export
+                    </button>
+                </div>
 
                 <div id="mobileTransactionList" style="margin-top: 20px;">
                     <div style="text-align: center; padding: 40px;">
@@ -1085,6 +1090,50 @@
             </div>
         </div>
     </div>
+
+        <!-- Export Statement Modal -->
+        <div id="exportStatementModal" class="modal-overlay" style="z-index: 10005;">
+            <div class="modal-content" style="max-width: 400px; padding: 25px;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div style="width: 56px; height: 56px; background: rgba(128,0,0,0.08); color: var(--primary-maroon); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                        <i class="fas fa-file-invoice-dollar" style="font-size: 24px;"></i>
+                    </div>
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #1e293b;">Export Statement</h3>
+                    <p style="margin: 5px 0 0; font-size: 13px; color: #64748b;">Select period and action</p>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">Time Period</label>
+                    <select id="exportRange" class="form-input" style="background: #f8fafc; font-weight: 600;" onchange="toggleMonthSelection()">
+                        <option value="current">Current Month</option>
+                        <option value="6months">Last 6 Months</option>
+                        <option value="1year">Last 1 Year</option>
+                        <option value="all">Full History (All Time)</option>
+                        <option value="specific">Specific Month...</option>
+                    </select>
+                </div>
+
+                <div id="specificMonthGroup" class="form-group" style="display: none; margin-bottom: 20px; animation: fadeIn 0.3s ease;">
+                    <label class="form-label">Select Month</label>
+                    <select id="exportMonth" class="form-input" style="background: #f8fafc;">
+                        <!-- Dynamically loaded -->
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+                    <button onclick="handleExportStatement('download')" class="btn-primary-maroon" style="height: 50px; font-size: 14px; background: #1e293b; border-color: #1e293b;">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <button onclick="handleExportStatement('share')" class="btn-primary-maroon" style="height: 50px; font-size: 14px;">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
+                
+                <button onclick="closeExportModal()" class="btn-secondary" style="margin-top: 12px; width: 100%;">Cancel</button>
+
+                <div id="exportStatus" style="margin-top: 15px; text-align: center; font-size: 12px; font-weight: 600; display: none;"></div>
+            </div>
+        </div>
 
     </div> <!-- Closing mobile-wrapper -->
 

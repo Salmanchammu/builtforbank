@@ -101,6 +101,7 @@ async function loadAll() {
             state.accountRequests = d.account_requests || [];
             state.transactions = d.transactions || [];
             state.cards = d.cards || [];
+            state.cardRequests = d.card_requests || [];
             state.loans = d.loans || [];
             state.notifications = (d.notifications || []).map(n => ({
                 id: n.id,
@@ -112,7 +113,6 @@ async function loadAll() {
             }));
             if (d.user) state.user = { ...state.user, ...d.user, profile_image_url: d.profile_image_url };
             updateNotifBadge();
-            await loadCardRequests();
             await loadBeneficiaries();
             await loadPockets();
             renderAll();
@@ -167,12 +167,7 @@ function useMockData() {
     state.cards = []; state.loans = []; state.cardRequests = []; state.accountRequests = [];
 }
 
-async function loadCardRequests() {
-    try {
-        const r = await fetch(`${API}/user/cards/requests`, { credentials: 'include' });
-        if (r.ok) { state.cardRequests = await r.json() || []; }
-    } catch { state.cardRequests = []; }
-}
+// cardRequests handled via logic in loadAll
 
 /* ════════════════════════════════════════════════════════════
    RENDER ALL

@@ -17,6 +17,34 @@ def send_sms_async(p, m):
     print(f"[MOCK SMS] To: {p}, Msg: {m}")
     return True
 
+def notify_user(db, user_id, title, message, n_type='info'):
+    """Insert a notification into the DB and send an email to the user."""
+    db.execute(
+        'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
+        (user_id, title, message, n_type)
+    )
+    # Also send an email
+    try:
+        user = db.execute('SELECT email, name FROM users WHERE id = ?', (user_id,)).fetchone()
+        if user and user['email']:
+            email_html = f"""
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 520px; margin: auto; background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid #f1f5f9;">
+                <div style="background: linear-gradient(135deg, #800000, #4a0000); padding: 30px 24px; text-align: center;">
+                    <h1 style="margin: 0; color: #fff; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">SmartBank</h1>
+                    <p style="margin: 6px 0 0; color: rgba(255,255,255,0.75); font-size: 12px;">Secure Notification Service</p>
+                </div>
+                <div style="padding: 28px 24px;">
+                    <h2 style="margin: 0 0 12px; font-size: 18px; color: #1e293b; font-weight: 700;">{title}</h2>
+                    <p style="margin: 0; font-size: 14px; color: #475569; line-height: 1.7;">{message}</p>
+                    <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 24px 0;">
+                    <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;">This is an automated notification from SmartBank. Do not reply to this email.</p>
+                </div>
+            </div>
+            """
+            send_email_async(user['email'], f"SmartBank: {title}", email_html)
+    except Exception as e:
+        logger.error(f"Failed to send notification email for user {user_id}: {e}")
+
 @staff_bp.route('/customers', methods=['GET'])
 @role_required(['admin', 'staff'])
 def get_customers():
@@ -283,7 +311,7 @@ def update_service_application(app_id):
             
             msg_body += f"\nReason: {reason}"
         
-        db.execute('INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)', (app_data['user_id'], msg_title, msg_body, 'success' if status == 'approved' else 'error'))
+        notify_user(db, app_data['user_id'], msg_title, msg_body, 'success' if status == 'approved' else 'error')
         db.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -324,7 +352,7 @@ def approve_account_request(req_id):
             
             msg_title = "Account Request Approved"
             msg_body = f"Your request for a {req['account_type']} account has been approved and account has been created."
-            db.execute('INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)', (req['user_id'], msg_title, msg_body, 'success'))
+            notify_user(db, req['user_id'], msg_title, msg_body, 'success')
         else:
             db.execute('UPDATE account_requests SET status = "rejected", processed_date = CURRENT_TIMESTAMP, processed_by = ?, rejection_reason = ? WHERE id = ?', (staff_id, reason, req_id))
             
@@ -332,7 +360,7 @@ def approve_account_request(req_id):
             msg_body = f"Your request for a {req['account_type']} account has been rejected."
             if reason:
                 msg_body += f"\nReason: {reason}"
-            db.execute('INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)', (req['user_id'], msg_title, msg_body, 'error'))
+            notify_user(db, req['user_id'], msg_title, msg_body, 'error')
         db.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -449,16 +477,14 @@ def send_staff_notification():
         try:
             users = db.execute('SELECT id FROM users').fetchall()
             for u in users:
-                db.execute('INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-                          (u['id'], title, message, n_type))
+                notify_user(db, u['id'], title, message, n_type)
             db.commit()
             return jsonify({'success': True, 'message': f'Notification sent to all {len(users)} users'})
         except Exception as e:
             db.rollback(); return jsonify({'error': str(e)}), 500
     
     try:
-        db.execute('INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-                  (user_id, title, message, n_type))
+        notify_user(db, user_id, title, message, n_type)
         db.commit()
         return jsonify({'success': True, 'message': 'Notification sent successfully'})
     except Exception as e:
@@ -821,10 +847,7 @@ def staff_ticket_reply(ticket_id):
         db.execute('UPDATE support_tickets SET status = "replied", resolved_by = ? WHERE id = ?', (staff_id, ticket_id))
         
         # Notify the user
-        db.execute('''
-            INSERT INTO notifications (user_id, title, message, type)
-            VALUES (?, "New Support Reply", ?, "info")
-        ''', (ticket['user_id'], f"You have a new message regarding ticket #{ticket_id}."))
+        notify_user(db, ticket['user_id'], "New Support Reply", f"You have a new message regarding ticket #{ticket_id}.", 'info')
         
         db.commit()
         return jsonify({'success': True})
@@ -1094,8 +1117,7 @@ def request_user_kyc_update():
         title = "Action Required: KYC Update"
         message = f"Hello {user['name']}, our records indicate your KYC documents need to be updated. Please visit the 'Manage KYC' section in your profile to resubmit your Aadhaar/PAN details."
         
-        db.execute('INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-                  (user_id, title, message, 'warning'))
+        notify_user(db, user_id, title, message, 'warning')
         db.commit()
         return jsonify({'success': True, 'message': f'KYC update request sent to {user["name"]}'})
     except Exception as e:
@@ -1153,7 +1175,7 @@ def add_location():
         from core.auth import log_audit
         user_id = session.get('staff_id') or session.get('admin_id')
         user_type = 'staff' if 'staff_id' in session else 'admin'
-        log_audit(db, user_id, user_type, 'Add Location', f"Added {loc_type}: {name}")
+        log_audit(user_id, user_type, 'Add Location', f"Added {loc_type}: {name}")
         
         db.commit()
         return jsonify({'success': True, 'message': 'Location added successfully'})
@@ -1182,7 +1204,7 @@ def delete_location(loc_id):
         from core.auth import log_audit
         user_id = session.get('staff_id') or session.get('admin_id')
         user_type = 'staff' if 'staff_id' in session else 'admin'
-        log_audit(db, user_id, user_type, 'Delete Location', f"Deleted {loc['type']}: {loc['name']}")
+        log_audit(user_id, user_type, 'Delete Location', f"Deleted {loc['type']}: {loc['name']}")
         
         db.commit()
         return jsonify({'success': True, 'message': 'Location removed'})

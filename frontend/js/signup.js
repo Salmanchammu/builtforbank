@@ -20,13 +20,8 @@ async function handleSignup(e) {
     if (!email || !email.includes('@')) return showToast('Please enter a valid email address', 'error');
     if (!username || username.length < 3) return showToast('Username must be at least 3 characters', 'error');
     
-    // Strong password validation (1 caps, 3 numbers, 1 symbol, min 7)
-    const hasCaps = /[A-Z]/.test(password);
-    const numCount = (password.match(/\d/g) || []).length;
-    const hasSymbol = /[@$!%*?&]/.test(password);
-
-    if (password.length < 7 || !hasCaps || numCount < 3 || !hasSymbol) {
-        return showToast('Password must be at least 7 characters, with 1 uppercase, 3 numbers, and 1 symbol (@$!%*?&)', 'error');
+    if (!password || !/^[A-Z]/.test(password)) {
+        return showToast('Password must start with an uppercase letter', 'error');
     }
     if (password !== confirmPassword) return showToast('Passwords do not match', 'error');
     if (!agreeTerms) return showToast('Please agree to terms and conditions', 'error');

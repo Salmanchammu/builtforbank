@@ -1349,7 +1349,8 @@ async function loadProfilePage() {
     try {
         const res = await fetch(`${API}/staff/profile`, { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to fetch profile');
-        const staff = await res.json();
+        let data = await res.json();
+        const staff = data.staff || data;
         
         // Update local storage with fresh data
         localStorage.setItem('staff', JSON.stringify({ ...staffLocal, ...staff }));
@@ -1589,99 +1590,108 @@ window.handlePhotoUpload = async function(event) {
 
 // Load Settings Page
 function loadSettingsPage() {
+    console.log("Loading Staff Settings Page");
     const el = document.getElementById('settingsContent');
-    if (!el) return;
+    if (!el) {
+        console.error("settingsContent div not found in DOM");
+        return;
+    }
 
-    el.innerHTML = `
-        <!-- Section: Security -->
-        <div class="card" style="margin-bottom: 20px;">
-            <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-shield-alt" style="color: var(--primary-maroon); margin-right: 8px;"></i>Security Settings</h3>
-            </div>
-            <div style="padding: 8px 24px 24px;">
-                <!-- Face Auth Row -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: var(--bg-light); border-radius: 12px; border: 1px solid var(--border-color);">
-                    <div style="display: flex; align-items: center; gap: 14px;">
-                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(128,0,0,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <i class="fas fa-face-smile" style="font-size: 20px; color: var(--primary-maroon);"></i>
+    try {
+        el.innerHTML = `
+            <!-- Section: Security -->
+            <div style="margin-bottom: 24px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden;">
+                <div style="padding: 16px 24px; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                    <h3 style="margin: 0; font-size: 16px;"><i class="fas fa-shield-alt" style="color: var(--primary-maroon); margin-right: 8px;"></i>Security Settings</h3>
+                </div>
+                <div style="padding: 24px;">
+                    <!-- Face Auth Row -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: var(--bg-light); border-radius: 12px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(128,0,0,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-face-smile" style="font-size: 20px; color: var(--primary-maroon);"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 700; font-size: 15px;">Face Authentication</div>
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">Log in securely using facial recognition.</div>
+                            </div>
                         </div>
-                        <div>
-                            <div style="font-weight: 700; font-size: 15px;">Face Authentication</div>
-                            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">Log in securely using facial recognition.</div>
+                        <div id="faceAuthStatusContainer" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                            <span id="faceStatusText" style="padding: 6px 14px; background: #e5e7eb; color: #374151; border-radius: 20px; font-size: 12px; font-weight: 600;">Checking status...</span>
+                            <div id="faceActionButtons" style="display: flex; gap: 8px;"></div>
                         </div>
-                    </div>
-                    <div id="faceAuthStatusContainer" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
-                        <span id="faceStatusText" style="padding: 6px 14px; background: #e5e7eb; color: #374151; border-radius: 20px; font-size: 12px; font-weight: 600;">Checking status...</span>
-                        <div id="faceActionButtons" style="display: flex; gap: 8px;"></div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Section: Preferences -->
-        <div class="card" style="margin-bottom: 20px;">
-            <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-sliders" style="color: var(--primary-maroon); margin-right: 8px;"></i>Preferences</h3>
-            </div>
-            <div style="padding: 8px 24px 24px; display: flex; flex-direction: column; gap: 16px;">
-                <!-- Dark Mode -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--bg-light); border-radius: 12px; border: 1px solid var(--border-color);">
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(59,130,246,0.1);display:flex;align-items:center;justify-content:center;">
-                            <i class="fas fa-moon" style="color:#3b82f6;"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight:600;font-size:14px;">Dark Mode</div>
-                            <div style="font-size:12px;color:var(--text-secondary);">Toggle dark or light theme.</div>
-                        </div>
-                    </div>
-                    <label class="toggle-switch" title="Toggle dark mode">
-                        <input type="checkbox" id="darkModeToggleSettings" onchange="toggleDarkMode(this.checked)">
-                        <span class="toggle-slider"></span>
-                    </label>
+            <!-- Section: Preferences -->
+            <div style="margin-bottom: 24px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden;">
+                <div style="padding: 16px 24px; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                    <h3 style="margin: 0; font-size: 16px;"><i class="fas fa-sliders" style="color: var(--primary-maroon); margin-right: 8px;"></i>Preferences</h3>
                 </div>
-                <!-- Notification Sounds -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--bg-light); border-radius: 12px; border: 1px solid var(--border-color);">
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;">
-                            <i class="fas fa-bell" style="color:#10b981;"></i>
+                <div style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Dark Mode -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--bg-light); border-radius: 12px; border: 1px solid var(--border-color);">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:rgba(59,130,246,0.1);display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-moon" style="color:#3b82f6;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:600;font-size:14px;">Dark Mode</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">Toggle dark or light theme.</div>
+                            </div>
                         </div>
-                        <div>
-                            <div style="font-weight:600;font-size:14px;">Notification Sounds</div>
-                            <div style="font-size:12px;color:var(--text-secondary);">Play audio alerts for new events.</div>
-                        </div>
+                        <label class="toggle-switch" title="Toggle dark mode">
+                            <input type="checkbox" id="darkModeToggleSettings" onchange="toggleDarkMode(this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
                     </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="notifSoundToggle" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
+                    <!-- Notification Sounds -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--bg-light); border-radius: 12px; border: 1px solid var(--border-color);">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-bell" style="color:#10b981;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:600;font-size:14px;">Notification Sounds</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">Play audio alerts for new events.</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="notifSoundToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Section: Account Actions -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-user-cog" style="color: var(--primary-maroon); margin-right: 8px;"></i>Account Actions</h3>
-            </div>
-            <div style="padding: 8px 24px 24px; display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--bg-light); border-radius: 12px; border: 1px solid var(--border-color);">
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;">
-                            <i class="fas fa-right-from-bracket" style="color:#ef4444;"></i>
+            <!-- Section: Account Actions -->
+            <div style="background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden;">
+                <div style="padding: 16px 24px; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                    <h3 style="margin: 0; font-size: 16px;"><i class="fas fa-user-cog" style="color: var(--primary-maroon); margin-right: 8px;"></i>Account Actions</h3>
+                </div>
+                <div style="padding: 24px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--bg-light); border-radius: 12px; border: 1px solid var(--border-color);">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:36px;height:36px;border-radius:10px;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-right-from-bracket" style="color:#ef4444;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:600;font-size:14px;">Sign Out</div>
+                                <div style="font-size:12px;color:var(--text-secondary);">Log out from your current session.</div>
+                            </div>
                         </div>
-                        <div>
-                            <div style="font-weight:600;font-size:14px;">Sign Out</div>
-                            <div style="font-size:12px;color:var(--text-secondary);">Log out from your current session.</div>
-                        </div>
+                        <button class="btn" style="background:#ef4444;color:#fff;border:none;padding:8px 20px;border-radius:8px;font-weight:600;cursor:pointer;" onclick="handleLogout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
                     </div>
-                    <button class="btn" style="background:#ef4444;color:#fff;border:none;padding:8px 20px;border-radius:8px;font-weight:600;cursor:pointer;" onclick="handleLogout()">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
                 </div>
             </div>
-        </div>
-    `;
+        `;
+    } catch (e) {
+        console.error("Error creating settings HTML:", e);
+        el.innerHTML = '<div style="padding: 24px; color: red;">Failed to load settings options.</div>';
+    }
 
     // Sync dark mode toggle
     const dmToggle = document.getElementById('darkModeToggleSettings');
@@ -1849,13 +1859,8 @@ async function submitAddCustomer(event) {
 
     const pwd = document.getElementById('newCustomerPassword').value;
 
-    // Password validation (1 caps, 3 numbers, 1 symbol, min 7)
-    const hasCaps = /[A-Z]/.test(pwd);
-    const numCount = (pwd.match(/\d/g) || []).length;
-    const hasSymbol = /[@$!%*?&]/.test(pwd);
-
-    if (pwd.length < 7 || !hasCaps || numCount < 3 || !hasSymbol) {
-        errDiv.textContent = 'Password must be at least 7 characters long, containing 1 uppercase, 3 numbers, and 1 symbol (@$!%*?&).';
+    if (!pwd || !/^[A-Z]/.test(pwd)) {
+        errDiv.textContent = 'Password must start with an uppercase letter.';
         errDiv.style.display = 'block';
         return;
     }

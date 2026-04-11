@@ -847,6 +847,27 @@ GREEN = colors.HexColor('#059669')
 RED = colors.HexColor('#dc2626')
 GREY_TEXT = colors.HexColor('#6b7280')
 
+@user_bp.route('/statements/months', methods=['GET'])
+@login_required
+def get_statement_months():
+    db = get_db()
+    user_id = session['user_id']
+    try:
+        # Get distinct months and years from transactions belonging to the user
+        months = db.execute('''
+            SELECT DISTINCT strftime('%m', t.transaction_date) as m, strftime('%Y', t.transaction_date) as y
+            FROM transactions t
+            JOIN accounts a ON t.account_id = a.id
+            WHERE a.user_id = ?
+            ORDER BY y DESC, m DESC
+        ''', (user_id,)).fetchall()
+        
+        return jsonify({
+            'months': [{'month': m['m'], 'year': m['y'], 'label': datetime(int(m['y']), int(m['m']), 1).strftime('%B %Y')} for m in months]
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @user_bp.route('/statements/download/<month>', methods=['GET'])
 @login_required
 def download_statement(month):
@@ -870,6 +891,9 @@ def download_statement(month):
     elif month == '6months':
         # Filter for transactions in the last 6 months
         query += " AND t.transaction_date >= date('now', '-6 months')"
+    elif month == '1year' or month == '12months':
+        # Filter for transactions in the last 12 months
+        query += " AND t.transaction_date >= date('now', '-1 year')"
     elif month != 'all' and '_' in month:
         # Expected format: MM_YYYY
         try:
@@ -1088,6 +1112,8 @@ def download_statement(month):
     filename_suffix = datetime.now().strftime('%b_%Y')
     if month == '6months':
         filename_suffix = "Last_6_Months"
+    elif month == '1year' or month == '12months':
+        filename_suffix = "Last_1_Year"
     elif month == 'all':
         filename_suffix = "Full_History"
     elif '_' in month:

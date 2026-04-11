@@ -116,6 +116,10 @@ def create_user():
     if not all([name, username, email, password]):
         return jsonify({'error': 'Missing required fields'}), 400
 
+    is_valid, pwd_error = validate_password(password)
+    if not is_valid:
+        return jsonify({'error': pwd_error}), 400
+
     db = get_db()
     try:
         existing = db.execute('SELECT id FROM users WHERE username = ? OR email = ?', (username, email)).fetchone()
@@ -171,6 +175,9 @@ def add_staff():
     name, email, password = data.get('name', '').strip(), data.get('email', '').strip().lower(), data.get('password', '').strip()
     if not all([name, email, password]): return jsonify({'error': 'Missing fields'}), 400
     if not validate_email(email): return jsonify({'error': 'Invalid email'}), 400
+    
+    is_valid, pwd_error = validate_password(password)
+    if not is_valid: return jsonify({'error': pwd_error}), 400
     db = get_db()
     if db.execute('SELECT id FROM staff WHERE email = ?', (email,)).fetchone(): return jsonify({'error': 'Email exists'}), 400
     try:
@@ -357,6 +364,9 @@ def admin_add_admin():
     data = request.json
     name, username, email, password, level = data.get('name'), data.get('username'), data.get('email'), data.get('password'), data.get('level', 'standard')
     if not all([name, username, email, password]): return jsonify({'error': 'Missing fields'}), 400
+    
+    is_valid, pwd_error = validate_password(password)
+    if not is_valid: return jsonify({'error': pwd_error}), 400
     db = get_db()
     try:
         cursor = db.execute('INSERT INTO admins (name, username, email, password, level, status) VALUES (?, ?, ?, ?, ?, "active")',
