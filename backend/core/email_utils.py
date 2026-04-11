@@ -28,7 +28,38 @@ def send_email_async(to_email, subject, body_html):
 
             logger.info(f"Starting email delivery to {to_email}...")
             
-            # Try Resend HTTP API first
+            # Try Brevo (Sendinblue) HTTP API first
+            brevo_api_key = os.environ.get("BREVO_API_KEY")
+            if brevo_api_key:
+                try:
+                    import urllib.request as urllib_req
+                    import json as json_lib
+                    
+                    payload = json_lib.dumps({
+                        "sender": {"name": "Smart Bank", "email": email_config.SENDER_EMAIL},
+                        "to": [{"email": to_email}],
+                        "subject": subject,
+                        "htmlContent": body_html
+                    }).encode('utf-8')
+                    
+                    req = urllib_req.Request(
+                        "https://api.brevo.com/v3/smtp/email",
+                        data=payload,
+                        headers={
+                            "api-key": brevo_api_key,
+                            "Content-Type": "application/json",
+                            "User-Agent": "SmartBank/2.0"
+                        }
+                    )
+                    
+                    with urllib_req.urlopen(req, timeout=15) as response:
+                        res_body = response.read().decode('utf-8')
+                        logger.info(f"Email sent via Brevo to {to_email}. Response: {res_body}")
+                    return
+                except Exception as e:
+                    logger.error(f"Brevo API fallback: {str(e)}")
+
+            # Try Resend HTTP API second
             resend_api_key = os.environ.get("RESEND_API_KEY")
             if resend_api_key:
                 try:
@@ -100,9 +131,32 @@ def send_email_diagnostic(to_email, subject, body_html):
         return results
     
     results["config"] = f"Configured sender: {email_config.SENDER_EMAIL}"
-        
-    resend_api_key = os.environ.get("RESEND_API_KEY")
-    if resend_api_key:
+    
+    # Try Brevo first
+    brevo_api_key = os.environ.get("BREVO_API_KEY")
+    if brevo_api_key:
+        try:
+            import urllib.request as urllib_req
+            import json as json_lib
+            payload = json_lib.dumps({
+                "sender": {"name": "Smart Bank", "email": email_config.SENDER_EMAIL},
+                "to": [{"email": to_email}],
+                "subject": subject,
+                "htmlContent": body_html
+            }).encode('utf-8')
+            req = urllib_req.Request("https://api.brevo.com/v3/smtp/email", data=payload,
+                                    headers={"api-key": brevo_api_key, "Content-Type": "application/json", "User-Agent": "SmartBank/2.0"})
+            with urllib_req.urlopen(req, timeout=10) as response:
+                results["brevo"] = f"Success: {response.read().decode('utf-8')}"
+                results["success"] = True
+        except urllib_req.HTTPError as he:
+            error_body = he.read().decode('utf-8') if he.fp else 'No body'
+            results["brevo"] = f"HTTP {he.code}: {error_body}"
+        except Exception as e:
+            results["brevo"] = f"FAILED: {str(e)}"
+    if not results["success"]:
+      resend_api_key = os.environ.get("RESEND_API_KEY")
+      if resend_api_key:
         try:
             import urllib.request as urllib_req
             import json as json_lib
