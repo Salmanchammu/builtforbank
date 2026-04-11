@@ -310,6 +310,11 @@
                                 class="fas fa-exchange-alt"></i></div>
                         <span class="action-label">Change<br>Balance PIN</span>
                     </div>
+                    <div class="action-item" onclick="openChangeUpiPinModal()">
+                        <div class="action-icon" style="background: #fce8e8; color: var(--primary-maroon);"><i
+                                class="fas fa-key"></i></div>
+                        <span class="action-label">Change<br>UPI PIN</span>
+                    </div>
                     <div class="action-item" onclick="window.openFaceRegistration()">
                         <div class="action-icon" style="background: #eff6ff; color: #1d4ed8;"><i
                                 class="fas fa-user-shield"></i></div>
@@ -713,6 +718,9 @@
                             placeholder="Enter 6 digits">
                     </div>
                     <button onclick="handleUpiTransfer()" class="btn-primary-maroon">Pay Securely</button>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="javascript:void(0)" onclick="openChangeUpiPinModal()" style="font-size: 13px; color: var(--primary-maroon); font-weight: 700; text-decoration: none;"><i class="fas fa-key" style="margin-right: 5px;"></i>Change UPI PIN</a>
+                    </div>
                 </div>
 
                 <div id="upiSetupSection" style="display: none;">
@@ -1134,6 +1142,45 @@
                 <div id="exportStatus" style="margin-top: 15px; text-align: center; font-size: 12px; font-weight: 600; display: none;"></div>
             </div>
         </div>
+
+    <!-- Change UPI PIN Modal -->
+    <div id="changeUpiPinModal" class="modal-overlay" style="z-index: 10006; display:none;">
+        <div class="modal-content" style="max-width: 400px; padding: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="margin: 0; color: #1f2937; font-size: 20px; font-weight: 700;"><i class="fas fa-key" style="color: var(--primary-maroon); margin-right: 8px;"></i>Change UPI PIN</h3>
+                <button onclick="closeChangeUpiPinModal()" style="background: none; border: none; font-size: 20px; color: #9ca3af; cursor: pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div id="upiPinOtpState">
+                <p style="font-size: 14px; color: #4b5563; margin-bottom: 20px;">We will send a one-time passcode to your registered email address to verify your identity.</p>
+                <button id="btnRequestUpiOtp" onclick="requestUpiPinChangeOtp()" class="btn-primary-maroon" style="width: 100%; padding: 14px; border-radius: 12px; font-weight: 600;">
+                    <i class="fas fa-envelope" style="margin-right: 8px;"></i> Send OTP to Email
+                </button>
+            </div>
+
+            <div id="upiPinVerifyState" style="display: none;">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: #374151;">Enter OTP from Email</label>
+                    <input type="text" id="upiChangeOtpInput" class="form-input" placeholder="6-digit OTP" maxlength="6" style="padding: 14px; border-radius: 12px; font-size: 16px; letter-spacing: 2px; text-align: center;">
+                </div>
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: #374151;">Enter New 6-Digit PIN</label>
+                    <div style="position: relative;">
+                        <input type="password" id="upiChangeNewPinInput" class="form-input" placeholder="••••••" maxlength="6" style="padding: 14px; border-radius: 12px; font-size: 20px; letter-spacing: 8px; text-align: center; color: #1f2937;">
+                        <span onclick="const inp = document.getElementById('upiChangeNewPinInput'); const icon = document.getElementById('upiMobilePinEyeIcon'); if (inp.type === 'password') { inp.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); } else { inp.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }" style="position: absolute; right: 15px; top: 15px; cursor: pointer; color: #6b7280; font-size: 18px;">
+                            <i class="fas fa-eye" id="upiMobilePinEyeIcon"></i>
+                        </span>
+                    </div>
+                </div>
+                <button id="btnVerifyUpiOtp" onclick="submitUpiPinChange()" class="btn-primary-maroon" style="width: 100%; padding: 14px; border-radius: 12px; font-weight: 600;">
+                    <i class="fas fa-check-circle" style="margin-right: 8px;"></i> Verify & Update PIN
+                </button>
+                <div style="text-align: center; margin-top: 16px;">
+                    <a href="#" onclick="requestUpiPinChangeOtp()" style="font-size: 13px; color: var(--primary-maroon); text-decoration: none; font-weight: 600;">Resend OTP</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     </div> <!-- Closing mobile-wrapper -->
 

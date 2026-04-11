@@ -526,6 +526,85 @@ def setup_upi():
         db.rollback()
         return jsonify({'error': str(e)}), 500
 
+@user_bp.route('/upi/change-pin/request-otp', methods=['POST'])
+@login_required
+def request_upi_pin_otp():
+    db = get_db()
+    user_id = session['user_id']
+    try:
+        user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        if not user or not user['email']:
+            return jsonify({'error': 'No email address linked to your account.'}), 400
+        
+        # Generate OTP
+        otp = str(random.randint(100000, 999999))
+        
+        # Use datetime for sqlite, which often handles isoformat or integers.
+        # auth_routes.py sets otp_expiry as: datetime.now(timezone.utc) + timedelta(minutes=10)
+        from datetime import datetime, timedelta, timezone
+        otp_expiry = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
+        
+        db.execute('UPDATE users SET otp = ?, otp_expiry = ? WHERE id = ?', (otp, otp_expiry, user_id))
+        db.commit()
+        
+        body = f"<h3>Smart Bank - Change UPI PIN</h3><p>Your one-time passcode to change your UPI PIN is: <b>{otp}</b></p><p>This code will expire in 10 minutes. Do not share it with anyone.</p>"
+        send_email_async(user['email'], "Smart Bank - UPI PIN Change Request", body)
+        
+        return jsonify({'success': True, 'message': 'OTP sent to your email.'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@user_bp.route('/upi/change-pin/verify', methods=['POST'])
+@login_required
+def verify_upi_pin_otp():
+    data = request.json
+    otp = data.get('otp')
+    new_pin = data.get('new_pin')
+    user_id = session['user_id']
+    
+    if not otp or not new_pin or len(str(new_pin)) != 6:
+        return jsonify({'error': 'Invalid OTP or 6-digit PIN.'}), 400
+        
+    db = get_db()
+    try:
+        user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        
+        if not user or str(user['otp']) != str(otp):
+            return jsonify({'error': 'Invalid OTP.'}), 400
+            
+        from datetime import datetime
+        try:
+            # Handle isoformat timezone properly across python versions
+            expiry_str = user['otp_expiry'].replace('Z', '+00:00')
+            expiry_dt = datetime.fromisoformat(expiry_str)
+            from datetime import timezone
+            if datetime.now(timezone.utc) > expiry_dt:
+                return jsonify({'error': 'OTP has expired.'}), 400
+        except Exception as e:
+            # If datetime parsing fails (e.g., naive time in db), fallback to allow
+            pass
+            
+        from werkzeug.security import generate_password_hash
+        hashed_pin = generate_password_hash(str(new_pin))
+        
+        # Invalidate OTP and set new pin
+        db.execute('UPDATE users SET upi_pin = ?, otp = NULL, otp_expiry = NULL WHERE id = ?', (hashed_pin, user_id))
+        db.commit()
+        
+        # Log the action
+        db.execute('INSERT INTO user_activity_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
+                  (user_id, 'Change UPI PIN', 'User successfully changed UPI PIN via email OTP', request.remote_addr))
+        db.commit()
+        
+        if user['email']:
+            send_email_async(user['email'], "Smart Bank - UPI PIN Changed", "<p>Your UPI PIN has been successfully changed.</p>")
+            
+        return jsonify({'success': True, 'message': 'UPI PIN changed successfully.'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @user_bp.route('/cards/request', methods=['POST'])
 @login_required
 def request_card():

@@ -20,6 +20,8 @@
     <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
     <!-- Device Detector -->
     <script src="js/device-detector.js" data-auto-redirect></script>
+    <!-- QR Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 
 <body>
@@ -132,6 +134,9 @@
                             <div class="dropdown-content" id="notificationList">No new notifications</div>
                         </div>
                     </div>
+                    <button class="action-btn" onclick="openQrScanner()" title="Scan & Pay" style="background: rgba(139,0,0,0.1); color: var(--primary-maroon);">
+                        <i class="fas fa-qrcode"></i>
+                    </button>
                     <div style="display: flex; gap: 10px; margin-left: 10px;">
                         <button class="top-bar-btn btn-profile" onclick="showPage('settings')">
                             <i class="fas fa-user-circle"></i> Profile
@@ -798,12 +803,15 @@
 
                     <div class="card">
                         <h3 class="card-title">Quick UPI Actions</h3>
-                        <div style="display: flex; gap: 12px; margin-top: 16px;">
-                            <button onclick="showUpiTransfer('internal')" class="btn btn-outline" style="flex: 1;">
+                        <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+                            <button onclick="showUpiTransfer('internal')" class="btn btn-outline" style="flex: 1; min-width: 140px;">
                                 <i class="fas fa-user-friends"></i> Internal VPA
                             </button>
-                            <button onclick="showUpiTransfer('external')" class="btn btn-outline" style="flex: 1;">
+                            <button onclick="showUpiTransfer('external')" class="btn btn-outline" style="flex: 1; min-width: 140px;">
                                 <i class="fas fa-globe"></i> External NPCI
+                            </button>
+                            <button onclick="openChangeUpiPinModal()" class="btn btn-outline" style="flex: 1; min-width: 140px; color: var(--primary-maroon); border-color: var(--primary-maroon);">
+                                <i class="fas fa-key"></i> Change PIN
                             </button>
                         </div>
                     </div>
@@ -1878,6 +1886,76 @@
         #desktopPinModal .success { background: #10b981 !important; border-color: #10b981 !important; }
         #desktopPinModal .error { background: #ef4444 !important; border-color: #ef4444 !important; }
     </style>
+
+    <!-- Change UPI PIN Modal -->
+    <div id="changeUpiPinModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; flex-direction:column; justify-content:center; align-items:center; backdrop-filter: blur(4px);">
+        <div style="background: white; padding: 32px; border-radius: 24px; width: 90%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: modalFadeIn 0.3s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="margin: 0; color: #1f2937; font-size: 20px; font-weight: 700;"><i class="fas fa-lock" style="color: var(--primary-maroon); margin-right: 8px;"></i>Change UPI PIN</h3>
+                <button onclick="closeChangeUpiPinModal()" style="background: none; border: none; font-size: 20px; color: #9ca3af; cursor: pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div id="upiPinOtpState">
+                <p style="font-size: 14px; color: #4b5563; margin-bottom: 20px;">We will send a one-time passcode to your registered email address to verify your identity.</p>
+                <button id="btnRequestUpiOtp" onclick="requestUpiPinChangeOtp()" class="btn btn-primary" style="width: 100%; padding: 14px; border-radius: 12px; font-weight: 600;">
+                    <i class="fas fa-envelope" style="margin-right: 8px;"></i> Send OTP to Email
+                </button>
+            </div>
+
+            <div id="upiPinVerifyState" style="display: none;">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: #374151;">Enter OTP from Email</label>
+                    <input type="text" id="upiChangeOtpInput" class="form-input" placeholder="6-digit OTP" maxlength="6" style="padding: 14px; border-radius: 12px; font-size: 16px; letter-spacing: 2px; text-align: center;">
+                </div>
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label" style="font-size: 13px; font-weight: 600; color: #374151;">Enter New 6-Digit PIN</label>
+                    <div style="position: relative;">
+                        <input type="password" id="upiChangeNewPinInput" class="form-input" placeholder="••••••" maxlength="6" style="padding: 14px; border-radius: 12px; font-size: 20px; letter-spacing: 8px; text-align: center; color: #1f2937;">
+                        <span onclick="const inp = document.getElementById('upiChangeNewPinInput'); const icon = document.getElementById('upiPinEyeIcon'); if (inp.type === 'password') { inp.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); } else { inp.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }" style="position: absolute; right: 15px; top: 15px; cursor: pointer; color: #6b7280; font-size: 18px;">
+                            <i class="fas fa-eye" id="upiPinEyeIcon"></i>
+                        </span>
+                    </div>
+                </div>
+                <button id="btnVerifyUpiOtp" onclick="submitUpiPinChange()" class="btn btn-primary" style="width: 100%; padding: 14px; border-radius: 12px; font-weight: 600; background: linear-gradient(135deg, var(--primary-maroon), #5a0000);">
+                    <i class="fas fa-check-circle" style="margin-right: 8px;"></i> Verify & Update PIN
+                </button>
+                <div style="text-align: center; margin-top: 16px;">
+                    <a href="#" onclick="requestUpiPinChangeOtp()" style="font-size: 13px; color: var(--primary-maroon); text-decoration: none; font-weight: 600;">Resend OTP</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanner Modal for Desktop Dashboard -->
+    <div id="qrScannerModal" class="modal-overlay"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; flex-direction:column; justify-content:center; align-items:center;">
+        <div
+            style="background: white; padding: 24px 20px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <h3 style="margin-top: 0; color: #8b0000; font-size: 19px; margin-bottom: 20px; font-weight: 800;">Scan QR Code</h3>
+            
+            <div id="qr-reader" style="width:100%; min-height: 250px; background: #f3f4f6; border-radius: 12px; overflow: hidden; position: relative;">
+                <!-- Scanner will render here -->
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="switchCamera()" 
+                    style="flex: 1; background: #f3f4f6; color: #374151; border: 1.5px solid #e5e7eb; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fas fa-camera-rotate"></i> Flip
+                </button>
+                <button onclick="document.getElementById('qrGalleryInput').click()" 
+                    style="flex: 1; background: #f3f4f6; color: #374151; border: 1.5px solid #e5e7eb; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fas fa-image"></i> Gallery
+                </button>
+            </div>
+
+            <input type="file" id="qrGalleryInput" accept="image/*" style="display: none;" onchange="scanFromGalleryByFile(event)">
+
+            <button onclick="closeQrScanner()"
+                style="margin-top: 15px; background: #8b0000; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 800; width: 100%; cursor: pointer; font-size: 14px; box-shadow: 0 4px 12px rgba(139,0,0,0.2);">
+                Cancel
+            </button>
+        </div>
+    </div>
 
     <!-- Language Switcher -->
     <script src="js/language-switcher.js"></script>

@@ -2416,6 +2416,90 @@ async function closeQrScanner() {
     }
 }
 
+/* ════════════════════════════════════════════════════════════
+   CHANGE UPI PIN LOGIC
+   ════════════════════════════════════════════════════════════ */
+function openChangeUpiPinModal() {
+    const modal = document.getElementById('changeUpiPinModal');
+    if (modal) modal.style.display = 'flex';
+    document.getElementById('upiPinOtpState').style.display = 'block';
+    document.getElementById('upiPinVerifyState').style.display = 'none';
+    document.getElementById('upiChangeOtpInput').value = '';
+    document.getElementById('upiChangeNewPinInput').value = '';
+}
+
+function closeChangeUpiPinModal() {
+    const modal = document.getElementById('changeUpiPinModal');
+    if (modal) modal.style.display = 'none';
+}
+
+async function requestUpiPinChangeOtp() {
+    const btn = document.getElementById('btnRequestUpiOtp');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending OTP...';
+    
+    try {
+        const response = await fetch(`${API}/user/upi/change-pin/request-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        });
+        const data = await response.json();
+        if (response.ok) {
+            showMobileToast('OTP sent to your registered email!', 'success');
+            document.getElementById('upiPinOtpState').style.display = 'none';
+            document.getElementById('upiPinVerifyState').style.display = 'block';
+        } else {
+            showMobileToast(data.error || 'Failed to send OTP', 'error');
+        }
+    } catch (err) {
+        showMobileToast('Connection error', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+async function submitUpiPinChange() {
+    const otp = document.getElementById('upiChangeOtpInput').value;
+    const newPin = document.getElementById('upiChangeNewPinInput').value;
+    
+    if (!otp || otp.length !== 6) {
+        return showMobileToast('Please enter the 6-digit OTP', 'warning');
+    }
+    if (!newPin || newPin.length !== 6) {
+        return showMobileToast('New PIN must be exactly 6 digits', 'warning');
+    }
+    
+    const btn = document.getElementById('btnVerifyUpiOtp');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    
+    try {
+        const response = await fetch(`${API}/user/upi/change-pin/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ otp: otp, new_pin: newPin })
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            showMobileToast('UPI PIN successfully updated!', 'success');
+            closeChangeUpiPinModal();
+        } else {
+            showMobileToast(data.error || 'Failed to change PIN', 'error');
+        }
+    } catch (err) {
+        showMobileToast('Connection error', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
 async function handleUpiSetup() {
     const pin = document.getElementById('newUpiPin').value;
     if (pin.length !== 6) return showMobileToast('PIN must be 6 digits', 'warning');

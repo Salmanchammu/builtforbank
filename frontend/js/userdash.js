@@ -4553,3 +4553,199 @@ function toggleSettingsNotification() {
         showToast(cb.checked ? 'Notifications enabled' : 'Notifications disabled', 'info');
     }
 }
+
+/* ════════════════════════════════════════════════════════════
+   CHANGE UPI PIN LOGIC
+   ════════════════════════════════════════════════════════════ */
+function openChangeUpiPinModal() {
+    $id('changeUpiPinModal').style.display = 'flex';
+    $id('upiPinOtpState').style.display = 'block';
+    $id('upiPinVerifyState').style.display = 'none';
+    $id('upiChangeOtpInput').value = '';
+    $id('upiChangeNewPinInput').value = '';
+}
+
+function closeChangeUpiPinModal() {
+    $id('changeUpiPinModal').style.display = 'none';
+}
+
+async function requestUpiPinChangeOtp() {
+    const btn = $id('btnRequestUpiOtp');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending OTP...';
+    
+    try {
+        const response = await fetch(`${API}/user/upi/change-pin/request-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+        });
+        const data = await response.json();
+        if (response.ok) {
+            showToast('OTP sent to your registered email!', 'success');
+            $id('upiPinOtpState').style.display = 'none';
+            $id('upiPinVerifyState').style.display = 'block';
+        } else {
+            showToast(data.error || 'Failed to send OTP', 'error');
+        }
+    } catch (err) {
+        showToast('Connection error', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+async function submitUpiPinChange() {
+    const otp = $id('upiChangeOtpInput').value;
+    const newPin = $id('upiChangeNewPinInput').value;
+    
+    if (!otp || otp.length !== 6) {
+        return showToast('Please enter the 6-digit OTP', 'warning');
+    }
+    if (!newPin || newPin.length !== 6) {
+        return showToast('New PIN must be exactly 6 digits', 'warning');
+    }
+    
+    const btn = $id('btnVerifyUpiOtp');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    
+    try {
+        const response = await fetch(`${API}/user/upi/change-pin/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ otp: otp, new_pin: newPin })
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('UPI PIN successfully updated!', 'success');
+            closeChangeUpiPinModal();
+        } else {
+            showToast(data.error || 'Failed to change PIN', 'error');
+        }
+    } catch (err) {
+        showToast('Connection error', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+/* ════════════════════════════════════════════════════════════
+   QR SCANNER (UPI)
+   ════════════════════════════════════════════════════════════ */
+let html5QrCode = null;
+let currentFacingMode = "environment";
+
+async function openQrScanner() {
+    const modal = document.getElementById('qrScannerModal');
+    if (modal) modal.style.display = 'flex';
+
+    if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("qr-reader");
+    }
+
+    startCamera(currentFacingMode);
+}
+
+function startCamera(facingMode) {
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    
+    html5QrCode.start(
+        { facingMode: facingMode },
+        config,
+        (decodedText) => {
+            handleQrCodeSuccess(decodedText);
+        },
+        (errorMessage) => {
+            // parse error, ignore
+        }
+    ).catch((err) => {
+        console.error("Unable to start camera", err);
+        showToast("Camera access denied or not found", "error");
+    });
+}
+
+function handleQrCodeSuccess(decodedText) {
+    let vpa = decodedText;
+    if (vpa.startsWith('upi://')) {
+        try {
+            const url = new URL(vpa);
+            vpa = url.searchParams.get('pa') || vpa;
+        } catch (e) { /* ignore url parse error */ }
+    }
+
+    closeQrScanner();
+    showPage('upi');
+
+    setTimeout(() => {
+        const targetVpaInput = document.getElementById('targetVpa');
+        if (targetVpaInput) {
+            targetVpaInput.value = vpa;
+            targetVpaInput.focus();
+        } else {
+            showToast('Scanned: ' + vpa, 'success');
+        }
+    }, 500);
+}
+
+async function switchCamera() {
+    if (html5QrCode && html5QrCode.getState() === 2) { // 2 = SCANNING
+        await html5QrCode.stop();
+        currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+        startCamera(currentFacingMode);
+    }
+}
+
+async function scanFromGalleryByFile(event) {
+    if (event.target.files.length === 0) return;
+    const imageFile = event.target.files[0];
+
+    if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("qr-reader");
+    }
+
+    // If camera is running, stop it first
+    if (html5QrCode.getState() === 2) {
+        await html5QrCode.stop();
+    }
+
+    showToast("Processing image...", "info");
+
+    html5QrCode.scanFile(imageFile, true)
+        .then(decodedText => {
+            handleQrCodeSuccess(decodedText);
+        })
+        .catch(err => {
+            console.error("Gallery scan error", err);
+            showToast("No QR code found in image", "error");
+            // Restart camera after failure if modal is still open
+            const modal = document.getElementById('qrScannerModal');
+            if (modal && modal.style.display === 'flex') {
+                startCamera(currentFacingMode);
+            }
+        });
+    
+    // Reset input
+    event.target.value = '';
+}
+
+async function closeQrScanner() {
+    const modal = document.getElementById('qrScannerModal');
+    if (modal) modal.style.display = 'none';
+
+    if (html5QrCode) {
+        if (html5QrCode.getState() === 2) {
+            try {
+                await html5QrCode.stop();
+            } catch (e) {
+                console.error("Scanner stop error", e);
+            }
+        }
+    }
+}
