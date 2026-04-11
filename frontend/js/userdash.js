@@ -1641,7 +1641,7 @@ function closeCardModal() { $id('cardApplicationModal')?.classList.remove('activ
 
 function openCardModal() { populateCardAccountDropdown(); applyForCard('debit'); }
 function populateCardAccountDropdown() {
-    const sel = $id('cardAccountSelect'); if (!sel) return;
+    const sel = $id('linkedAccount'); if (!sel) return;
     sel.innerHTML = '<option value="">— Select Account —</option>' +
         state.accounts.map(a => `<option value="${a.id}">${a.account_type} — ${maskAcct(a.account_number)}</option>`).join('');
 }
