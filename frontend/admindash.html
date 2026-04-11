@@ -1763,12 +1763,12 @@
 
             <!-- Add Location Modal -->
             <div class="modal" id="addLocationModal">
-                <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; border-radius: 20px;">
-                    <div style="background: linear-gradient(135deg, #800000, #a52a2a); padding: 20px; color: white; display: flex; justify-content: space-between; align-items: center;">
+                <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; border-radius: 20px; max-height: 90vh; display: flex; flex-direction: column;">
+                    <div style="background: linear-gradient(135deg, #800000, #a52a2a); padding: 20px; color: white; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
                         <h3 style="margin: 0; font-size: 18px;"><i class="fas fa-map-pin" style="margin-right: 10px;"></i> Add Branch / ATM</h3>
                         <button onclick="closeModal('addLocationModal')" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
                     </div>
-                    <form id="addLocationForm" onsubmit="submitAddLocation(event)" style="padding: 24px;">
+                    <form id="addLocationForm" onsubmit="submitAddLocation(event)" style="padding: 24px; overflow-y: auto; flex: 1;">
                         <div class="form-group">
                             <label class="form-label">Name (e.g., Main Street ATM)</label>
                             <input type="text" id="locName" class="form-input" required />
@@ -2368,12 +2368,12 @@
 
     <!-- Add Location Modal -->
     <div class="modal" id="addLocationModal">
-        <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; border-radius: 20px;">
-            <div style="background: linear-gradient(135deg, #800000, #a52a2a); padding: 20px; color: white; display: flex; justify-content: space-between; align-items: center;">
+        <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; border-radius: 20px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div style="background: linear-gradient(135deg, #800000, #a52a2a); padding: 20px; color: white; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
                 <h3 style="margin: 0; font-size: 18px;"><i class="fas fa-map-pin" style="margin-right: 10px;"></i> Add Branch / ATM</h3>
                 <button onclick="closeModal('addLocationModal')" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
             </div>
-            <form id="addLocationForm" onsubmit="submitAddLocation(event)" style="padding: 24px;">
+            <form id="addLocationForm" onsubmit="submitAddLocation(event)" style="padding: 24px; overflow-y: auto; flex: 1;">
                 <div class="form-group">
                     <label class="form-label">Name (e.g., Main Street ATM)</label>
                     <input type="text" id="locName" class="form-input" required />
