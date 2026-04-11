@@ -146,23 +146,13 @@ def log_request_info():
     origin = request.headers.get('Origin')
     logger.info(f"Incoming Request: {request.method} {request.url} | Origin: {origin}")
 
-if __name__ == '__main__':
-    from core.constants import DATABASE
-    with app.app_context():
-        if not os.path.exists(DATABASE):
-            init_db()
-        else:
-            migrate_db()
-    
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
 import json
 
 def load_smart_seed(db):
     """Load data from smart_seed.json if it exists."""
-    # Look for seed file in the same directory as app.py
     seed_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'smart_seed.json')
     if not os.path.exists(seed_file):
+        print("⚠️ smart_seed.json not found, skipping seed.")
         return
 
     print(f"✅ Production Boot: Loading data from {seed_file}...")
@@ -174,7 +164,7 @@ def load_smart_seed(db):
             if not rows: continue
             print(f"   - Seeding {len(rows)} rows into '{table}'...")
             for row in rows:
-                cols = row.keys()
+                cols = list(row.keys())
                 placeholders = ', '.join(['?'] * len(cols))
                 col_names = ', '.join(cols)
                 vals = [row[c] for c in cols]
@@ -185,10 +175,14 @@ def load_smart_seed(db):
                 except Exception:
                     pass
             db.commit()
+        print("✅ Seeding completed successfully.")
     except Exception as e:
         print(f"⚠️ Error loading smart seed: {e}")
 
+
+# === Application Startup ===
 if __name__ == '__main__':
+    # Local development
     from core.constants import DATABASE
     with app.app_context():
         if not os.path.exists(DATABASE):
@@ -199,26 +193,23 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
 else:
-    # Production Auto-Initialization (Render/Other Cloud)
-    # This runs when imported by Gunicorn
+    # Production: Gunicorn on Render (or any cloud)
     if os.environ.get('RENDER') or os.environ.get('FLASK_ENV') == 'production':
         from core.constants import DATABASE
-        from core.db import init_db, migrate_db
         try:
             with app.app_context():
-                # Ensure directory exists for SQLite
                 os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
                 
                 if not os.path.exists(DATABASE) or os.path.getsize(DATABASE) == 0:
                     print(f"✅ Production Boot: Initializing fresh database at {DATABASE}")
                     init_db()
                     load_smart_seed(get_db())
-                    print("✅ Production Boot: Seeding completed.")
                 else:
-                    print(f"✅ Production Boot: Verifying database migrations at {DATABASE}")
+                    print(f"✅ Production Boot: Database exists at {DATABASE}")
                     migrate_db()
-                    # Optional: Seed missing data even in existing DBs
                     if os.environ.get('FORCE_RESEED', 'false').lower() == 'true':
                         load_smart_seed(get_db())
         except Exception as e:
-            print(f"⚠️ Production Boot Warning: Database initialization skipped/failed: {e}")
+            print(f"⚠️ Production Boot Warning: {e}")
+            import traceback
+            traceback.print_exc()
