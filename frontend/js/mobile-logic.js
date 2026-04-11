@@ -1971,10 +1971,8 @@ window.checkPasscodeStatus = checkPasscodeStatus;
 
 // Initialize balance UI on load
 function initializeBalanceUI() {
-    console.log('[Balance] Initializing UI...');
-    // Always start hidden for security
-    window.isBalanceVisible = false;
-    try { localStorage.setItem('bank_balance_visible_pref', 'false'); } catch(e) {}
+    console.log('[Balance] Initializing UI...', { visible: window.isBalanceVisible });
+    // Let the balance visibility state defined earlier (loaded from localStorage/session) remain
     updateBalanceDisplay();
 }
 
