@@ -6,12 +6,12 @@ import os
 
 SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
 try:
-    SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+    SMTP_PORT = int(os.environ.get("SMTP_PORT", "465"))
 except ValueError:
-    SMTP_PORT = 587  # fallback if env var was set incorrectly
+    SMTP_PORT = 465  # fallback if env var was set incorrectly
 SENDER_EMAIL = os.environ.get("SMTP_SENDER_EMAIL", "builtforbank@gmail.com")
 SENDER_PASSWORD = os.environ.get("SMTP_SENDER_PASSWORD", "hlhp upfq ufgi qiev")
-SMTP_USE_SSL = os.environ.get("SMTP_USE_SSL", "false").lower() == "true"
+SMTP_USE_SSL = os.environ.get("SMTP_USE_SSL", "true").lower() == "true"
 
 # Resend API Configuration
 # By default, Resend requires a verified domain. 
