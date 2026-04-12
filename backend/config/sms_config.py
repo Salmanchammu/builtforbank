@@ -5,14 +5,19 @@ import os
 # SMS Configuration for Smart Bank (India)
 # Using Fast2SMS or similar provider pattern
 
+# --- HOW TO ENABLE FAST2SMS REAL SMS ---
+# 1. Get your free API Key from Fast2SMS.com
+# 2. Paste your API key exactly between the quotes below:
+USER_API_KEY = "KidkRh1z7QnBFxZoJYHemajvwC9XWDMcT6sN2IApt5uP0r3LEgKyI8XEAhxDL7SdOzoBu2v6an05PH3c"
+
 SMS_CONFIG = {
     "provider": "Fast2SMS",
-    "api_key": os.environ.get("SMS_API_KEY", ""),
+    "api_key": USER_API_KEY,
     "sender_id": "SMTBnk",
-    "route": "q", # 'q' is quick route (best for no-Dlt)
+    "route": "q", # 'q' is quick route
     "enabled": True,
-    # Auto-enable mock mode if no API key is provided, so it doesn't fail silently
-    "mock_mode": not bool(os.environ.get("SMS_API_KEY"))
+    # Mock mode will automatically turn off once you paste your real API key above!
+    "mock_mode": len(USER_API_KEY) < 10
 }
 
 def send_sms(phone, message):
