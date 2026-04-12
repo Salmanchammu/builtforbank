@@ -7,11 +7,12 @@ import os
 
 SMS_CONFIG = {
     "provider": "Fast2SMS",
-    "api_key": os.environ.get("SMS_API_KEY", "YOUR_FAST2SMS_API_KEY_HERE"),
+    "api_key": os.environ.get("SMS_API_KEY", ""),
     "sender_id": "SMTBnk",
     "route": "q", # 'q' is quick route (best for no-Dlt)
     "enabled": True,
-    "mock_mode": False # Turned off because real API key is ready
+    # Auto-enable mock mode if no API key is provided, so it doesn't fail silently
+    "mock_mode": not bool(os.environ.get("SMS_API_KEY"))
 }
 
 def send_sms(phone, message):
