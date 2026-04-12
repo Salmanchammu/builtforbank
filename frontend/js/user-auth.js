@@ -132,34 +132,19 @@ async function userLogin(e) {
         console.log(`[Login Debug] Response status: ${response.status}`);
         const data = await response.json();
 
-        if (response.ok) {
-            // Clear any existing stale auth data first
-            localStorage.removeItem('user');
-            localStorage.removeItem('staff');
-            localStorage.removeItem('admin');
-            localStorage.removeItem('token');
+        if (response.ok && data.requires_2fa) {
+            // Intercept 2FA Flow
+            document.getElementById('loginUsername').value = data.username;
+            document.getElementById('loginRole').value = data.role;
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('loginOtpModal').classList.add('show');
+            document.getElementById('loginEmailOtp').focus();
+            showToast('Verification codes sent to your email and phone.', 'info');
+            return;
+        }
 
-            // Save user data under correct key
-            const role = data.user.role;
-            if (role === 'admin') {
-                localStorage.setItem('admin', JSON.stringify(data.user));
-            } else if (role === 'staff') {
-                localStorage.setItem('staff', JSON.stringify(data.user));
-            } else {
-                localStorage.setItem('user', JSON.stringify(data.user));
-            }
-            localStorage.setItem('token', data.token);
-            showToast('Login successful!', 'success');
-
-            // Redirect based on role
-            setTimeout(() => {
-                const detector = window.SmartBankDeviceDetector;
-                if (role === 'admin') window.location.href = 'admindash.html';
-                else if (role === 'staff') window.location.href = 'staffdash.html';
-                else {
-                    window.location.href = detector ? detector.getDashboardUrl('user') : 'userdash.html';
-                }
-            }, 500);
+        if (response.ok && data.success) {
+            _finalizeLoginUi(data);
             return;
         } else {
             showToast(data.error || 'Invalid credentials', 'error');
@@ -169,6 +154,76 @@ async function userLogin(e) {
         console.error('Login error:', error);
         showToast('Connection to server failed. Ensure backend is running.', 'error');
     }
+}
+
+async function verifyLogin(e) {
+    if (e) e.preventDefault();
+    const username = document.getElementById('loginUsername').value;
+    const role = document.getElementById('loginRole').value;
+    const email_otp = document.getElementById('loginEmailOtp').value.trim();
+    const phone_otp = document.getElementById('loginPhoneOtp').value.trim();
+
+    if (email_otp.length !== 6 || phone_otp.length !== 6) return showToast('Please enter both 6-digit codes', 'error');
+
+    const btn = document.getElementById('loginVerifyBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    btn.disabled = true;
+
+    try {
+        const baseURL = window.API || '/api';
+        const response = await fetch(`${baseURL}/auth/verify-login`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, role, email_otp, phone_otp })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            document.getElementById('loginOtpModal').classList.remove('show');
+            _finalizeLoginUi(data);
+        } else {
+            showToast(data.error || 'Verification failed.', 'error');
+        }
+    } catch (error) {
+        console.error('Verify error:', error);
+        showToast('Connection to server failed.', 'error');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+function _finalizeLoginUi(data) {
+    // Clear any existing stale auth data first
+    localStorage.removeItem('user');
+    localStorage.removeItem('staff');
+    localStorage.removeItem('admin');
+    localStorage.removeItem('token');
+
+    // Save user data under correct key
+    const role = data.user.role;
+    if (role === 'admin') {
+        localStorage.setItem('admin', JSON.stringify(data.user));
+    } else if (role === 'staff') {
+        localStorage.setItem('staff', JSON.stringify(data.user));
+    } else {
+        localStorage.setItem('user', JSON.stringify(data.user));
+    }
+    if (data.token) localStorage.setItem('token', data.token);
+    showToast('Login successful!', 'success');
+
+    // Redirect based on role
+    setTimeout(() => {
+        const detector = window.SmartBankDeviceDetector;
+        if (role === 'admin') window.location.href = 'admindash.html';
+        else if (role === 'staff') window.location.href = 'staffdash.html';
+        else {
+            window.location.href = detector ? detector.getDashboardUrl('user') : 'userdash.html';
+        }
+    }, 500);
 }
 
 // Send Reset Email
@@ -213,6 +268,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', userLogin);
+    }
+    
+    const loginOtpForm = document.getElementById('loginOtpForm');
+    if (loginOtpForm) {
+        loginOtpForm.addEventListener('submit', verifyLogin);
     }
 
     const passwordInput = document.getElementById('password');

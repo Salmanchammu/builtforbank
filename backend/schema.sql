@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
     mobile_passcode VARCHAR(255),
     passcode_enabled INTEGER DEFAULT 0,
     otp VARCHAR(10),
+    phone_otp VARCHAR(10),
     otp_expiry TIMESTAMP,
     profile_image VARCHAR(255),
     device_type VARCHAR(50) DEFAULT 'unknown',

@@ -6,6 +6,8 @@ import random
 import re
 import os
 import logging
+import threading
+from config.sms_config import send_sms
 
 from core.db import get_db, DATABASE
 from core.auth import login_required, log_audit, compare_face_descriptors, get_face_encoding, trigger_geo_lookup
@@ -13,6 +15,12 @@ from core.email_utils import send_email_async
 from core.utils import validate_email, validate_password
 
 auth_bp = Blueprint('auth', __name__)
+
+def send_sms_async(p, m):
+    if p:
+        threading.Thread(target=send_sms, args=(p, m), daemon=True).start()
+    return True
+
 logger = logging.getLogger('smart_bank.auth')
 
 
@@ -27,36 +35,49 @@ def validate_phone(phone):
 def signup():
     data = request.json
     username, email, password, name = data.get('username'), data.get('email'), data.get('password'), data.get('name')
+    phone = data.get('phone')
     device_type = data.get('device_type', 'unknown')
-    if not all([username, email, password, name]):
+    
+    if not all([username, email, password, name, phone]):
         return jsonify({'error': 'Required fields missing'}), 400
     
     if not validate_email(email):
         return jsonify({'error': 'Invalid email format'}), 400
+        
+    if not validate_phone(phone):
+        return jsonify({'error': 'Invalid phone number format'}), 400
         
     is_valid, pwd_error = validate_password(password)
     if not is_valid:
         return jsonify({'error': pwd_error}), 400
         
     db = get_db()
-    if db.execute('SELECT id FROM users WHERE username = ? OR email = ?', (username, email)).fetchone():
-        return jsonify({'error': 'Username or email already exists'}), 400
+    if db.execute('SELECT id FROM users WHERE username = ? OR email = ? OR phone = ?', (username, email, phone)).fetchone():
+        return jsonify({'error': 'Username, email, or phone already exists'}), 400
     
     try:
         hashed = generate_password_hash(password)
         otp = str(random.randint(100000, 999999))
+        phone_otp = str(random.randint(100000, 999999))
         otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
         
-        cursor = db.execute('INSERT INTO users (username, password, email, name, status, otp, otp_expiry, device_type) VALUES (?, ?, ?, ?, "pending", ?, ?, ?)',
-                           (username, hashed, email, name, otp, otp_expiry, device_type))
+        cursor = db.execute('INSERT INTO users (username, password, email, phone, name, status, otp, phone_otp, otp_expiry, device_type) VALUES (?, ?, ?, ?, ?, "pending", ?, ?, ?, ?)',
+                           (username, hashed, email, phone, name, otp, phone_otp, otp_expiry, device_type))
         user_id = cursor.lastrowid
         db.commit()
 
         trigger_geo_lookup(user_id, 'users')
 
-        welcome_body = f"<h3>Verify your Smart Bank Account</h3><p>Code: <b>{otp}</b></p>"
+        welcome_body = f"<h3>Verify your Smart Bank Account</h3><p>Your Email Code is: <b>{otp}</b></p>"
         send_email_async(email, "Verify your Smart Bank Account", welcome_body)
-        return jsonify({'success': True, 'message': 'Account created! Please check your email.', 'username': username}), 201
+        send_sms_async(phone, f"Smart Bank: Your Mobile Verification Code is {phone_otp}. Valid for 10 minutes.")
+        
+        # Developer debug print to assist local testing if email APIs are delayed
+        print(f"\n[DEV MODE] Created User: {username}")
+        print(f"[DEV MODE] Email OTP for {email}: {otp}")
+        print(f"[DEV MODE] SMS OTP for {phone}: {phone_otp}\n")
+        
+        return jsonify({'success': True, 'message': 'Account created! Please check your email and messages for the verification codes.', 'username': username}), 201
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
@@ -64,17 +85,26 @@ def signup():
 @auth_bp.route('/verify-otp', methods=['POST'])
 def verify_otp():
     data = request.json
-    username, otp = data.get('username'), data.get('otp')
-    if not username or not otp: return jsonify({'error': 'Username and OTP are required'}), 400
+    username = data.get('username')
+    email_otp = data.get('email_otp')
+    phone_otp = data.get('phone_otp')
+    
+    if not username or not email_otp or not phone_otp:
+        return jsonify({'error': 'Username, email OTP, and phone OTP are required'}), 400
+        
     db = get_db()
     user = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
     if not user: return jsonify({'error': 'User not found'}), 404
     if user['status'] == 'active': return jsonify({'success': True, 'message': 'Account is already active'}), 200
-    if user['otp'] != otp: return jsonify({'error': 'Invalid code'}), 400
+    
+    if user['otp'] != email_otp or user['phone_otp'] != phone_otp:
+        return jsonify({'error': 'Invalid verification codes'}), 400
+        
     expiry = datetime.strptime(user['otp_expiry'], '%Y-%m-%d %H:%M:%S')
-    if datetime.now() > expiry: return jsonify({'error': 'Code expired'}), 400
+    if datetime.now() > expiry: return jsonify({'error': 'verification codes expired'}), 400
+    
     try:
-        db.execute('UPDATE users SET status = "active", otp = NULL, otp_expiry = NULL WHERE id = ?', (user['id'],))
+        db.execute('UPDATE users SET status = "active", otp = NULL, phone_otp = NULL, otp_expiry = NULL WHERE id = ?', (user['id'],))
         db.commit()
         return jsonify({'success': True, 'message': 'Account activated!'}), 200
     except Exception as e:
@@ -96,14 +126,23 @@ def resend_otp():
     
     try:
         otp = str(random.randint(100000, 999999))
+        phone_otp = str(random.randint(100000, 999999))
         otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
-        db.execute('UPDATE users SET otp = ?, otp_expiry = ? WHERE id = ?', (otp, otp_expiry, user['id']))
+        db.execute('UPDATE users SET otp = ?, phone_otp = ?, otp_expiry = ? WHERE id = ?', (otp, phone_otp, otp_expiry, user['id']))
         db.commit()
         
-        body = f"<h3>Verify your Smart Bank Account</h3><p>Your new code: <b>{otp}</b></p>"
+        body = f"<h3>Verify your Smart Bank Account</h3><p>Your new Email Code is: <b>{otp}</b></p>"
         send_email_async(user['email'], "Smart Bank - New Verification Code", body)
+        if user['phone']:
+            send_sms_async(user['phone'], f"Smart Bank: Your new Mobile Verification Code is {phone_otp}. Valid for 10 minutes.")
         
-        return jsonify({'success': True, 'message': 'New code sent to your email'}), 200
+        # Developer debug print to assist local testing if email APIs are delayed
+        print(f"\n[DEV MODE] Resend OTP for User: {username}")
+        print(f"[DEV MODE] New Email OTP for {user['email']}: {otp}")
+        if user['phone']:
+            print(f"[DEV MODE] New SMS OTP for {user['phone']}: {phone_otp}\n")
+
+        return jsonify({'success': True, 'message': 'New codes sent to your email and phone'}), 200
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
@@ -142,10 +181,45 @@ def login():
         auth_method = 'password'
         
     if auth_method:
+        user_dict = dict(user)
+        actual_username = user_dict.get('username') or user_dict.get('staff_id') or user_dict.get('buyer_id')
+        table_map = {'user': 'users', 'staff': 'staff', 'admin': 'admins', 'agri_buyer': 'agri_buyers'}
+        table = table_map.get(role, 'users')
+
+        if role in ['user', 'staff', 'agri_buyer']:
+            try:
+                otp = str(random.randint(100000, 999999))
+                phone_otp = str(random.randint(100000, 999999))
+                otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
+                
+                db.execute(f'UPDATE {table} SET otp = ?, phone_otp = ?, otp_expiry = ? WHERE id = ?', (otp, phone_otp, otp_expiry, user['id']))
+                db.commit()
+                
+                email = user_dict.get('email')
+                phone = user_dict.get('phone')
+                
+                if email:
+                    send_email_async(email, "Smart Bank - Login Verification", f"<h3>Smart Bank Login</h3><p>Your Email Code is: <b>{otp}</b></p>")
+                if phone:
+                    send_sms_async(phone, f"Smart Bank: Your Mobile Login Code is {phone_otp}. Valid for 10 minutes.")
+                    
+                # Developer debug print to assist local testing if email APIs are delayed
+                print(f"\n[DEV MODE] 2FA Login for User: {actual_username}")
+                if email:
+                    print(f"[DEV MODE] Email OTP for {email}: {otp}")
+                if phone:
+                    print(f"[DEV MODE] SMS OTP for {phone}: {phone_otp}\n")
+
+                return jsonify({'success': True, 'requires_2fa': True, 'username': actual_username, 'role': role})
+            except Exception as e:
+                db.rollback()
+                logger.error(f"Failed to generate 2FA for {actual_username}: {e}")
+                return jsonify({'error': 'Failed to generate 2FA. Ensure your account is fully set up.'}), 500
+
+        # Admin bypass
         session.clear()
         session.permanent = True
         session['user_id'] = user['id']
-        # Convert Row to dict to use .get()
         user_dict = dict(user)
         actual_username = user_dict.get('username') or user_dict.get('staff_id') or user_dict.get('buyer_id')
         session['username'] = actual_username
@@ -176,6 +250,62 @@ def login():
         return jsonify({'success': True, 'user': {'id': user['id'], 'username': actual_username, 'name': user['name'], 'role': role, 'profile_image': user_dict.get('profile_image')}})
     
     return jsonify({'error': 'Invalid credentials'}), 401
+
+@auth_bp.route('/verify-login', methods=['POST'])
+def verify_login():
+    data = request.json
+    username = data.get('username')
+    email_otp = data.get('email_otp')
+    phone_otp = data.get('phone_otp')
+    role = data.get('role', 'user')
+    
+    if not username or not email_otp or not phone_otp:
+        return jsonify({'error': 'Username, email OTP, and phone OTP are required'}), 400
+        
+    db = get_db()
+    table_map = {'user': 'users', 'staff': 'staff', 'agri_buyer': 'agri_buyers'}
+    table = table_map.get(role, 'users')
+    uname_col = 'username' if role == 'user' else ('staff_id' if role == 'staff' else 'buyer_id')
+    
+    user = db.execute(f'SELECT * FROM {table} WHERE {uname_col} = ?', (username,)).fetchone()
+    if not user: return jsonify({'error': 'User not found'}), 404
+    
+    if user['otp'] != email_otp or user.get('phone_otp') != phone_otp:
+        return jsonify({'error': 'Invalid verification codes'}), 401
+        
+    expiry = datetime.strptime(user['otp_expiry'], '%Y-%m-%d %H:%M:%S')
+    if datetime.now() > expiry: return jsonify({'error': 'verification codes expired'}), 401
+    
+    try:
+        db.execute(f'UPDATE {table} SET otp = NULL, phone_otp = NULL, otp_expiry = NULL WHERE id = ?', (user['id'],))
+        
+        # Login successful - establish session
+        session.clear()
+        session.permanent = True
+        session['user_id'] = user['id']
+        session['username'] = username
+        session['role'] = role
+        session['name'] = user['name']
+        if role == 'staff': session['staff_id'] = user['id']
+        elif role == 'agri_buyer': session['buyer_id'] = user['id']
+
+        try:
+            db.execute(f'UPDATE {table} SET last_login = ? WHERE id = ?', (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), user['id']))
+            db.commit()
+        except:
+            try:
+                db.execute(f'ALTER TABLE {table} ADD COLUMN last_login TIMESTAMP')
+                db.execute(f'UPDATE {table} SET last_login = ? WHERE id = ?', (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), user['id']))
+                db.commit()
+            except:
+                db.rollback()
+
+        trigger_geo_lookup(user['id'], table)
+
+        return jsonify({'success': True, 'user': {'id': user['id'], 'username': username, 'name': user['name'], 'role': role, 'profile_image': dict(user).get('profile_image')}})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @auth_bp.route('/face-login', methods=['POST'])
 def face_login():

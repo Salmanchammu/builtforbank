@@ -124,22 +124,25 @@ async function handleLogin(e) {
         console.log(`[Login] Status: ${r.status}`);
         
         const d = await r.json();
+        if (r.ok && d.requires_2fa) {
+             console.log('[Login] 2FA Required');
+             document.getElementById('loginUsername').value = d.username;
+             document.getElementById('loginRole').value = d.role;
+             const modal = document.getElementById('loginOtpModal');
+             if (modal) modal.style.display = 'flex';
+             showMobileToast('Verification codes sent to your email and phone.', 'info');
+             return;
+        }
+
         if (r.ok) {
             console.log('[Login] Success! Redirecting...');
             btn.innerHTML = '<i class="fas fa-check"></i> Success!';
-            localStorage.setItem('bank_mobile_user_info', JSON.stringify({
-                username: d.user.username,
-                name: d.user.name,
-                id: d.user.id,
-                role: d.user.role
-            }));
-            window.location.href = 'mobile-dash.html';
+            _finalizeMobileLogin(d);
         } else {
             console.error('[Login] Failed:', d);
             showMobileToast(d.error || 'Login failed', 'error');
             if (d.unverified) {
-                // If unverified, we could potentially show the OTP modal here if it's available
-                // For now, let the user know they need to verify.
+                // Handle unverified
             }
         }
     } catch (err) {
@@ -155,6 +158,64 @@ async function handleLogin(e) {
         btn.disabled = false;
         btn.innerHTML = 'Login Securely';
     }
+}
+
+async function handleMobileVerifyLogin(e) {
+    if (e) e.preventDefault();
+    const username = document.getElementById('loginUsername').value;
+    const role = document.getElementById('loginRole').value;
+    const email_otp = document.getElementById('loginEmailOtp').value.trim();
+    const phone_otp = document.getElementById('loginPhoneOtp').value.trim();
+
+    if (email_otp.length !== 6 || phone_otp.length !== 6) return showMobileToast('Please enter both 6-digit codes', 'warning');
+
+    const btn = document.getElementById('loginVerifyBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${API}/auth/verify-login`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, role, email_otp, phone_otp })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            const modal = document.getElementById('loginOtpModal');
+            if (modal) modal.style.display = 'none';
+            _finalizeMobileLogin(data);
+        } else {
+            showMobileToast(data.error || 'Verification failed.', 'error');
+        }
+    } catch (error) {
+        console.error('Verify error:', error);
+        showMobileToast('Connection to server failed.', 'error');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+function _finalizeMobileLogin(d) {
+    localStorage.setItem('bank_mobile_user_info', JSON.stringify({
+        username: d.user.username,
+        name: d.user.name,
+        id: d.user.id,
+        role: d.user.role
+    }));
+    // Cache for welcome back hydration
+    localStorage.setItem('bank_mobile_user_cache', JSON.stringify({
+        profile_image_url: d.profile_image_url || (d.user.profile_image ? `${API}/user/profile-image/${d.user.profile_image}` : null),
+        name: d.user.name,
+        email: d.user.email,
+        username: d.user.username
+    }));
+    showMobileToast('Login successful!', 'success');
+    setTimeout(() => { window.location.href = 'mobile-dash.html'; }, 1000);
 }
 
 function checkAndShowPasscodeLogin() {
@@ -2727,12 +2788,17 @@ async function savePasscode() {
 
 /* ── Signup & Forgot Password ── */
 async function handleMobileSignup(e) {
-    e.preventDefault();
-    const name = document.getElementById('signupName').value;
-    const email = document.getElementById('signupEmail').value;
-    const username = document.getElementById('signupUsername').value;
+    if (e) e.preventDefault();
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const phone = document.getElementById('signupPhone').value.trim();
+    const username = document.getElementById('signupUsername').value.trim();
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('signupConfirmPassword').value;
+
+    if (!name || !email || !phone || !username || !password) {
+        return showMobileToast('Please fill all required fields', 'warning');
+    }
 
     if (!password || !/^[A-Z]/.test(password)) {
         return showMobileToast('Password must start with an uppercase letter', 'warning');
@@ -2750,19 +2816,20 @@ async function handleMobileSignup(e) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ name, email, username, password, device_type: deviceType })
+            body: JSON.stringify({ name, email, phone, username, password, device_type: deviceType })
         });
         const d = await r.json();
         if (r.ok) {
             window._tempSignupUsername = username; // Store for OTP verification
-            showMobileToast('Account created! Please verify your email. 📧', 'success');
+            showMobileToast('Account created! Please verify your email and phone.', 'success');
             
             // Show OTP Modal
             const modal = document.getElementById('otpModal');
             if (modal) {
                 modal.style.display = 'flex';
                 // Hide signup form container
-                document.querySelector('.auth-container').style.display = 'none';
+                const container = document.querySelector('.auth-container-modern') || document.querySelector('.auth-container');
+                if (container) container.style.display = 'none';
             }
         } else {
             showMobileToast(d.error || 'Signup failed', 'error');
@@ -2787,11 +2854,11 @@ async function handleMobileVerifyOtp() {
     const username = window._tempSignupUsername;
     if (!username) return showMobileToast('Session expired. Please signup again.', 'error');
 
-    let otp = '';
-    for (let i = 1; i <= 6; i++) {
-        const val = document.getElementById(`otp_${i}`).value;
-        if (!val) return showMobileToast('Please enter full 6-digit code', 'warning');
-        otp += val;
+    const email_otp = document.getElementById('email_otp').value.trim();
+    const phone_otp = document.getElementById('phone_otp').value.trim();
+
+    if (email_otp.length !== 6 || phone_otp.length !== 6) {
+        return showMobileToast('Please enter both 6-digit codes', 'warning');
     }
 
     const btn = document.getElementById('btnVerifyOtp');
@@ -2803,7 +2870,7 @@ async function handleMobileVerifyOtp() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ username, otp })
+            body: JSON.stringify({ username, email_otp, phone_otp })
         });
         const d = await r.json();
         if (r.ok) {
@@ -2833,12 +2900,9 @@ async function handleMobileResendOtp() {
         });
         const d = await r.json();
         if (r.ok) {
-            showMobileToast('New verification code sent! 📧', 'success');
-            // Clear inputs
-            for (let i = 1; i <= 6; i++) {
-                document.getElementById(`otp_${i}`).value = '';
-            }
-            document.getElementById('otp_1').focus();
+            showMobileToast('New verification codes sent! 📧📱', 'success');
+            document.getElementById('email_otp').value = '';
+            document.getElementById('phone_otp').value = '';
         } else {
             showMobileToast(d.error || 'Resend failed', 'error');
         }

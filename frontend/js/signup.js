@@ -11,6 +11,7 @@ async function handleSignup(e) {
     const name = document.getElementById('signupName').value.trim();
     const email = document.getElementById('signupEmail').value.trim();
     const username = document.getElementById('signupUsername').value.trim();
+    const phone = document.getElementById('signupPhone').value.trim();
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('signupConfirmPassword').value;
     const agreeTerms = document.getElementById('agreeTerms').checked;
@@ -18,6 +19,7 @@ async function handleSignup(e) {
     // Validation
     if (!name || name.length < 2) return showToast('Please enter your full name', 'error');
     if (!email || !email.includes('@')) return showToast('Please enter a valid email address', 'error');
+    if (!phone || phone.length < 10) return showToast('Please enter a valid phone number', 'error');
     if (!username || username.length < 3) return showToast('Username must be at least 3 characters', 'error');
     
     if (!password || !/^[A-Z]/.test(password)) {
@@ -30,7 +32,7 @@ async function handleSignup(e) {
 
     // Prepare data
     const device_type = window.SmartBankDeviceDetector ? window.SmartBankDeviceDetector.getDeviceType() : 'unknown';
-    const userData = { username, email, password, name, device_type };
+    const userData = { username, email, phone, password, name, device_type };
 
     // Show loading state
     const originalText = btn.innerHTML;
@@ -49,12 +51,12 @@ async function handleSignup(e) {
         const data = await response.json();
 
         if (response.ok && data.success) {
-            showToast(data.message || 'Account created! Please verify your email.', 'success');
+            showToast(data.message || 'Account created! Please verify your email and phone.', 'success');
 
             // Show OTP Modal instead of redirecting
             document.getElementById('otpUsername').value = username;
             document.getElementById('otpModal').classList.add('show');
-            document.getElementById('otpInput').focus();
+            document.getElementById('emailOtpInput').focus();
         } else {
             showToast(data.error || 'Registration failed. Please try again.', 'error');
         }
@@ -72,9 +74,10 @@ async function handleOtpVerification(e) {
     if (e) e.preventDefault();
     const btn = document.getElementById('verifyBtn');
     const username = document.getElementById('otpUsername').value;
-    const otp = document.getElementById('otpInput').value.trim();
+    const email_otp = document.getElementById('emailOtpInput').value.trim();
+    const phone_otp = document.getElementById('phoneOtpInput').value.trim();
 
-    if (otp.length !== 6) return showToast('Please enter a 6-digit code', 'error');
+    if (email_otp.length !== 6 || phone_otp.length !== 6) return showToast('Please enter both 6-digit codes', 'error');
 
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
@@ -86,13 +89,13 @@ async function handleOtpVerification(e) {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, otp })
+            body: JSON.stringify({ username, email_otp, phone_otp })
         });
 
         const data = await response.json();
 
         if (response.ok && data.success) {
-            showToast('Email verified! Redirecting to login...', 'success');
+            showToast('Account activated! Redirecting to login...', 'success');
             setTimeout(() => {
                 const detector = window.SmartBankDeviceDetector;
                 window.location.href = detector ? detector.getLoginUrl() : 'user.html';
@@ -138,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    showToast('A new verification code has been sent to your email! 📧', 'success');
+                    showToast('New verification codes have been sent to your email and phone!', 'success');
                 } else {
                     showToast(data.error || 'Failed to resend code.', 'error');
                 }

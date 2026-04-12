@@ -133,6 +133,47 @@
             </div>
         </div>
 
+        <!-- OTP Verification Modal (2FA Login) -->
+        <div id="loginOtpModal" class="modal">
+            <div class="modal-content auth-card otp-glass">
+                <div class="modal-header">
+                    <div class="otp-icon-lpc">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <h2 class="auth-title">2-Step Verification</h2>
+                    <p class="auth-subtitle">For your security, please enter the verification codes sent to your email and phone.</p>
+                </div>
+
+                <form id="loginOtpForm" class="otp-form-premium" style="display: flex; flex-direction: column; gap: 15px;">
+                    <input type="hidden" id="loginUsername">
+                    <input type="hidden" id="loginRole" value="user">
+                    
+                    <div class="otp-input-container" style="margin-bottom: 0;">
+                        <label for="loginEmailOtp" style="font-size: 0.85rem; color: var(--text-secondary); align-self: flex-start; margin-bottom: 5px; display: block;">Email Code</label>
+                        <input type="text" id="loginEmailOtp" class="otp-field-main" placeholder="------" maxlength="6"
+                            autocomplete="off" required autofocus>
+                        <div class="otp-input-underline"></div>
+                    </div>
+
+                    <div class="otp-input-container" style="margin-bottom: 0;">
+                        <label for="loginPhoneOtp" style="font-size: 0.85rem; color: var(--text-secondary); align-self: flex-start; margin-bottom: 5px; display: block;">SMS Code</label>
+                        <input type="text" id="loginPhoneOtp" class="otp-field-main" placeholder="------" maxlength="6"
+                            autocomplete="off" required>
+                        <div class="otp-input-underline"></div>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-glossy" id="loginVerifyBtn">
+                        <span>SECURE LOGIN</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    
+                    <button type="button" class="btn-secondary" style="margin-top: 10px;" onclick="document.getElementById('loginOtpModal').classList.remove('show'); document.getElementById('loginForm').style.display='block';">
+                        Cancel
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <!-- Toast Notifications -->
         <div class="toast" id="toast"></div>
 

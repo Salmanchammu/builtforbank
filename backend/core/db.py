@@ -111,6 +111,7 @@ def migrate_db():
             mobile_passcode VARCHAR(255),
             passcode_enabled INTEGER DEFAULT 0,
             otp VARCHAR(10),
+            phone_otp VARCHAR(10),
             otp_expiry TIMESTAMP,
             profile_image VARCHAR(255),
             device_type VARCHAR(50) DEFAULT 'unknown',
@@ -518,7 +519,14 @@ def migrate_db():
         ('agri_buyers', 'signup_city', 'VARCHAR(100)'),
         ('agri_buyers', 'signup_country', 'VARCHAR(100)'),
         ('users', 'otp', 'VARCHAR(10)'),
+        ('users', 'phone_otp', 'VARCHAR(10)'),
         ('users', 'otp_expiry', 'TIMESTAMP'),
+        ('staff', 'otp', 'VARCHAR(10)'),
+        ('staff', 'phone_otp', 'VARCHAR(10)'),
+        ('staff', 'otp_expiry', 'TIMESTAMP'),
+        ('agri_buyers', 'otp', 'VARCHAR(10)'),
+        ('agri_buyers', 'phone_otp', 'VARCHAR(10)'),
+        ('agri_buyers', 'otp_expiry', 'TIMESTAMP'),
     ]
 
     for table, col, col_type in migrations:
