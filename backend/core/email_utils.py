@@ -29,7 +29,7 @@ def send_email_async(to_email, subject, body_html):
             logger.info(f"Starting email delivery to {to_email}...")
             
             # Try Brevo (Sendinblue) HTTP API first
-            brevo_api_key = os.environ.get("BREVO_API_KEY")
+            brevo_api_key = email_config.BREVO_API_KEY
             if brevo_api_key:
                 try:
                     import urllib.request as urllib_req
@@ -57,10 +57,10 @@ def send_email_async(to_email, subject, body_html):
                         logger.info(f"Email sent via Brevo to {to_email}. Response: {res_body}")
                     return
                 except Exception as e:
-                    logger.error(f"Brevo API fallback: {str(e)}")
+                    logger.error(f"Brevo API failure: {str(e)}")
 
             # Try Resend HTTP API second
-            resend_api_key = os.environ.get("RESEND_API_KEY")
+            resend_api_key = email_config.RESEND_API_KEY
             if resend_api_key:
                 try:
                     import urllib.request as urllib_req
@@ -90,7 +90,7 @@ def send_email_async(to_email, subject, body_html):
                         logger.info(f"Email sent via Resend to {to_email}. Response: {res_body}")
                     return
                 except Exception as e:
-                    logger.error(f"Resend API fallback: {str(e)}")
+                    logger.error(f"Resend API failure: {str(e)}")
 
             # SMTP fallback
             msg = MIMEMultipart()
@@ -111,11 +111,22 @@ def send_email_async(to_email, subject, body_html):
                     server.starttls()
                     server.login(email_config.SENDER_EMAIL, email_config.SENDER_PASSWORD)
                     server.send_message(msg)
-            logger.info(f"Email successfully delivered to {to_email}")
+            logger.info(f"Email successfully delivered via SMTP to {to_email}")
             
         except Exception as e:
-            logger.error(f"FAILED email to {to_email}: {str(e)}")
-            print(f"DEBUG: Email failed for {to_email}: {e}")
+            logger.error(f"FATAL: All email methods failed for {to_email}: {str(e)}")
+            
+            # --- RENDER LOG FALLBACK (Extremely Important for the user) ---
+            # If all else fails, we PRINT the code to the terminal so the user can see it in Render Logs
+            import re
+            otp_match = re.search(r'<b>(\d{6})</b>', body_html)
+            code = otp_match.group(1) if otp_match else "Unknown"
+            
+            print("\n" + "!"*60)
+            print(f"!!! EMAIL DELIVERY FAILED TO: {to_email}")
+            print(f"!!! YOUR VERIFICATION CODE IS: {code}")
+            print(f"!!! Check Render logs if you didn't get the email.")
+            print("!"*60 + "\n")
 
     # Execute asynchronously
     import threading

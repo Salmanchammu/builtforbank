@@ -4,6 +4,12 @@ import os
 # On Render: set SMTP_SENDER_EMAIL and SMTP_SENDER_PASSWORD as env vars in the dashboard
 # Locally: these fall back to the values below
 
+# --- HOW TO ENABLE RELIABLE CLOUD EMAIL ---
+# 1. Get your API Key from Resend.com or Brevo.com
+# 2. Paste it exactly between the quotes below:
+USER_RESEND_KEY = "" # Starts with re_
+USER_BREVO_KEY = ""
+
 SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
 try:
     SMTP_PORT = int(os.environ.get("SMTP_PORT", "465"))
@@ -13,12 +19,14 @@ SENDER_EMAIL = os.environ.get("SMTP_SENDER_EMAIL", "builtforbank@gmail.com")
 SENDER_PASSWORD = os.environ.get("SMTP_SENDER_PASSWORD", "hlhp upfq ufgi qiev")
 SMTP_USE_SSL = os.environ.get("SMTP_USE_SSL", "true").lower() == "true"
 
-# Resend API Configuration
-# By default, Resend requires a verified domain. 
-# RECOMMENDED: verify "buildforbank.com" in Resend dashboard
-# RESEND_FROM = "Smart Bank <support@buildforbank.com>"
+# API Configuration logic
+_RESEND_KEY = USER_RESEND_KEY or os.environ.get("RESEND_API_KEY")
+_BREVO_KEY = USER_BREVO_KEY or os.environ.get("BREVO_API_KEY")
 
-_RESEND_KEY = os.environ.get("RESEND_API_KEY")
+# For email_utils.py to see
+RESEND_API_KEY = _RESEND_KEY
+BREVO_API_KEY = _BREVO_KEY
+
 _ON_CLOUD = any(os.environ.get(k) for k in ['RENDER', 'RAILWAY_ENVIRONMENT', 'PORT'])
 
 # Intelligent fallback for RESEND_FROM
