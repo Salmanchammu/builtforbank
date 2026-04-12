@@ -188,25 +188,19 @@ def login():
 
         if role in ['user', 'staff', 'agri_buyer']:
             try:
-                otp = str(random.randint(100000, 999999))
                 phone_otp = str(random.randint(100000, 999999))
                 otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
                 
-                db.execute(f'UPDATE {table} SET otp = ?, phone_otp = ?, otp_expiry = ? WHERE id = ?', (otp, phone_otp, otp_expiry, user['id']))
+                db.execute(f'UPDATE {table} SET otp = NULL, phone_otp = ?, otp_expiry = ? WHERE id = ?', (phone_otp, otp_expiry, user['id']))
                 db.commit()
                 
-                email = user_dict.get('email')
                 phone = user_dict.get('phone')
                 
-                if email:
-                    send_email_async(email, "Smart Bank - Login Verification", f"<h3>Smart Bank Login</h3><p>Your Email Code is: <b>{otp}</b></p>")
                 if phone:
                     send_sms_async(phone, f"Smart Bank: Your Mobile Login Code is {phone_otp}. Valid for 10 minutes.")
                     
                 # Developer debug print to assist local testing if email APIs are delayed
                 print(f"\n[DEV MODE] 2FA Login for User: {actual_username}")
-                if email:
-                    print(f"[DEV MODE] Email OTP for {email}: {otp}")
                 if phone:
                     print(f"[DEV MODE] SMS OTP for {phone}: {phone_otp}\n")
 
@@ -255,12 +249,11 @@ def login():
 def verify_login():
     data = request.json
     username = data.get('username')
-    email_otp = data.get('email_otp')
     phone_otp = data.get('phone_otp')
     role = data.get('role', 'user')
     
-    if not username or not email_otp or not phone_otp:
-        return jsonify({'error': 'Username, email OTP, and phone OTP are required'}), 400
+    if not username or not phone_otp:
+        return jsonify({'error': 'Username and phone OTP are required'}), 400
         
     db = get_db()
     table_map = {'user': 'users', 'staff': 'staff', 'agri_buyer': 'agri_buyers'}
@@ -270,8 +263,8 @@ def verify_login():
     user = db.execute(f'SELECT * FROM {table} WHERE {uname_col} = ?', (username,)).fetchone()
     if not user: return jsonify({'error': 'User not found'}), 404
     
-    if user['otp'] != email_otp or user.get('phone_otp') != phone_otp:
-        return jsonify({'error': 'Invalid verification codes'}), 401
+    if user.get('phone_otp') != phone_otp:
+        return jsonify({'error': 'Invalid SMS verification code'}), 401
         
     expiry = datetime.strptime(user['otp_expiry'], '%Y-%m-%d %H:%M:%S')
     if datetime.now() > expiry: return jsonify({'error': 'verification codes expired'}), 401

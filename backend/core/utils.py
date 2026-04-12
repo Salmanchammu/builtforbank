@@ -14,5 +14,6 @@ def validate_password(password):
 
 def validate_phone(phone):
     if not phone: return True
-    pattern = r'^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$'
-    return re.match(pattern, phone) is not None
+    clean_phone = re.sub(r'[\s\-\(\)]', '', phone)
+    pattern = r'^\+?\d{10,15}$'
+    return re.match(pattern, clean_phone) is not None

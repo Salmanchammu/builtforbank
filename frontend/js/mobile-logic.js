@@ -130,7 +130,7 @@ async function handleLogin(e) {
              document.getElementById('loginRole').value = d.role;
              const modal = document.getElementById('loginOtpModal');
              if (modal) modal.style.display = 'flex';
-             showMobileToast('Verification codes sent to your email and phone.', 'info');
+             showMobileToast('Verification code sent to your phone.', 'info');
              return;
         }
 
@@ -164,10 +164,9 @@ async function handleMobileVerifyLogin(e) {
     if (e) e.preventDefault();
     const username = document.getElementById('loginUsername').value;
     const role = document.getElementById('loginRole').value;
-    const email_otp = document.getElementById('loginEmailOtp').value.trim();
     const phone_otp = document.getElementById('loginPhoneOtp').value.trim();
 
-    if (email_otp.length !== 6 || phone_otp.length !== 6) return showMobileToast('Please enter both 6-digit codes', 'warning');
+    if (phone_otp.length !== 6) return showMobileToast('Please enter the 6-digit SMS code', 'warning');
 
     const btn = document.getElementById('loginVerifyBtn');
     const originalText = btn.innerHTML;
@@ -179,7 +178,7 @@ async function handleMobileVerifyLogin(e) {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, role, email_otp, phone_otp })
+            body: JSON.stringify({ username, role, phone_otp })
         });
 
         const data = await response.json();
