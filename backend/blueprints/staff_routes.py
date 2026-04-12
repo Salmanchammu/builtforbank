@@ -13,8 +13,11 @@ from core.constants import PROFILE_PICS_FOLDER, allowed_file
 staff_bp = Blueprint('staff', __name__)
 logger = logging.getLogger('smart_bank.staff')
 
+import threading
+from config.sms_config import send_sms
+
 def send_sms_async(p, m):
-    print(f"[MOCK SMS] To: {p}, Msg: {m}")
+    threading.Thread(target=send_sms, args=(p, m), daemon=True).start()
     return True
 
 def notify_user(db, user_id, title, message, n_type='info'):

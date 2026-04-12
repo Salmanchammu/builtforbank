@@ -14,9 +14,12 @@ from core.constants import PROFILE_PICS_FOLDER, allowed_file
 user_bp = Blueprint('user', __name__)
 logger = logging.getLogger('smart_bank.user')
 
+import threading
+from config.sms_config import send_sms
+
 def send_sms_async(p, m):
-    # This is a placeholder as SMS logic was mocked in app.py
-    print(f"[MOCK SMS] To: {p}, Msg: {m}")
+    # Run the real SMS function in a background thread so it doesn't block the API response
+    threading.Thread(target=send_sms, args=(p, m), daemon=True).start()
     return True
 
 # --- International UPI Exchange Rates (Mock) ---

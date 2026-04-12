@@ -10,8 +10,11 @@ from core.email_utils import send_email_async
 mobile_bp = Blueprint('mobile', __name__)
 logger = logging.getLogger('smart_bank.mobile')
 
+import threading
+from config.sms_config import send_sms
+
 def send_sms_async(p, m):
-    print(f"[MOCK SMS] To: {p}, Msg: {m}")
+    threading.Thread(target=send_sms, args=(p, m), daemon=True).start()
     return True
 
 @mobile_bp.route('/billpay', methods=['POST'])
