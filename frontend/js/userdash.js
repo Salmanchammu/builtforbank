@@ -496,6 +496,16 @@ async function submitNewAccount() {
         const kycData = await window.faceAuthManager.captureFaceForKYC();
         if (!kycData || !kycData.descriptor) throw new Error('Face verification failed');
 
+        // Capture Geolocation
+        const desktopLocation = await new Promise((resolve) => {
+            if (!navigator.geolocation) return resolve(null);
+            navigator.geolocation.getCurrentPosition(
+                pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                err => resolve(null),
+                { timeout: 5000 }
+            );
+        });
+
         // Step 2: Submit to backend
         const res = await fetch(window.API + '/user/accounts', {
             method: 'POST',
@@ -514,7 +524,9 @@ async function submitNewAccount() {
                 agri_proof: agriProof,
                 salary_proof: salaryProof,
                 tax_id: currentTaxId || null,
-                current_proof: currentProof
+                current_proof: currentProof,
+                lat: desktopLocation ? desktopLocation.lat : null,
+                lng: desktopLocation ? desktopLocation.lng : null
             })
         });
         const data = await res.json();
