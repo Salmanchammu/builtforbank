@@ -138,8 +138,8 @@ async function userLogin(e) {
             document.getElementById('loginRole').value = data.role;
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('loginOtpModal').classList.add('show');
-            document.getElementById('loginPhoneOtp').focus();
-            showToast('Verification code sent to your phone.', 'info');
+            document.getElementById('loginEmailOtp').focus();
+            showToast('Verification code sent to your email.', 'info');
             return;
         }
 
@@ -160,9 +160,9 @@ async function verifyLogin(e) {
     if (e) e.preventDefault();
     const username = document.getElementById('loginUsername').value;
     const role = document.getElementById('loginRole').value;
-    const phone_otp = document.getElementById('loginPhoneOtp').value.trim();
+    const email_otp = document.getElementById('loginEmailOtp').value.trim();
 
-    if (phone_otp.length !== 6) return showToast('Please enter the 6-digit SMS code', 'error');
+    if (email_otp.length !== 6) return showToast('Please enter the 6-digit verification code', 'error');
 
     const btn = document.getElementById('loginVerifyBtn');
     const originalText = btn.innerHTML;
@@ -175,7 +175,7 @@ async function verifyLogin(e) {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, role, phone_otp })
+            body: JSON.stringify({ username, role, email_otp })
         });
 
         const data = await response.json();

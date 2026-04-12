@@ -130,7 +130,7 @@ async function handleLogin(e) {
              document.getElementById('loginRole').value = d.role;
              const modal = document.getElementById('loginOtpModal');
              if (modal) modal.style.display = 'flex';
-             showMobileToast('Verification code sent to your phone.', 'info');
+             showMobileToast('Verification code sent to your email.', 'info');
              return;
         }
 
@@ -164,9 +164,9 @@ async function handleMobileVerifyLogin(e) {
     if (e) e.preventDefault();
     const username = document.getElementById('loginUsername').value;
     const role = document.getElementById('loginRole').value;
-    const phone_otp = document.getElementById('loginPhoneOtp').value.trim();
+    const email_otp = document.getElementById('loginEmailOtp').value.trim();
 
-    if (phone_otp.length !== 6) return showMobileToast('Please enter the 6-digit SMS code', 'warning');
+    if (email_otp.length !== 6) return showMobileToast('Please enter the 6-digit verification code', 'warning');
 
     const btn = document.getElementById('loginVerifyBtn');
     const originalText = btn.innerHTML;
@@ -178,7 +178,7 @@ async function handleMobileVerifyLogin(e) {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, role, phone_otp })
+            body: JSON.stringify({ username, role, email_otp })
         });
 
         const data = await response.json();
@@ -2820,7 +2820,7 @@ async function handleMobileSignup(e) {
         const d = await r.json();
         if (r.ok) {
             window._tempSignupUsername = username; // Store for OTP verification
-            showMobileToast('Account created! Please verify your email and phone.', 'success');
+            showMobileToast('Account created! Please verify your email.', 'success');
             
             // Show OTP Modal
             const modal = document.getElementById('otpModal');
@@ -2854,10 +2854,9 @@ async function handleMobileVerifyOtp() {
     if (!username) return showMobileToast('Session expired. Please signup again.', 'error');
 
     const email_otp = document.getElementById('email_otp').value.trim();
-    const phone_otp = document.getElementById('phone_otp').value.trim();
 
-    if (email_otp.length !== 6 || phone_otp.length !== 6) {
-        return showMobileToast('Please enter both 6-digit codes', 'warning');
+    if (email_otp.length !== 6) {
+        return showMobileToast('Please enter the 6-digit verification code', 'warning');
     }
 
     const btn = document.getElementById('btnVerifyOtp');
@@ -2869,7 +2868,7 @@ async function handleMobileVerifyOtp() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ username, email_otp, phone_otp })
+            body: JSON.stringify({ username, email_otp })
         });
         const d = await r.json();
         if (r.ok) {
@@ -2899,9 +2898,9 @@ async function handleMobileResendOtp() {
         });
         const d = await r.json();
         if (r.ok) {
-            showMobileToast('New verification codes sent! 📧📱', 'success');
-            document.getElementById('email_otp').value = '';
-            document.getElementById('phone_otp').value = '';
+            showMobileToast('New verification code sent to your email! 📧', 'success');
+            const eInput = document.getElementById('email_otp');
+            if (eInput) eInput.value = '';
         } else {
             showMobileToast(d.error || 'Resend failed', 'error');
         }

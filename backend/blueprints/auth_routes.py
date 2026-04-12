@@ -58,11 +58,10 @@ def signup():
     try:
         hashed = generate_password_hash(password)
         otp = str(random.randint(100000, 999999))
-        phone_otp = str(random.randint(100000, 999999))
         otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
         
-        cursor = db.execute('INSERT INTO users (username, password, email, phone, name, status, otp, phone_otp, otp_expiry, device_type) VALUES (?, ?, ?, ?, ?, "pending", ?, ?, ?, ?)',
-                           (username, hashed, email, phone, name, otp, phone_otp, otp_expiry, device_type))
+        cursor = db.execute('INSERT INTO users (username, password, email, phone, name, status, otp, phone_otp, otp_expiry, device_type) VALUES (?, ?, ?, ?, ?, "pending", ?, NULL, ?, ?)',
+                           (username, hashed, email, phone, name, otp, otp_expiry, device_type))
         user_id = cursor.lastrowid
         db.commit()
 
@@ -71,15 +70,11 @@ def signup():
         welcome_body = f"<h3>Verify your Smart Bank Account</h3><p>Your Email Code is: <b>{otp}</b></p>"
         send_email_async(email, "Verify your Smart Bank Account", welcome_body)
         
-        # Very plain message to bypass Indian DLT spam/phishing filters on the Quick Route
-        send_sms_async(phone, f"Your registration PIN is {phone_otp}.")
-        
         # Developer debug print to assist local testing if email APIs are delayed
         print(f"\n[DEV MODE] Created User: {username}")
-        print(f"[DEV MODE] Email OTP for {email}: {otp}")
-        print(f"[DEV MODE] SMS OTP for {phone}: {phone_otp}\n")
+        print(f"[DEV MODE] Email OTP for {email}: {otp}\n")
         
-        return jsonify({'success': True, 'message': 'Account created! Please check your email and messages for the verification codes.', 'username': username}), 201
+        return jsonify({'success': True, 'message': 'Account created! Please check your email for the verification code.', 'username': username}), 201
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
@@ -91,16 +86,16 @@ def verify_otp():
     email_otp = data.get('email_otp')
     phone_otp = data.get('phone_otp')
     
-    if not username or not email_otp or not phone_otp:
-        return jsonify({'error': 'Username, email OTP, and phone OTP are required'}), 400
+    if not username or not email_otp:
+        return jsonify({'error': 'Username and email OTP are required'}), 400
         
     db = get_db()
     user = db.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
     if not user: return jsonify({'error': 'User not found'}), 404
     if user['status'] == 'active': return jsonify({'success': True, 'message': 'Account is already active'}), 200
     
-    if user['otp'] != email_otp or user['phone_otp'] != phone_otp:
-        return jsonify({'error': 'Invalid verification codes'}), 400
+    if user['otp'] != email_otp:
+        return jsonify({'error': 'Invalid verification code'}), 400
         
     expiry = datetime.strptime(user['otp_expiry'], '%Y-%m-%d %H:%M:%S')
     if datetime.now() > expiry: return jsonify({'error': 'verification codes expired'}), 400
@@ -128,17 +123,16 @@ def resend_otp():
     
     try:
         otp = str(random.randint(100000, 999999))
-        phone_otp = str(random.randint(100000, 999999))
         otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
-        db.execute('UPDATE users SET otp = ?, phone_otp = ?, otp_expiry = ? WHERE id = ?', (otp, phone_otp, otp_expiry, user['id']))
+        db.execute('UPDATE users SET otp = ?, phone_otp = NULL, otp_expiry = ? WHERE id = ?', (otp, otp_expiry, user['id']))
         db.commit()
         
         body = f"<h3>Verify your Smart Bank Account</h3><p>Your new Email Code is: <b>{otp}</b></p>"
         send_email_async(user['email'], "Smart Bank - New Verification Code", body)
-        if user['phone']:
-            send_sms_async(user['phone'], f"Smart Bank: Your new Mobile Verification Code is {phone_otp}. Valid for 10 minutes.")
         
         # Developer debug print to assist local testing if email APIs are delayed
+        print(f"\n[DEV MODE] Resend OTP for User: {username}")
+        print(f"[DEV MODE] New Email OTP: {otp}\n")
         print(f"\n[DEV MODE] Resend OTP for User: {username}")
         print(f"[DEV MODE] New Email OTP for {user['email']}: {otp}")
         if user['phone']:
@@ -190,30 +184,28 @@ def login():
 
         if role in ['user', 'staff', 'agri_buyer']:
             try:
-                phone_otp = str(random.randint(100000, 999999))
+                otp = str(random.randint(100000, 999999))
                 otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
                 
                 try:
-                    db.execute(f'UPDATE {table} SET otp = NULL, phone_otp = ?, otp_expiry = ? WHERE id = ?', (phone_otp, otp_expiry, user['id']))
+                    db.execute(f'UPDATE {table} SET otp = ?, phone_otp = NULL, otp_expiry = ? WHERE id = ?', (otp, otp_expiry, user['id']))
                     db.commit()
                 except Exception as db_e:
                     logger.warning(f"Lazy migration needed for {table}. Adding phone_otp column: {db_e}")
                     db.rollback()
                     db.execute(f'ALTER TABLE {table} ADD COLUMN phone_otp TEXT')
-                    db.execute(f'UPDATE {table} SET otp = NULL, phone_otp = ?, otp_expiry = ? WHERE id = ?', (phone_otp, otp_expiry, user['id']))
+                    db.execute(f'UPDATE {table} SET otp = ?, phone_otp = NULL, otp_expiry = ? WHERE id = ?', (otp, otp_expiry, user['id']))
                     db.commit()
                 
-                phone = user_dict.get('phone')
+                email = user_dict.get('email')
                 
-                if phone:
-                    # Very plain message to bypass Indian DLT 'Quick Route' spam/phishing filters
-                    plain_msg = f"Your verification PIN is {phone_otp}."
-                    send_sms_async(phone, plain_msg)
+                if email:
+                    send_email_async(email, "Smart Bank - Login Verification", f"<h3>Smart Bank Login</h3><p>Your Email Code is: <b>{otp}</b></p>")
                     
                 # Developer debug print to assist local testing if email APIs are delayed
                 print(f"\n[DEV MODE] 2FA Login for User: {actual_username}")
-                if phone:
-                    print(f"[DEV MODE] SMS OTP for {phone}: {phone_otp}\n")
+                if email:
+                    print(f"[DEV MODE] Email OTP for {email}: {otp}\n")
 
                 return jsonify({'success': True, 'requires_2fa': True, 'username': actual_username, 'role': role})
             except Exception as e:
@@ -260,11 +252,11 @@ def login():
 def verify_login():
     data = request.json
     username = data.get('username')
-    phone_otp = data.get('phone_otp')
+    email_otp = data.get('email_otp')
     role = data.get('role', 'user')
     
-    if not username or not phone_otp:
-        return jsonify({'error': 'Username and phone OTP are required'}), 400
+    if not username or not email_otp:
+        return jsonify({'error': 'Username and email OTP are required'}), 400
         
     db = get_db()
     table_map = {'user': 'users', 'staff': 'staff', 'agri_buyer': 'agri_buyers'}
@@ -274,8 +266,8 @@ def verify_login():
     user = db.execute(f'SELECT * FROM {table} WHERE {uname_col} = ?', (username,)).fetchone()
     if not user: return jsonify({'error': 'User not found'}), 404
     
-    if user.get('phone_otp') != phone_otp:
-        return jsonify({'error': 'Invalid SMS verification code'}), 401
+    if user['otp'] != email_otp:
+        return jsonify({'error': 'Invalid Email verification code'}), 401
         
     expiry = datetime.strptime(user['otp_expiry'], '%Y-%m-%d %H:%M:%S')
     if datetime.now() > expiry: return jsonify({'error': 'verification codes expired'}), 401

@@ -75,9 +75,8 @@ async function handleOtpVerification(e) {
     const btn = document.getElementById('verifyBtn');
     const username = document.getElementById('otpUsername').value;
     const email_otp = document.getElementById('emailOtpInput').value.trim();
-    const phone_otp = document.getElementById('phoneOtpInput').value.trim();
 
-    if (email_otp.length !== 6 || phone_otp.length !== 6) return showToast('Please enter both 6-digit codes', 'error');
+    if (email_otp.length !== 6) return showToast('Please enter the 6-digit verification code', 'error');
 
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
@@ -89,7 +88,7 @@ async function handleOtpVerification(e) {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email_otp, phone_otp })
+            body: JSON.stringify({ username, email_otp })
         });
 
         const data = await response.json();
@@ -141,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    showToast('New verification codes have been sent to your email and phone!', 'success');
+                    showToast('A new verification code has been sent to your email!', 'success');
                 } else {
                     showToast(data.error || 'Failed to resend code.', 'error');
                 }
