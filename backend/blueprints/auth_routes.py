@@ -191,8 +191,15 @@ def login():
                 phone_otp = str(random.randint(100000, 999999))
                 otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
                 
-                db.execute(f'UPDATE {table} SET otp = NULL, phone_otp = ?, otp_expiry = ? WHERE id = ?', (phone_otp, otp_expiry, user['id']))
-                db.commit()
+                try:
+                    db.execute(f'UPDATE {table} SET otp = NULL, phone_otp = ?, otp_expiry = ? WHERE id = ?', (phone_otp, otp_expiry, user['id']))
+                    db.commit()
+                except Exception as db_e:
+                    logger.warning(f"Lazy migration needed for {table}. Adding phone_otp column: {db_e}")
+                    db.rollback()
+                    db.execute(f'ALTER TABLE {table} ADD COLUMN phone_otp TEXT')
+                    db.execute(f'UPDATE {table} SET otp = NULL, phone_otp = ?, otp_expiry = ? WHERE id = ?', (phone_otp, otp_expiry, user['id']))
+                    db.commit()
                 
                 phone = user_dict.get('phone')
                 
