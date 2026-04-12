@@ -43,20 +43,18 @@ def send_sms(phone, message):
         return True
 
     try:
-        # Example implementation for Fast2SMS
         url = "https://www.fast2sms.com/dev/bulkV2"
-        payload = {
+        querystring = {
+            "authorization": SMS_CONFIG["api_key"],
+            "route": SMS_CONFIG["route"],
             "message": message,
             "language": "english",
-            "route": SMS_CONFIG["route"],
-            "numbers": clean_phone,
-        }
-        headers = {
-            'authorization': SMS_CONFIG["api_key"],
-            'Content-Type': "application/json"
+            "flash": "0",
+            "numbers": clean_phone
         }
         
-        response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=5)
+        headers = { 'cache-control': "no-cache" }
+        response = requests.request("GET", url, headers=headers, params=querystring, timeout=5)
         res_data = response.json()
         
         if res_data.get("return"):
