@@ -816,5 +816,17 @@
       "aadhaar_number": "582956053099",
       "rejection_reason": null
     }
+  ],
+  "agri_buyers": [
+    {
+      "buyer_id": "agri_test1",
+      "password": "scrypt:32768:8:1$ewkXmqDPS38s9HJy$fca0040f91ace78cdea70e6d0007eb44869d7ba79957ee6add87081f1c439d7d3bf8976b080d5d8f2d29ca306fe7260315929d74362772c63b4755ca34577136",
+      "name": "Agri Test Buyer",
+      "email": "agritest@gmail.com",
+      "phone": "9876543210",
+      "business_name": "FreshFarms Trading",
+      "gst_number": "GST12345678",
+      "status": "active"
+    }
   ]
 }
