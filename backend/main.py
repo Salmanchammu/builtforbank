@@ -2,8 +2,14 @@ from flask import Flask, request, jsonify, session, send_from_directory, g, send
 from flask_cors import CORS
 from datetime import timedelta, datetime
 import os
+import sys
 import logging
 import mimetypes
+
+# Fix path for deployment
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.append(BASE_DIR)
 
 # Core Imports
 from core.db import get_db, init_db, migrate_db
@@ -220,15 +226,15 @@ else:
                 os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
                 
                 if not os.path.exists(DATABASE) or os.path.getsize(DATABASE) == 0:
-                    print(f"✅ Production Boot: Initializing fresh database at {DATABASE}")
+                    print(f"Production Boot: Initializing fresh database at {DATABASE}")
                     init_db()
                     load_smart_seed(get_db())
                 else:
-                    print(f"✅ Production Boot: Database exists at {DATABASE}")
+                    print(f"Production Boot: Database exists at {DATABASE}")
                     migrate_db()
                     if os.environ.get('FORCE_RESEED', 'false').lower() == 'true':
                         load_smart_seed(get_db())
         except Exception as e:
-            print(f"⚠️ Production Boot Warning: {e}")
+            print(f"Production Boot Warning: {e}")
             import traceback
             traceback.print_exc()

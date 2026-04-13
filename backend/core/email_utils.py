@@ -8,15 +8,19 @@ from email.mime.multipart import MIMEMultipart
 logger = logging.getLogger('smart_bank.email')
 
 # Try importing from the config package in the parent directory
+# Try absolute package import first (for Gunicorn/Render), then relative for direct execution
 try:
-    from ..config import email_config
+    from backend.config import email_config
 except (ImportError, ValueError):
     try:
-        import sys
-        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
         from config import email_config
     except ImportError:
-        email_config = None
+        try:
+            import sys
+            sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+            from config import email_config
+        except ImportError:
+            email_config = None
 
 def send_email_async(to_email, subject, body_html):
     """Send email in a separate thread to avoid blocking the main request."""
