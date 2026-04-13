@@ -76,7 +76,7 @@ FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend'))
 def home():
     if os.path.exists(os.path.join(FRONTEND_DIR, 'user.html')):
         return send_file(os.path.join(FRONTEND_DIR, 'user.html'))
-    return "✅ Smart Bank Backend is RUNNING!"
+    return "Smart Bank Backend is RUNNING!"
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -177,10 +177,10 @@ def load_smart_seed(db):
     """Load data from smart_seed.json if it exists."""
     seed_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'smart_seed.json')
     if not os.path.exists(seed_file):
-        print("⚠️ smart_seed.json not found, skipping seed.")
+        print("[WARN] smart_seed.json not found, skipping seed.")
         return
 
-    print(f"✅ Production Boot: Loading data from {seed_file}...")
+    print(f"Production Boot: Loading data from {seed_file}...")
     try:
         with open(seed_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -200,9 +200,9 @@ def load_smart_seed(db):
                 except Exception:
                     pass
             db.commit()
-        print("✅ Seeding completed successfully.")
+        print("Seeding completed successfully.")
     except Exception as e:
-        print(f"⚠️ Error loading smart seed: {e}")
+        print(f"[WARN] Error loading smart seed: {e}")
 
 
 # === Application Startup ===

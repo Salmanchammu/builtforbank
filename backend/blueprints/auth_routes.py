@@ -130,15 +130,11 @@ def resend_otp():
         body = f"<h3>Verify your Smart Bank Account</h3><p>Your new Email Code is: <b>{otp}</b></p>"
         send_email_async(user['email'], "Smart Bank - New Verification Code", body)
         
-        # Developer debug print to assist local testing if email APIs are delayed
+        # Developer debug print
         print(f"\n[DEV MODE] Resend OTP for User: {username}")
-        print(f"[DEV MODE] New Email OTP: {otp}\n")
-        print(f"\n[DEV MODE] Resend OTP for User: {username}")
-        print(f"[DEV MODE] New Email OTP for {user['email']}: {otp}")
-        if user['phone']:
-            print(f"[DEV MODE] New SMS OTP for {user['phone']}: {phone_otp}\n")
+        print(f"[DEV MODE] New Email OTP for {user['email']}: {otp}\n")
 
-        return jsonify({'success': True, 'message': 'New codes sent to your email and phone'}), 200
+        return jsonify({'success': True, 'message': 'New verification code sent to your email'}), 200
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
