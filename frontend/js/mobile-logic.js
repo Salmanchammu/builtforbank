@@ -3620,12 +3620,19 @@ function breakPocketMobile(id) {
 function showConfirmMobile({title, message, confirmText, onConfirm, onCancel, isHtml}) {
     const modal = document.createElement('div');
     modal.className = 'mobile-sidebar-modern-overlay'; // Reusing premium overlay
-    modal.style.zIndex = '2000';
+    modal.style.position = 'fixed';
+    modal.style.inset = '0';
+    modal.style.background = 'rgba(0,0,0,0.5)';
+    modal.style.zIndex = '99999';
     modal.style.display = 'flex';
     modal.style.alignItems = 'center';
     modal.style.justifyContent = 'center';
     modal.style.opacity = '0';
     modal.style.transition = 'opacity 0.3s ease';
+
+    // Lock body scroll
+    const origOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
     modal.innerHTML = `
         <div class="mobile-confirm-box" style="background:#fff; border-radius:30px; padding:32px 24px; width:90%; max-width:340px; transform:translateY(20px); transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow:0 20px 50px rgba(0,0,0,0.2);">
@@ -3651,6 +3658,7 @@ function showConfirmMobile({title, message, confirmText, onConfirm, onCancel, is
     const cleanup = (callback) => {
         modal.style.opacity = '0';
         modal.querySelector('.mobile-confirm-box').style.transform = 'translateY(20px)';
+        document.body.style.overflow = origOverflow;
         setTimeout(() => {
             modal.remove();
             if (callback) callback();
