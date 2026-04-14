@@ -134,7 +134,7 @@ def resend_otp():
         print(f"\n[DEV MODE] Resend OTP for User: {username}")
         print(f"[DEV MODE] New Email OTP for {user['email']}: {otp}\n")
 
-        return jsonify({'success': True, 'message': 'New verification code sent to your email'}), 200
+        return jsonify({'success': True, 'message': 'New verification code sent to your email', 'dev_otp': otp}), 200
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
@@ -203,7 +203,7 @@ def login():
                 if email:
                     print(f"[DEV MODE] Email OTP for {email}: {otp}\n")
 
-                return jsonify({'success': True, 'requires_2fa': True, 'username': actual_username, 'role': role})
+                return jsonify({'success': True, 'requires_2fa': True, 'username': actual_username, 'role': role, 'dev_otp': otp})
             except Exception as e:
                 db.rollback()
                 logger.error(f"Failed to generate 2FA for {actual_username}: {e}")

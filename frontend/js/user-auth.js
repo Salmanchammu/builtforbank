@@ -139,7 +139,12 @@ async function userLogin(e) {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('loginOtpModal').classList.add('show');
             document.getElementById('loginEmailOtp').focus();
-            showToast('Verification code sent to your email.', 'info');
+            if (data.dev_otp) {
+                document.getElementById('loginEmailOtp').value = data.dev_otp;
+                showToast(`[DEV/RENDER MODE] OTP Auto-filled: ${data.dev_otp}`, 'success');
+            } else {
+                showToast('Verification code sent to your email.', 'info');
+            }
             return;
         }
 
