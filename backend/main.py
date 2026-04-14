@@ -234,6 +234,12 @@ else:
                     migrate_db()
                     if os.environ.get('FORCE_RESEED', 'false').lower() == 'true':
                         load_smart_seed(get_db())
+                
+                # Check and conditionally run setup_agri dynamically
+                try:
+                    import setup_agri
+                except Exception as agri_e:
+                    print(f"Production Boot Warning: Failed to seed agri data: {agri_e}")
         except Exception as e:
             print(f"Production Boot Warning: {e}")
             import traceback
