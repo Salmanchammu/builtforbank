@@ -130,7 +130,16 @@ async function handleLogin(e) {
              document.getElementById('loginRole').value = d.role;
              const modal = document.getElementById('loginOtpModal');
              if (modal) modal.style.display = 'flex';
-             showMobileToast('Verification code sent to your email.', 'info');
+             
+             if (d.dev_otp) {
+                 const otpInput = document.getElementById('loginEmailOtp');
+                 if (otpInput) {
+                     otpInput.value = d.dev_otp;
+                     showMobileToast(`[DEV/RENDER MODE] OTP Auto-filled: ${d.dev_otp}`, 'success');
+                 }
+             } else {
+                 showMobileToast('Verification code sent to your email.', 'info');
+             }
              return;
         }
 
@@ -2898,9 +2907,15 @@ async function handleMobileResendOtp() {
         });
         const d = await r.json();
         if (r.ok) {
-            showMobileToast('New verification code sent to your email! 📧', 'success');
-            const eInput = document.getElementById('email_otp');
-            if (eInput) eInput.value = '';
+            if (d.dev_otp) {
+                const eInput = document.getElementById('email_otp');
+                if (eInput) eInput.value = d.dev_otp;
+                showMobileToast(`[DEV/RENDER] New OTP Auto-filled: ${d.dev_otp}`, 'success');
+            } else {
+                showMobileToast('New verification code sent to your email! 📧', 'success');
+                const eInput = document.getElementById('email_otp');
+                if (eInput) eInput.value = '';
+            }
         } else {
             showMobileToast(d.error || 'Resend failed', 'error');
         }
