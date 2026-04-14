@@ -1109,6 +1109,9 @@ function renderCardsPage() { renderCards(); renderCardRequestsList(); }
 function renderCards() {
     const el = $id('cardsList'); if (!el) return;
     if (!state.cards.length) {
+        if (state.cardRequests && state.cardRequests.length > 0 && state.cardRequests.some(r => r.status === 'pending' || r.status === 'approved')) {
+            el.innerHTML = ''; return;
+        }
         el.innerHTML = `<div style="text-align:center;padding:3rem;">
             <i class="fas fa-credit-card" style="font-size:2.5rem;color:#9ca3af;margin-bottom:1rem;display:block;"></i>
             <p style="color:#6b7280;margin-bottom:1rem">No cards yet</p>

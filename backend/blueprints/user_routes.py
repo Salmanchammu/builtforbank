@@ -631,8 +631,21 @@ def verify_upi_pin_otp():
 @login_required
 def request_card():
     data = request.json
-    user_id, c_type, acc_id, lim = session['user_id'], data.get('card_type', 'Classic'), data.get('account_id'), data.get('requested_credit_limit')
+    user_id = session['user_id']
+    c_type = data.get('card_type', 'Classic')
+    acc_id = data.get('account_id')
+    lim = data.get('requested_credit_limit') or 0.0
+    
     db = get_db()
+    
+    # Ensure account_id is provided to satisfy NOT NULL constraints
+    if not acc_id:
+        acc = db.execute('SELECT id FROM accounts WHERE user_id = ? ORDER BY id ASC LIMIT 1', (user_id,)).fetchone()
+        if acc:
+            acc_id = acc['id']
+        else:
+            return jsonify({'error': 'No active account found. Please open an account first.'}), 400
+
     try:
         db.execute('INSERT INTO card_requests (user_id, account_id, card_type, requested_credit_limit, status) VALUES (?, ?, ?, ?, "pending")',
                   (user_id, acc_id, c_type, lim))
