@@ -1697,7 +1697,7 @@ System-wide admin dashboard (**2436 lines**) with user/staff/admin CRUD, salary 
 ## 6.14 Frontend — Face Authentication (`face-auth-fixed.js`)
 
 
-### 6.13.1 Liveness Detection with EAR (Eye Aspect Ratio)
+### 6.14.1 Liveness Detection with EAR (Eye Aspect Ratio)
 
 ```javascript
 class FaceAuthManager {
@@ -3132,54 +3132,52 @@ async function loadBankLocations() {
 # CHAPTER-7
 
 ## 7.1 Introduction
-Software testing is an investigation conducted to provide stakeholders with information about the quality of the product or service under test. Testing has been defined as the process of analyzing a software item to detect the differences between existing and required conditions and to evaluate the features of the software item. Software testing is the process used to assess the quality of computer software.
+For a financial application like Smart Bank, rigorous testing is not optional — it is the backbone of trust. Every module in the platform, from the biometric Face Login engine (`face-api.js`) to the multi-currency fund transfer pipeline, must be systematically challenged under both expected and hostile input conditions before it can be considered production-ready.
 
-It involves operation of a system or application under controlled conditions and evaluating the results. The controlled conditions should include both normal and abnormal conditions. Testing should intentionally attempt to make things go wrong to determine if things happen when they should. It is oriented to 'detection'.
+The testing strategy for Smart Bank was designed around two core principles. First, **verification** — ensuring that each API endpoint, database interaction, and frontend workflow adheres precisely to the technical specifications outlined in Chapter 2 (SRS). Second, **validation** — confirming that the end-to-end user experience satisfies the real-world banking expectations of retail customers, agricultural account holders, and administrative staff.
 
-Software testing has three main purposes:
-- The verification process confirms that the software meets its technical specifications. A "specification" is a description of a function in terms of a measurable output value given a specific input value under specific preconditions.
-- The validation process confirms that the software meets the business requirements.
-- A defect is a variance between the expected and actual result. The defect's ultimate source may be traced to a fault introduced in the specification, design, or development phases. Not all the defects will necessarily result in failures.
+Given the multi-layered architecture of Smart Bank (9 Flask Blueprints, 40+ REST endpoints, 25+ database tables, and 3 distinct role-based dashboards), testing was conducted at four progressive stages:
+- **Black-box testing:** Treating each module as a sealed unit, inputs were supplied through the frontend forms and API payloads, and only the resulting HTTP responses, UI state changes, and database mutations were evaluated — without inspecting the internal Flask route logic.
+- **White-box testing:** The internal Python route handlers, SQLite query construction, and JavaScript DOM manipulation logic were directly examined to verify code coverage across conditional branches (e.g., loan penalty edge cases, biometric threshold comparisons, and daily transfer limit bypass attempts).
 
-There are two types of software testing:
-- **Black box testing:** Internal system design is not considered in this type of testing. Tests are based on requirements and functionality.
-- **White box testing:** This testing is based on knowledge of thawing internal logic of an application's code. Also known as glass box testing. Internal software and code working should be known for this type of testing. Tests are based on coverage of code statements, branches, paths and conditions.
-
-A test case is a software testing document, which consists of event, action, input, output, expected result and actual result. Clinically defined a test case is an input and an expected result. This can be pragmatic as 'for condition x your derived result is y'; whereas other test cases describe in more detail the input scenario and what results might be expected. It can occasionally be a series of steps but one with expected results or expected outcome. A test case should also contain a place for the actual result. White box testing is applicable at the unit, integration and system levels of the software testing process.
+Each test case documented in this chapter follows a structured format: a unique identifier (e.g., `TC-PAY-5`), a specific scenario description, the expected outcome based on the SRS, and a pass/fail status determined against the actual system behavior.
 
 ## 7.2 Testing Objectives
-- Finding defects which may get created by the programmer while developing the software.
-- Gaining confidence in and providing information about the level of quality.
-- To prevent defects.
-- To make sure that the end results meets the business and user requirements.
-- To ensure that it satisfies the BRS that is Business Requirement Specification and SRS that is System Requirement Specification.
+The primary goals of the Smart Bank testing phase were:
+- To detect and resolve defects introduced during the Flask Blueprint development and JavaScript SPA integration stages.
+- To validate that all 3 user roles (Customer, Staff, Admin) experience secure, role-isolated access to their respective dashboards and API endpoints.
+- To stress-test the financial arithmetic engine — ensuring that fund transfers, loan penalty calculations (0.1% daily), and multi-currency conversions (USD/EUR/GBP → INR) produce mathematically precise results with zero rounding drift.
+- To confirm full compliance with the Security Requirements defined in Chapter 2 (session timeout, input sanitization, biometric face descriptor encryption, and XSS/SQL injection prevention).
+- To verify that the specialized Agriculture Hub, Crop Marketplace, and Savings Pockets modules operate correctly under concurrent user scenarios.
 
 ## 7.3 Testing Methods
-System testing is the stage of implementation. This is to check whether the system works accurately and efficiently before live operation commences. Testing is vital to the success of the system. The candidate system is subject to a variety of tests: online response, volume, stress, recovery, security and usability tests. A series of tests are performed for the proposed system to be ready for user acceptance testing.
+Smart Bank was subjected to a comprehensive multi-stage testing pipeline prior to deployment on Render.com. This pipeline included functional API testing (using direct HTTP fetch calls against all 40+ endpoints), UI interaction testing (validating form workflows, modal transitions, and toast notification accuracy across Desktop and Mobile dashboards), security penetration testing (SQL injection, XSS payloads, session hijacking attempts), and performance profiling (response latency under concurrent database queries with SQLite WAL mode enabled).
 
 ## 7.4 Testing Steps
 
 ### 7.4.1 Unit Testing
-Unit testing focuses efforts on the smallest unit of software design. This is known as module testing. The modules are tested separately. The test is carried out during the programming stage itself. In this step, each module is found to be working satisfactory as regards to the expected output from the module.
+Each Flask Blueprint (`auth_routes.py`, `user_routes.py`, `staff_routes.py`, `admin_routes.py`, `agri_routes.py`, `marketplace_routes.py`) was tested independently by invoking individual route handlers with controlled JSON payloads. For example, the `/api/auth/signup` endpoint was tested with valid inputs, duplicate usernames, weak passwords, and malformed email formats — each in isolation — to confirm that the route handler returned the correct HTTP status code and error message without side effects on other modules.
 
 ### 7.4.2 Integration Testing
-Data can be lost across an interface. One module can have an adverse effect on another, sub functions, when combined, may not be linked in desired manner in major functions. Integration testing is a systematic approach for constructing the program structure, while at the same time conducting test to uncover errors associated within the interface. The objective is to take unit tested modules and build program structure. All the modules are combined and tested as a whole.
+After unit testing, the cross-module data flow was validated end-to-end. A critical integration path — User Registration → OTP Verification → Account Opening (KYC) → Staff Approval → Card Request → Staff Card Issuance → User Dashboard Card Rendering — was executed as a single continuous workflow. This exposed interface-level issues such as the `NOT NULL` constraint violation in `service_applications.amount` during card requests, which was resolved by defaulting the amount field to `0.0` for non-monetary applications.
 
-### 7.4.3 Validation
-At the culmination of the integration testing, Software is completely assembled as a package. Interfacing errors have been uncovered and corrected and a final series of software tests begin in validation testing. Validation testing can be defined in many ways, but a simple definition is that the validation succeeds when the software functions in a manner that is expected by the customer. After the validation test has been conducted, one of the three possible conditions exist.
-- The function or performance characteristics conform to specification and are accepted.
-- A deviation from specification is uncovered and a deficiency list is created.
-- Proposed system under consideration has been tested by using a validation test and found to be working satisfactory.
+### 7.4.3 Validation Testing
+The fully assembled Smart Bank platform was validated against the functional requirements from Chapter 2. Key validation checks included: `FR1` — biometric face recognition completing within 2 seconds; `FR2` — PDF statement generation correctly filtering by current month, last 6 months, or full history; and `FR3` — role-based dashboard isolation ensuring that a `user` session token cannot access `/api/admin/dashboard` or `/api/staff/customers` endpoints.
 
 ### 7.4.4 Output Testing
-After performing the validation testing, the next step is output testing of the proposed system, since no system could be useful if it does not produce the required output in a specific format. The output format on the screen is found to be correct. The format was designed in the system design time according to the user needs. For the hard copy also; the output comes as per the specified requirements by the user. Hence output testing did not result in any correction for the system.
+All system outputs were verified for correctness and professional formatting:
+- **PDF Bank Statements**: Generated via ReportLab with proper maroon-themed headers, account summary tables, and color-coded credit/debit transaction rows.
+- **3D Map Rendering**: MapLibre GL correctly plotted Branch and ATM markers with photo popups at the GPS coordinates stored in the `branch_locations` database table.
+- **Chart.js Analytics**: Spending analytics charts on the User Dashboard accurately reflected the transaction history data fetched from the `/api/user/dashboard` endpoint.
+- **Toast Notifications**: All 30+ unique toast messages across Desktop and Mobile interfaces displayed the correct severity level (success/error/info/warning).
 
 ### 7.4.5 User Acceptance Testing
-User acceptance of a system is the key factor for the success of any system. The system under consideration is tested for the user acceptance by constantly keeping in touch with the prospective system users at the time of developing and making changes whenever required. This is done in regard to the following point:
-- **Input screen design:** Ensuring user and staff login screens (Face Auth and Password forms) are intuitive and securely handled.
-- **Output screen design:** Validating the glassmorphic layout of the Smart Bank Dashboards (Admindash, Staffdash, Userdash).
-- **Online message should be guide to the user:** Toast notifications accurately guide users on conditions like "Insufficient Funds" or "OTP Sent successfully".
-- **Format of reports and other outputs:** Validating that the generated PDF Bank Statements and MapLibre 3D outputs format correctly according to modern banking standards.
+The Smart Bank platform was continuously evaluated with prospective end-users throughout the development cycle. Key acceptance criteria included:
+- **Login Experience:** Both the Desktop glassmorphic login (`user.html`) and the Mobile PWA login (`mobile-auth.html`) were tested for intuitive flow, including the cached user hydration ("Welcome Back" section) and the Face Login biometric modal.
+- **Dashboard Usability:** The User Dashboard SPA was validated for seamless navigation between the Home, Cards, Transfers, Loans, Savings, and Map sections without page reloads.
+- **Mobile Responsiveness:** The bottom navigation bar, balance "Eye Toggle" privacy feature, and QR Scanner were tested on iPhone and Android devices to ensure touch targets met the minimum 44px accessibility standard.
+- **Staff Workflow:** Bank Staff confirmed that the KYC approval queue, cash operations (Add/Withdraw/Transfer), and biometric attendance clock-in/out workflows matched their operational expectations.
+- **Report Accuracy:** Generated PDF reports were cross-referenced against raw database records to confirm zero discrepancy in financial figures.
 
 ---
 
@@ -3341,51 +3339,51 @@ The User Interface of Smart Bank was strictly designed with a "Premium White" gl
 *(Shows interactive progress bars tracking user savings vaults alongside the floating AI customer support window.)*  
 ![Savings & Chatbot](images/savings_chatbot.png)
 
-### 8.1.3 Mobile Interface (PWA) (PWA)
-**Figure 8.1: Mobile Dashboard & Balance Masking**  
+### 8.1.3 Mobile Interface (PWA)
+**Figure 8.7: Mobile Dashboard & Balance Masking**  
 *(Captures the responsive bottom-navigation design and the "Eye Toggle" hiding the live balance.)*  
 ![Mobile Dashboard](images/mobile_dash_debug.png)
 
 ### 8.1.4 Staff & Back-Office Operations
-**Figure 8.2: Staff Dashboard Main View**  
+**Figure 8.8: Staff Dashboard Main View**  
 *(Displays the comprehensive middle-office queue where staff review overall bank activities and navigate modules.)*  
 ![Staff Dashboard Main](images/01_dashboard_main.png)
 
-**Figure 8.3: Staff KYC Approval Queue**  
+**Figure 8.9: Staff KYC Approval Queue**  
 *(Details the review process for verifying Aadhar/PAN cards and pending customer registrations.)*  
 ![Staff KYC Approvals](images/02_tab_3_KYC_Approvals.png)
 
-**Figure 8.4: Staff Customers View**  
+**Figure 8.10: Staff Customers View**  
 *(Lists all active verified banking customers tied to the specific staff regional assignment.)*  
 ![Staff Customers](images/02_tab_1_Customers.png)
 
-**Figure 8.5: Vault Transactions**  
+**Figure 8.11: Vault Transactions**  
 *(Manages physical vault deposits, withdrawals, and inter-branch transfers requested manually at the desk.)*  
 ![Staff Transactions](images/02_tab_4_Transactions.png)
 
-**Figure 8.6: Staff Attendance & Biometrics**  
+**Figure 8.12: Staff Attendance & Biometrics**  
 *(Shows the dashboard interface logging Face Auth validated clock-in and clock-out mechanisms for staff accountability.)*  
 ![Staff Attendance](images/02_tab_5_Attendance.png)
 
 ### 8.1.5 Specialized Portals
-**Figure 8.7: Agriculture Hub**  
+**Figure 8.13: Agriculture Hub**  
 *(A dedicated portal enabling farmers and retail buyers to interact with 7.5% subsidized farming loan markets.)*  
 ![Agri Hub Portal](images/02_tab_12_Agri_Hub.png)
 
-**Figure 8.8: Agriculture Loan Processing**  
+**Figure 8.14: Agriculture Loan Processing**  
 *(Displays satellite RTC-verified farm land loans awaiting staff disbursement into the farmer's core banking account.)*  
 ![Agri Loans](images/02_tab_14_Agri_Loans.png)
 
-**Figure 8.9: Help Desk & Support Settings**  
+**Figure 8.15: Help Desk & Support Settings**  
 *(Shows the integrated Support Desk resolving customer-raised priority tickets and routing AI fallback events.)*  
 ![Support Desk](images/02_tab_11_Support_Desk.png)
 
 ### 8.1.6 Geospatial & Reporting Integrations
-**Figure 8.10: Live MapLibre System Integration**  
+**Figure 8.16: Live MapLibre System Integration**  
 *(Captures the 3D terrain map rendering geo-located Branch and ATM markers overlaying the active region.)*  
 ![Live Map Locator](images/02_tab_16_Live_Map.png)
 
-**Figure 8.11: Dynamic Report Generation**  
+**Figure 8.17: Dynamic Report Generation**  
 *(Highlights the PDF ledger controls exporting active compliance metrics, transactions, and user status reports.)*  
 ![Reports Panel](images/02_tab_9_Reports.png)
 
