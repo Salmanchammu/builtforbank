@@ -11,6 +11,8 @@ with app.app_context():
     # 1. Check if agri buyer already exists
     existing = db.execute("SELECT id FROM agri_buyers WHERE buyer_id = ?", ("agri_test1",)).fetchone()
     if existing:
+        db.execute("UPDATE agri_buyers SET email = 'salmanchamumu+buyer@gmail.com' WHERE id = ?", (existing["id"],))
+        db.commit()
         print("Agri buyer agri_test1 already exists with ID:", existing["id"])
     else:
         hashed = generate_password_hash("Agri123#")
@@ -19,9 +21,10 @@ with app.app_context():
         user_exists = db.execute("SELECT id FROM users WHERE username = ?", ("agri_test1",)).fetchone()
         if not user_exists:
             db.execute("INSERT INTO users (username, password, name, email, phone, status) VALUES (?, ?, ?, ?, ?, ?)",
-                ("agri_test1", hashed, "Agri Test Buyer", "agritest@gmail.com", "9876543210", "active"))
+                ("agri_test1", hashed, "Agri Test Buyer", "salmanchamumu+buyer@gmail.com", "9876543210", "active"))
             user_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
         else:
+            db.execute("UPDATE users SET email = 'salmanchamumu+buyer@gmail.com' WHERE id = ?", (user_exists["id"],))
             user_id = user_exists["id"]
         
         # Create business account
@@ -32,7 +35,7 @@ with app.app_context():
         
         # Create agri buyer
         db.execute("INSERT INTO agri_buyers (buyer_id, password, name, email, phone, business_name, gst_number, status, associated_account_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("agri_test1", hashed, "Agri Test Buyer", "agritest@gmail.com", "9876543210", "FreshFarms Trading", "GST12345678", "active", acc_id))
+            ("agri_test1", hashed, "Agri Test Buyer", "salmanchamumu+buyer@gmail.com", "9876543210", "FreshFarms Trading", "GST12345678", "active", acc_id))
         db.commit()
         print("Created agri buyer: agri_test1 / Agri123# with Business Account", acc_num, "Balance: 50000")
     
@@ -45,9 +48,10 @@ with app.app_context():
         if not farmer_exists:
             farmer_hashed = generate_password_hash("Farmer123#")
             db.execute("INSERT INTO users (username, password, name, email, phone, status) VALUES (?, ?, ?, ?, ?, ?)",
-                ("farmer1", farmer_hashed, "Raju Farmer", "farmer1@gmail.com", "9123456789", "active"))
+                ("farmer1", farmer_hashed, "Raju Farmer", "salmanchamumu+farmer@gmail.com", "9123456789", "active"))
             farmer_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
         else:
+            db.execute("UPDATE users SET email = 'salmanchamumu+farmer@gmail.com' WHERE id = ?", (farmer_exists["id"],))
             farmer_id = farmer_exists["id"]
         
         agr_acc = "AGR" + "".join([str(random.randint(0,9)) for _ in range(12)])
