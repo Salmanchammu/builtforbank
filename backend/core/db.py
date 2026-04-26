@@ -42,6 +42,10 @@ def get_db():
                     if 'AUTOINCREMENT' in sql.upper():
                         sql = sql.replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')
                         sql = sql.replace('AUTOINCREMENT', '')
+                    # Fix SQLite BOOLEAN DEFAULT 0 for Postgres
+                    sql = sql.replace('BOOLEAN DEFAULT 0', 'BOOLEAN DEFAULT FALSE')
+                    # Fix Postgres Double Quotes for DEFAULT values
+                    sql = sql.replace('DEFAULT "unknown"', "DEFAULT 'unknown'")
                     self._cursor.execute(sql, params)
                     return self._cursor
                 def commit(self): self.conn.commit()
