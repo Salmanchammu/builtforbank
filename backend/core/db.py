@@ -38,6 +38,10 @@ def get_db():
                     # Convert INSERT OR IGNORE to ON CONFLICT DO NOTHING (Postgres style)
                     if 'INSERT OR IGNORE' in sql.upper():
                         sql = sql.upper().replace('INSERT OR IGNORE', 'INSERT') + ' ON CONFLICT DO NOTHING'
+                    # Convert SQLite AUTOINCREMENT to Postgres SERIAL
+                    if 'AUTOINCREMENT' in sql.upper():
+                        sql = sql.replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')
+                        sql = sql.replace('AUTOINCREMENT', '')
                     self._cursor.execute(sql, params)
                     return self._cursor
                 def commit(self): self.conn.commit()
