@@ -138,7 +138,7 @@ def create_user():
 
         if email:
             subject = "Welcome to Smart Bank!"
-            body = f"<h3>Welcome {name}</h3><p>Your account has been created. Username: {username}, Password: {password}</p>"
+            body = f"<h3>Welcome {name}</h3><p>Your Smart Bank account has been created by an administrator. Username: <b>{username}</b></p><p>Please use the 'Forgot Password' option on the login page to set your password.</p>"
             send_email_async(email, subject, body)
 
         log_audit(session.get('admin_id') or session.get('staff_id'), session.get('role'), 'CREATE_USER', f'Created user: {username}')

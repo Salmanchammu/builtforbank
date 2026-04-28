@@ -7,9 +7,14 @@ def validate_email(email):
 
 def validate_password(password):
     if not password: return False, "Password is required"
+    if len(password) < 9:
+        return False, "Password must be at least 9 characters long"
     if not password[0].isupper():
         return False, "Password must start with an uppercase letter"
-        
+    if not any(c.isdigit() for c in password):
+        return False, "Password must contain at least one number"
+    if not any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?' for c in password):
+        return False, "Password must contain at least one special character (!@#$%^&*)"
     return True, ""
 
 def validate_phone(phone):

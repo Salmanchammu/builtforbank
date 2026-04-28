@@ -241,6 +241,11 @@ def transfer_money():
     db = get_db()
     user_id = session['user_id']
     
+    # Security: Check if user transactions are restricted by staff/admin
+    user_check = db.execute('SELECT transact_restricted FROM users WHERE id = ?', (user_id,)).fetchone()
+    if user_check and user_check['transact_restricted']:
+        return jsonify({'error': 'Your transactions have been temporarily restricted. Please contact support.'}), 403
+    
     # Calculate INR amount based on currency
     exchange_rate = EXCHANGE_RATES.get(currency, 1.0)
     inr_amount = round(amount_raw * exchange_rate, 2)
@@ -330,6 +335,11 @@ def upi_pay():
     db = get_db()
     user_id = session['user_id']
     
+    # Security: Check if user transactions are restricted
+    user_restrict = db.execute('SELECT transact_restricted FROM users WHERE id = ?', (user_id,)).fetchone()
+    if user_restrict and user_restrict['transact_restricted']:
+        return jsonify({'error': 'Your transactions have been temporarily restricted. Please contact support.'}), 403
+    
     # 1. Verify UPI PIN
     user = db.execute('SELECT upi_pin, name, email, phone FROM users WHERE id = ?', (user_id,)).fetchone()
     if not user or not user['upi_pin']:
@@ -373,11 +383,19 @@ def upi_pay():
         src = db.execute('SELECT * FROM accounts WHERE id = ? AND balance >= ?', (src_acc['id'], inr_amount)).fetchone()
         if not src: return jsonify({'error': 'Insufficient funds'}), 400
         
-        # Check Limits
+        # Check Daily Limits (same enforcement as regular transfer)
         limit = src.get('daily_limit') or 200000.00
         if currency != 'INR': limit = min(limit, 50000.00)
         
-        # (Limit check omitted here for brevity in this sub-route, assuming transfer_money logic is primary)
+        today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+        today_spent_row = db.execute('''
+            SELECT SUM(t.amount) as total FROM transactions t JOIN accounts a ON t.account_id = a.id 
+            WHERE a.user_id = ? AND t.type = 'debit' AND t.transaction_date >= ?
+        ''', (user_id, today_start)).fetchone()
+        today_spent = float(today_spent_row['total'] or 0) if today_spent_row else 0
+        
+        if today_spent + inr_amount > limit:
+            return jsonify({'error': f'Daily limit of ₹{limit:,.0f} exceeded. Already spent ₹{today_spent:,.0f} today.'}), 400
         # Actually, let's just do it right.
         
         ref = f"UPI{secrets.token_hex(8).upper()}"
@@ -559,7 +577,8 @@ def request_upi_pin_otp():
             return jsonify({'error': 'No email address linked to your account.'}), 400
         
         # Generate OTP
-        otp = str(random.randint(100000, 999999))
+        # Generate secure OTP
+        otp = str(100000 + secrets.randbelow(900000))
         
         # Use datetime for sqlite, which often handles isoformat or integers.
         # auth_routes.py sets otp_expiry as: datetime.now(timezone.utc) + timedelta(minutes=10)

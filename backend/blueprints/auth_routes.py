@@ -23,6 +23,38 @@ def send_sms_async(p, m):
 
 logger = logging.getLogger('smart_bank.auth')
 
+# ── Brute-force protection ────────────────────────────────────────────
+# Track failed login attempts per IP (in-memory, resets on server restart)
+_login_attempts = {}  # {ip: {'count': int, 'lockout_until': datetime}}
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_DURATION = timedelta(minutes=15)
+
+def check_brute_force(ip):
+    """Returns True if the IP is locked out."""
+    if ip in _login_attempts:
+        entry = _login_attempts[ip]
+        if entry.get('lockout_until') and datetime.now() < entry['lockout_until']:
+            return True
+        if entry.get('lockout_until') and datetime.now() >= entry['lockout_until']:
+            del _login_attempts[ip]  # Lockout expired
+    return False
+
+def record_failed_attempt(ip):
+    """Record a failed login attempt and lock out if threshold exceeded."""
+    if ip not in _login_attempts:
+        _login_attempts[ip] = {'count': 0}
+    _login_attempts[ip]['count'] += 1
+    if _login_attempts[ip]['count'] >= MAX_LOGIN_ATTEMPTS:
+        _login_attempts[ip]['lockout_until'] = datetime.now() + LOCKOUT_DURATION
+        logger.warning(f"IP {ip} locked out for {LOCKOUT_DURATION.seconds // 60} minutes after {MAX_LOGIN_ATTEMPTS} failed attempts")
+
+def clear_failed_attempts(ip):
+    """Clear failed attempts on successful login."""
+    _login_attempts.pop(ip, None)
+
+def generate_secure_otp():
+    """Generate a cryptographically secure 6-digit OTP."""
+    return str(100000 + secrets.randbelow(900000))
 
 
 # Validation functions
@@ -57,7 +89,7 @@ def signup():
     
     try:
         hashed = generate_password_hash(password)
-        otp = str(random.randint(100000, 999999))
+        otp = generate_secure_otp()
         otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
         
         cursor = db.execute('INSERT INTO users (username, password, email, phone, name, status, otp, phone_otp, otp_expiry, device_type) VALUES (?, ?, ?, ?, ?, "pending", ?, NULL, ?, ?)',
@@ -122,7 +154,7 @@ def resend_otp():
         return jsonify({'success': True, 'message': 'Account is already active'}), 200
     
     try:
-        otp = str(random.randint(100000, 999999))
+        otp = generate_secure_otp()
         otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
         db.execute('UPDATE users SET otp = ?, phone_otp = NULL, otp_expiry = ? WHERE id = ?', (otp, otp_expiry, user['id']))
         db.commit()
@@ -149,6 +181,13 @@ def login():
     
     db = get_db()
     user, role = None, requested_role
+    
+    # Security: Brute-force protection
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if client_ip and ',' in client_ip:
+        client_ip = client_ip.split(',')[0].strip()
+    if check_brute_force(client_ip):
+        return jsonify({'error': 'Too many failed attempts. Please try again in 15 minutes.'}), 429
 
     if requested_role == 'user':
         user = db.execute('SELECT * FROM users WHERE username = ? OR email = ?', (username_input, username_input)).fetchone()
@@ -160,7 +199,9 @@ def login():
          user = db.execute('SELECT * FROM agri_buyers WHERE buyer_id = ? OR email = ?', (username_input, username_input)).fetchone()
     
     role = requested_role
-    if not user: return jsonify({'error': 'Invalid credentials'}), 401
+    if not user:
+        record_failed_attempt(client_ip)
+        return jsonify({'error': 'Invalid credentials'}), 401
     if user['status'] == 'pending': return jsonify({'error': 'Account pending activation/approval', 'unverified': True, 'username': username_input}), 403
     
     auth_method = None
@@ -172,15 +213,22 @@ def login():
     if not auth_method and password and check_password_hash(user['password'], password):
         auth_method = 'password'
         
+    if not auth_method:
+        record_failed_attempt(client_ip)
+        return jsonify({'error': 'Invalid credentials'}), 401
+        
+    # Authentication successful — clear failed attempts
+    clear_failed_attempts(client_ip)
+        
     if auth_method:
         user_dict = dict(user)
         actual_username = user_dict.get('username') or user_dict.get('staff_id') or user_dict.get('buyer_id')
         table_map = {'user': 'users', 'staff': 'staff', 'admin': 'admins', 'agri_buyer': 'agri_buyers'}
         table = table_map.get(role, 'users')
 
-        if role in ['user', 'staff', 'agri_buyer']:
+        if role in ['user', 'staff', 'agri_buyer', 'admin']:
             try:
-                otp = str(random.randint(100000, 999999))
+                otp = generate_secure_otp()
                 otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
                 
                 try:
@@ -255,9 +303,9 @@ def verify_login():
         return jsonify({'error': 'Username and email OTP are required'}), 400
         
     db = get_db()
-    table_map = {'user': 'users', 'staff': 'staff', 'agri_buyer': 'agri_buyers'}
+    table_map = {'user': 'users', 'staff': 'staff', 'agri_buyer': 'agri_buyers', 'admin': 'admins'}
     table = table_map.get(role, 'users')
-    uname_col = 'username' if role == 'user' else ('staff_id' if role == 'staff' else 'buyer_id')
+    uname_col = 'username' if role in ['user', 'admin'] else ('staff_id' if role == 'staff' else 'buyer_id')
     
     user = db.execute(f'SELECT * FROM {table} WHERE {uname_col} = ?', (username,)).fetchone()
     if not user: return jsonify({'error': 'User not found'}), 404
@@ -280,6 +328,7 @@ def verify_login():
         session['name'] = user['name']
         if role == 'staff': session['staff_id'] = user['id']
         elif role == 'agri_buyer': session['buyer_id'] = user['id']
+        elif role == 'admin': session['admin_id'] = user['id']
 
         try:
             db.execute(f'UPDATE {table} SET last_login = ? WHERE id = ?', (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), user['id']))
