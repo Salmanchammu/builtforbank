@@ -17,6 +17,8 @@
     <link rel="stylesheet" href="css/mobile-modern.css">
     <!-- Device Detector -->
     <script src="js/device-detector.js" data-auto-redirect></script>
+    <!-- Face Auth -->
+    <link rel="stylesheet" href="css/face-auth-fixed.css">
 </head>
 
 <body>
@@ -88,6 +90,19 @@
                 </button>
             </form>
 
+            <!-- Divider -->
+            <div class="auth-divider">
+                <span>or register with</span>
+            </div>
+
+            <!-- Face Registration Button -->
+            <button onclick="openFaceRegistration()" type="button" class="btn-login-modern" id="faceRegBtn"
+                style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 12px; border: 1.5px solid rgba(255,255,255,0.15); box-shadow: 0 8px 25px rgba(15,52,96,0.3);">
+                <i class="fas fa-camera" style="font-size: 16px;"></i>
+                <span style="font-weight: 700; letter-spacing: 0.3px;">Register Face ID</span>
+            </button>
+            <p style="text-align: center; font-size: 11px; color: #999; margin-top: 0;">Setup biometric login for faster access</p>
+
             <!-- Auth Links -->
             <div class="auth-links-modern" style="justify-content: center;">
                 <a href="mobile-auth.html">Already have an account? <span style="color: var(--primary-maroon); font-weight: 800;">Login</span></a>
@@ -151,6 +166,7 @@
 
     <!-- Scripts -->
     <script src="js/api-config.js"></script>
+    <script src="js/face-auth-fixed.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/mobile-logic.js"></script>
     <!-- Language Switcher -->

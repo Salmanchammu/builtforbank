@@ -272,30 +272,56 @@ def update_service_application(app_id):
 
             elif app_data['service_type'] == 'Card':
                 # Handle Card Issuance
-                card_req = db.execute('SELECT * FROM card_requests WHERE user_id = ? AND account_id = ? AND status = "pending" ORDER BY request_date DESC LIMIT 1',
-                                    (app_data['user_id'], app_data['account_id'])).fetchone()
+                # Fix: use COALESCE to handle NULL account_id matching
+                if app_data['account_id']:
+                    card_req = db.execute('SELECT * FROM card_requests WHERE user_id = ? AND account_id = ? AND status = "pending" ORDER BY request_date DESC LIMIT 1',
+                                        (app_data['user_id'], app_data['account_id'])).fetchone()
+                else:
+                    card_req = db.execute('SELECT * FROM card_requests WHERE user_id = ? AND status = "pending" ORDER BY request_date DESC LIMIT 1',
+                                        (app_data['user_id'],)).fetchone()
+                
+                # Determine account_id from card_req or fallback
+                target_account_id = app_data['account_id']
+                if card_req and card_req['account_id']:
+                    target_account_id = card_req['account_id']
+                if not target_account_id:
+                    fallback_acc = db.execute('SELECT id FROM accounts WHERE user_id = ? ORDER BY id ASC LIMIT 1', (app_data['user_id'],)).fetchone()
+                    if fallback_acc:
+                        target_account_id = fallback_acc['id']
+
+                # Generate Card Details
+                c_num = f"4{''.join([str(random.randint(0, 9)) for _ in range(15)])}" # Mock Visa
+                cvv = str(random.randint(100, 999))
+                expiry = (datetime.now() + timedelta(days=365*5)).strftime("%Y-%m-%d") # 5 years
+                
+                card_type = card_req['card_type'] if card_req else (app_data['product_name'] or 'Classic')
+                credit_limit = card_req['requested_credit_limit'] if card_req else (app_data['amount'] or 0)
+                
+                # Insert into cards table
+                db.execute('''
+                    INSERT INTO cards (user_id, account_id, card_number, card_type, card_holder_name, expiry_date, cvv, credit_limit, available_credit, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, "active")
+                ''', (app_data['user_id'], target_account_id, c_num, card_type, app_data['user_name'], expiry, cvv, credit_limit, credit_limit))
+                
+                # Update card_requests if exists
                 if card_req:
-                    # Generate Card Details
-                    c_num = f"4{''.join([str(random.randint(0, 9)) for _ in range(15)])}" # Mock Visa
-                    cvv = str(random.randint(100, 999))
-                    expiry = (datetime.now() + timedelta(days=365*5)).strftime("%Y-%m-%d") # 5 years
-                    
-                    # Insert into cards table
-                    db.execute('''
-                        INSERT INTO cards (user_id, account_id, card_number, card_type, card_holder_name, expiry_date, cvv, credit_limit, available_credit, status)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, "active")
-                    ''', (app_data['user_id'], app_data['account_id'], c_num, card_req['card_type'], app_data['user_name'], expiry, cvv, card_req['requested_credit_limit'], card_req['requested_credit_limit']))
-                    
-                    # Update card_requests
                     db.execute('UPDATE card_requests SET status = "approved", processed_date = CURRENT_TIMESTAMP, processed_by = ? WHERE id = ?', 
                               (session.get('staff_id'), card_req['id']))
-                    
-                    logger.info(f"Card Issued: card={c_num[-4:]} for user={app_data['user_id']}")
+                else:
+                    # Update ALL pending card_requests for this user (catch-all)
+                    db.execute('UPDATE card_requests SET status = "approved", processed_date = CURRENT_TIMESTAMP, processed_by = ? WHERE user_id = ? AND status = "pending"',
+                              (session.get('staff_id'), app_data['user_id']))
+                
+                logger.info(f"Card Issued: card={c_num[-4:]} type={card_type} for user={app_data['user_id']}")
 
         elif status == 'rejected':
             if app_data['service_type'] == 'Card':
-                db.execute('UPDATE card_requests SET status = "rejected", processed_date = CURRENT_TIMESTAMP, processed_by = ?, staff_notes = ? WHERE user_id = ? AND account_id = ? AND status = "pending"',
-                          (session.get('staff_id'), reason, app_data['user_id'], app_data['account_id']))
+                if app_data['account_id']:
+                    db.execute('UPDATE card_requests SET status = "rejected", processed_date = CURRENT_TIMESTAMP, processed_by = ?, staff_notes = ? WHERE user_id = ? AND account_id = ? AND status = "pending"',
+                              (session.get('staff_id'), reason, app_data['user_id'], app_data['account_id']))
+                else:
+                    db.execute('UPDATE card_requests SET status = "rejected", processed_date = CURRENT_TIMESTAMP, processed_by = ?, staff_notes = ? WHERE user_id = ? AND status = "pending"',
+                              (session.get('staff_id'), reason, app_data['user_id']))
 
         msg_title = f"{app_data['service_type']} Application - {status.capitalize()}"
         msg_body = f"Your application for {app_data['product_name']} (Ref: #{app_id}) has been {status}."

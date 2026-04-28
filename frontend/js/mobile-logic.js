@@ -1682,22 +1682,16 @@ function toggleBalanceVisibility(event) {
     
     console.log('[Balance] Toggle triggered');
     
-    // If balance is currently VISIBLE → just hide it (no PIN needed)
-    if (window.isBalanceVisible) {
-        window.isBalanceVisible = false;
-        try { localStorage.setItem('bank_balance_visible_pref', 'false'); } catch(e) {}
-        updateBalanceDisplay();
-        
-        const btn = document.getElementById('toggleBalanceBtn');
-        if (btn) {
-            btn.innerHTML = '<i class="fas fa-eye"></i>';
-            btn.classList.remove('active');
-        }
-        return;
-    }
+    // Simply toggle balance visibility without PIN
+    window.isBalanceVisible = !window.isBalanceVisible;
+    try { localStorage.setItem('bank_balance_visible_pref', String(window.isBalanceVisible)); } catch(e) {}
+    updateBalanceDisplay();
     
-    // If balance is HIDDEN → require PIN to show
-    openPinModal();
+    const btn = document.getElementById('toggleBalanceBtn');
+    if (btn) {
+        btn.innerHTML = window.isBalanceVisible ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+        btn.classList.toggle('active', window.isBalanceVisible);
+    }
 }
 
 /* ── Balance PIN System ── */

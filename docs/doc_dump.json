@@ -1,0 +1,4892 @@
+[
+  {
+    "idx": 0,
+    "style": "Heading 1",
+    "text": "SMART BANK – Advanced Digital Banking & Biometric Security Platform"
+  },
+  {
+    "idx": 1,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 2,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 3,
+    "style": "Heading 2",
+    "text": "TITLE OF THE PROJECT"
+  },
+  {
+    "idx": 4,
+    "style": "Body Text",
+    "text": "\"SMART BANK\" – Advanced Digital Banking & Biometric Security Platform"
+  },
+  {
+    "idx": 5,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 6,
+    "style": "Heading 2",
+    "text": "INTRODUCTION"
+  },
+  {
+    "idx": 7,
+    "style": "Body Text",
+    "text": "For this project, I built \"Smart Bank\" entirely from scratch. It is basically a web application that acts like a real bank but runs locally on your machine. I wanted to make sure it felt modern and safe, so I added features where people can check their money, look at past transfers, and even log in using just their webcam instead of a password."
+  },
+  {
+    "idx": 8,
+    "style": "Body Text",
+    "text": "The coolest part of the entire project is definitely the Face Login. I integrated a library called face-api.js which literally scans your face through the browser to log you in. I also spent a lot of time on the design, making it look like frosted glass (glassmorphism) with a clean white layout. I even added a dark mode button because nobody likes looking at a bright white screen at night. I also added a 3D map feature using MapLibre. If you want to find an ATM, it actually loads a 3D view of the city with buildings sticking out, which looks way better than a flat Google Map."
+  },
+  {
+    "idx": 9,
+    "style": "Body Text",
+    "text": "I didn't want to just stop at basic banking. I added a \"Pockets\" feature so users can save money for things like a new phone or a trip. There is also a whole section just for farmers called the Agri-Hub. Farmers can apply for cheap loans and even sell their crops directly to buyers on the site. On top of that, I threw in some simulated mutual funds, spending graphs using Chart.js, and a fake UPI scanner so you can pretend to scan QR codes with your phone."
+  },
+  {
+    "idx": 10,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 11,
+    "style": "Heading 2",
+    "text": "OBJECTIVES"
+  },
+  {
+    "idx": 12,
+    "style": "List Paragraph",
+    "text": "Secure Biometric Authentication: Use face-api.js for face recognition login, which delivers a secure alternative to traditional passwords."
+  },
+  {
+    "idx": 13,
+    "style": "List Paragraph",
+    "text": "Interactive Balance Privacy: Add an \"Eye\" toggle button so users can hide or show their account balance for better privacy."
+  },
+  {
+    "idx": 14,
+    "style": "List Paragraph",
+    "text": ""
+  },
+  {
+    "idx": 15,
+    "style": "List Paragraph",
+    "text": "Advanced Automated Filtering: Allow customers to filter their transaction history and download PDF account statements (Current Month, Last 6 Months, or Full History)."
+  },
+  {
+    "idx": 16,
+    "style": "List Paragraph",
+    "text": "Administrative Workflow Management: streamline how bank staff and admins approve new accounts, debit cards, and loan applications."
+  },
+  {
+    "idx": 17,
+    "style": "List Paragraph",
+    "text": "Satellite-Verified Agriculture Hub: Offer special 7.5% p.a. farm loans to farmers, verified using satellite maps and land checks."
+  },
+  {
+    "idx": 18,
+    "style": "List Paragraph",
+    "text": "Incorporated Agri-Commerce Marketplace: Provide a marketplace section where farmers can list and sell their crops directly to buyers."
+  },
+  {
+    "idx": 19,
+    "style": "List Paragraph",
+    "text": "Intelligent Savings Strategy: Create a Pockets (Savings Goals) feature to help users save money for specific targets."
+  },
+  {
+    "idx": 20,
+    "style": "List Paragraph",
+    "text": "Exhaustive Investment Ecosystem: Include simulated options for Fixed Deposits (8.5% p.a.), Mutual Funds, and Life Insurance."
+  },
+  {
+    "idx": 21,
+    "style": "List Paragraph",
+    "text": "Dynamic Personal Finance Analytics: Show users a visual breakdown of their income and expenses using interactive Chart.js graphs."
+  },
+  {
+    "idx": 22,
+    "style": "List Paragraph",
+    "text": "Simulated UPI Ecosystem: Allow users to practice scanning QR codes and making simulated UPI payments with instant receipts."
+  },
+  {
+    "idx": 23,
+    "style": "List Paragraph",
+    "text": "Customer Care & Ticketing: Add a customer support ticket system where users can ask for help and staff can reply."
+  },
+  {
+    "idx": 24,
+    "style": "List Paragraph",
+    "text": "Multi-Tier Security Protocol: guarantee user data is kept safe using encrypted sessions, PIN codes, and proper transaction logs."
+  },
+  {
+    "idx": 25,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 26,
+    "style": "Heading 2",
+    "text": "PROJECT CATEGORY"
+  },
+  {
+    "idx": 27,
+    "style": "Body Text",
+    "text": "Full-Stack Web Application (Banking + Face Recognition Security)"
+  },
+  {
+    "idx": 28,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 29,
+    "style": "Heading 2",
+    "text": "TOOLS/PLATFORM, HARDWARE AND SOFTWARE REQUIREMENT SPECIFICATIONS"
+  },
+  {
+    "idx": 30,
+    "style": "Heading 4",
+    "text": "HARDWARE REQUIREMENTS"
+  },
+  {
+    "idx": 31,
+    "style": "List Paragraph",
+    "text": "Processors: Intel(R) Core(TM) i5-7200U (or higher) @ 2.50GHz 2.70 GHz"
+  },
+  {
+    "idx": 32,
+    "style": "List Paragraph",
+    "text": "RAM: 8GB and above (Recommended for real-time biometric processing)"
+  },
+  {
+    "idx": 33,
+    "style": "List Paragraph",
+    "text": "Hard disk deployment: 40GB and above (To support database, ML models, and PDF assets)"
+  },
+  {
+    "idx": 34,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 35,
+    "style": "Heading 4",
+    "text": "SOFTWARE REQUIREMENTS"
+  },
+  {
+    "idx": 36,
+    "style": "Heading 4",
+    "text": ""
+  },
+  {
+    "idx": 37,
+    "style": "List Paragraph",
+    "text": "Text editor: Visual Studio Code / Visual Studio"
+  },
+  {
+    "idx": 38,
+    "style": "List Paragraph",
+    "text": "Server: Python Flask (WSGI compliant) / Apache integration"
+  },
+  {
+    "idx": 39,
+    "style": "List Paragraph",
+    "text": "Browser: Google Chrome / Microsoft Edge (Optimized for WebGL and Face Recognition)"
+  },
+  {
+    "idx": 40,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 41,
+    "style": "Heading 4",
+    "text": "TOOLS/LANGUAGES USED"
+  },
+  {
+    "idx": 42,
+    "style": "List Paragraph",
+    "text": "Front-end: HTML5, CSS3 (Glassmorphism), JavaScript (ES6+), FontAwesome"
+  },
+  {
+    "idx": 43,
+    "style": "List Paragraph",
+    "text": "Back-end: Python (Flask framework)"
+  },
+  {
+    "idx": 44,
+    "style": "List Paragraph",
+    "text": "Database: SQLite3 (256-bit encryption optimized)"
+  },
+  {
+    "idx": 45,
+    "style": "List Paragraph",
+    "text": "Specialized Libraries: MapLibre GL (3D Maps), Leaflet.js (Mapping), ReportLab (PDF Statements), face-api.js (Biometrics), Chart.js (Data Analytics)"
+  },
+  {
+    "idx": 46,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 47,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 48,
+    "style": "Heading 2",
+    "text": "INTRODUCTION"
+  },
+  {
+    "idx": 49,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 50,
+    "style": "Heading 4",
+    "text": "Purpose"
+  },
+  {
+    "idx": 51,
+    "style": "Body Text",
+    "text": "This section breaks down exactly what my code needs to run properly. It lists out the hardware requirements, the software stack I chose, and what the system is actually supposed to do from a technical standpoint."
+  },
+  {
+    "idx": 52,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 53,
+    "style": "Heading 4",
+    "text": "Scope"
+  },
+  {
+    "idx": 54,
+    "style": "Body Text",
+    "text": "The scope of this project is pretty big. It handles three types of users: normal customers, bank staff who approve things, and the main admin. It covers everything from logging in with your face to sending fake money to other accounts and viewing 3D maps."
+  },
+  {
+    "idx": 55,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 56,
+    "style": "Heading 4",
+    "text": "Definitions, Acronyms and Abbreviations"
+  },
+  {
+    "idx": 57,
+    "style": "List Paragraph",
+    "text": "SRS: Software Requirement Specification"
+  },
+  {
+    "idx": 58,
+    "style": "List Paragraph",
+    "text": "UPI: Unified Payments Interface"
+  },
+  {
+    "idx": 59,
+    "style": "List Paragraph",
+    "text": "KYC: Know Your Customer"
+  },
+  {
+    "idx": 60,
+    "style": "List Paragraph",
+    "text": "RTC: Record of Rights, Tenancy and Crops (Agri-Land Proof)"
+  },
+  {
+    "idx": 61,
+    "style": "List Paragraph",
+    "text": "NEFT: National Electronic Funds Transfer"
+  },
+  {
+    "idx": 62,
+    "style": "List Paragraph",
+    "text": "200 OK: Standard HTTP success response"
+  },
+  {
+    "idx": 63,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 64,
+    "style": "Heading 4",
+    "text": "Reference"
+  },
+  {
+    "idx": 65,
+    "style": "Heading 4",
+    "text": ""
+  },
+  {
+    "idx": 66,
+    "style": "List Paragraph",
+    "text": "Internal project guidelines and technical documentation derived from standard development practices."
+  },
+  {
+    "idx": 67,
+    "style": "List Paragraph",
+    "text": "The initial project outline created before coding began."
+  },
+  {
+    "idx": 68,
+    "style": "List Paragraph",
+    "text": "The official GitHub repository and documentation for the face-api.js library."
+  },
+  {
+    "idx": 69,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 70,
+    "style": "Heading 4",
+    "text": "Overview"
+  },
+  {
+    "idx": 71,
+    "style": "Body Text",
+    "text": "This section essentially lists everything I needed to set up before I could start programming. It explains what the server needs to run, what the browser needs to support, and how the data is kept safe."
+  },
+  {
+    "idx": 72,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 73,
+    "style": "Heading 2",
+    "text": "OVERALL DESCRIPTION"
+  },
+  {
+    "idx": 74,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 75,
+    "style": "Heading 4",
+    "text": "Product Perspective"
+  },
+  {
+    "idx": 76,
+    "style": "Body Text",
+    "text": "Technically, the project is a full-stack web app. I wrote the frontend entirely in plain HTML, CSS, and JS without using any heavy frameworks like React. The backend is written in Python using Flask, and all the data is saved in a simple SQLite database file."
+  },
+  {
+    "idx": 77,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 78,
+    "style": "Heading 4",
+    "text": "Product Features"
+  },
+  {
+    "idx": 79,
+    "style": "List Paragraph",
+    "text": "Biometric Login: Facial geometry-based identity verification for all roles."
+  },
+  {
+    "idx": 80,
+    "style": "List Paragraph",
+    "text": "Agri-Hub: Satellite-verified land approvals and specialized crop marketplace."
+  },
+  {
+    "idx": 81,
+    "style": "List Paragraph",
+    "text": "3D Locator: Precision navigation for ATMs and Branches using MapLibre GL."
+  },
+  {
+    "idx": 82,
+    "style": "List Paragraph",
+    "text": "Finance Tools: Savings Goals (Pockets), Fixed Deposits, and Statement Filtering."
+  },
+  {
+    "idx": 83,
+    "style": "List Paragraph",
+    "text": "Admin Control: Full-lifecycle management of user accounts and loan requests."
+  },
+  {
+    "idx": 84,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 85,
+    "style": "Heading 4",
+    "text": "User Characteristics"
+  },
+  {
+    "idx": 86,
+    "style": "List Paragraph",
+    "text": "Customers: Regular users who need to check their accounts and transfer money."
+  },
+  {
+    "idx": 87,
+    "style": "List Paragraph",
+    "text": "Bank Staff: Bank employees who verify documents, approve loans, and manage agriculture records."
+  },
+  {
+    "idx": 88,
+    "style": "List Paragraph",
+    "text": "Administrators: Top-level users who manage the entire system and assign staff roles."
+  },
+  {
+    "idx": 89,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 90,
+    "style": "Heading 4",
+    "text": "General Constraints"
+  },
+  {
+    "idx": 91,
+    "style": "List Paragraph",
+    "text": "Browser Compatibility: Works best on Google Chrome because it needs camera access and 3D map rendering."
+  },
+  {
+    "idx": 92,
+    "style": "List Paragraph",
+    "text": ""
+  },
+  {
+    "idx": 93,
+    "style": "List Paragraph",
+    "text": "Hardware Limitation: At least 8GB RAM needed for the face recognition to run smoothly."
+  },
+  {
+    "idx": 94,
+    "style": "List Paragraph",
+    "text": "Simulated\tEnvironment:\tAll\tfinancial\ttransactions\tare\tsimulated\tfor educational/demonstration purposes."
+  },
+  {
+    "idx": 95,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 96,
+    "style": "Heading 4",
+    "text": "Assumptions and Dependencies"
+  },
+  {
+    "idx": 97,
+    "style": "List Paragraph",
+    "text": "Users should have a working webcam for face login."
+  },
+  {
+    "idx": 98,
+    "style": "List Paragraph",
+    "text": "The system needs a stable internet connection to load fonts and icons from (CDN) like FontAwesome and Google Fonts."
+  },
+  {
+    "idx": 99,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 100,
+    "style": "Heading 2",
+    "text": "SPECIFIC REQUIREMENTS"
+  },
+  {
+    "idx": 101,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 102,
+    "style": "Heading 4",
+    "text": "External Interface Requirements"
+  },
+  {
+    "idx": 103,
+    "style": "Body Text",
+    "text": "The system uses the device webcam to capture face images and saves PDF statements to the local Downloads folder."
+  },
+  {
+    "idx": 104,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 105,
+    "style": "Heading 4",
+    "text": "User Interface"
+  },
+  {
+    "idx": 106,
+    "style": "Body Text",
+    "text": "I went with a very clean, Apple-style design. Lots of white space, frosted glass borders, and it resizes perfectly if you open it on a phone."
+  },
+  {
+    "idx": 107,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 108,
+    "style": "Heading 4",
+    "text": "Hardware Interface"
+  },
+  {
+    "idx": 109,
+    "style": "Body Text",
+    "text": "The app directly talks to the user's laptop camera using standard browser APIs, so you don't need to install any plugins for the face scanner to work."
+  },
+  {
+    "idx": 110,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 111,
+    "style": "Heading 4",
+    "text": "Software Interface"
+  },
+  {
+    "idx": 112,
+    "style": "List Paragraph",
+    "text": "Frontend: JavaScript ES6+ / CSS3 / HTML5."
+  },
+  {
+    "idx": 113,
+    "style": "List Paragraph",
+    "text": "Backend: Python 3.8+ / Flask."
+  },
+  {
+    "idx": 114,
+    "style": "List Paragraph",
+    "text": "Database: SQLite3."
+  },
+  {
+    "idx": 115,
+    "style": "List Paragraph",
+    "text": "Mapping: MapLibre GL & Leaflet.js."
+  },
+  {
+    "idx": 116,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 117,
+    "style": "Heading 4",
+    "text": "Communication Interface"
+  },
+  {
+    "idx": 118,
+    "style": "Body Text",
+    "text": "The frontend talks to the backend using fetch() calls that send and receive JSON data over HTTPS."
+  },
+  {
+    "idx": 119,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 120,
+    "style": "Heading 4",
+    "text": "Functional Requirements"
+  },
+  {
+    "idx": 121,
+    "style": "Heading 4",
+    "text": ""
+  },
+  {
+    "idx": 122,
+    "style": "List Paragraph",
+    "text": "FR1: The system should recognize a face within 2 seconds."
+  },
+  {
+    "idx": 123,
+    "style": "List Paragraph",
+    "text": "FR2: System MUST allow PDF statement filtering by month/6-months/year."
+  },
+  {
+    "idx": 124,
+    "style": "List Paragraph",
+    "text": "FR3: System MUST provide distinct dashboards based on user role login."
+  },
+  {
+    "idx": 125,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 126,
+    "style": "Heading 4",
+    "text": "Performance Requirements"
+  },
+  {
+    "idx": 127,
+    "style": "List Paragraph",
+    "text": "Latency: Backend responses should come back in under 500ms for account queries."
+  },
+  {
+    "idx": 128,
+    "style": "List Paragraph",
+    "text": "Reliability: Handle up to 50 users at the same time in a local setup."
+  },
+  {
+    "idx": 129,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 130,
+    "style": "Heading 4",
+    "text": "Design Constraints"
+  },
+  {
+    "idx": 131,
+    "style": "Body Text",
+    "text": "The design should look the same across all pages (Modern White) across all sub-pages."
+  },
+  {
+    "idx": 132,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 133,
+    "style": "Heading 5",
+    "text": "System Attributes"
+  },
+  {
+    "idx": 134,
+    "style": "List Paragraph",
+    "text": "Availability: 99.9% simulation uptime."
+  },
+  {
+    "idx": 135,
+    "style": "List Paragraph",
+    "text": "scalability: Structured to allow migration to PostgreSQL for enterprise use."
+  },
+  {
+    "idx": 136,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 137,
+    "style": "Heading 2",
+    "text": "OTHER REQUIREMENTS"
+  },
+  {
+    "idx": 138,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 139,
+    "style": "Heading 4",
+    "text": "Safety Requirements"
+  },
+  {
+    "idx": 140,
+    "style": "List Paragraph",
+    "text": "Auto logout after 15 minutes of no activity."
+  },
+  {
+    "idx": 141,
+    "style": "List Paragraph",
+    "text": "Visual masking of sensitive account balances using the \"Eye\" toggle feature."
+  },
+  {
+    "idx": 142,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 143,
+    "style": "Heading 4",
+    "text": "Security Requirements"
+  },
+  {
+    "idx": 144,
+    "style": "List Paragraph",
+    "text": "Biometric Integrity: Face data is encrypted before storing and raw face images are never saved."
+  },
+  {
+    "idx": 145,
+    "style": "List Paragraph",
+    "text": "Transaction Guard: Four-character numeric tokens mandated for important handheld operations."
+  },
+  {
+    "idx": 146,
+    "style": "List Paragraph",
+    "text": "Input Validation: All form inputs are cleaned to prevent SQL injection and XSS attacks."
+  },
+  {
+    "idx": 147,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 148,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 149,
+    "style": "Heading 2",
+    "text": "INTRODUCTION"
+  },
+  {
+    "idx": 150,
+    "style": "Body Text",
+    "text": "For the system design, my main worry was making sure nobody could steal fake money or bypass the face login. I spent a lot of time mapping out exactly how a user's browser talks to the Python backend so that things like account balances never get leaked in the network"
+  },
+  {
+    "idx": 151,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 152,
+    "style": "Body Text",
+    "text": "tab."
+  },
+  {
+    "idx": 153,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 154,
+    "style": "Heading 2",
+    "text": "CONTEXT FLOW DIAGRAM"
+  },
+  {
+    "idx": 155,
+    "style": "Body Text",
+    "text": "The diagram below basically shows the 30,000-foot view of the whole project. It shows how the core Python app sits in the middle and talks to the customers on one side, and the bank staff on the other."
+  },
+  {
+    "idx": 156,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 157,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 158,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 159,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 160,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 161,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 162,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 163,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 164,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 165,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 166,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 167,
+    "style": "Normal",
+    "text": "Figure: 3.2 CONTEXT FLOW DIAGRAM"
+  },
+  {
+    "idx": 168,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 169,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 170,
+    "style": "Heading 2",
+    "text": "DATA FLOW DIAGRAM (DFD)"
+  },
+  {
+    "idx": 171,
+    "style": "Body Text",
+    "text": "I mapped out how exactly the information travels from the user's screen into the backend logic using these custom flowcharts."
+  },
+  {
+    "idx": 172,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 173,
+    "style": "Heading 2",
+    "text": "RULES REGARDING DFD CONSTRUCTION"
+  },
+  {
+    "idx": 174,
+    "style": "List Paragraph",
+    "text": "All processes must have at least one input and one output."
+  },
+  {
+    "idx": 175,
+    "style": "List Paragraph",
+    "text": "Data cannot move directly from one data store to another; it must move through a process."
+  },
+  {
+    "idx": 176,
+    "style": "List Paragraph",
+    "text": "Entities cannot move data directly to each other; it must go through a process."
+  },
+  {
+    "idx": 177,
+    "style": "List Paragraph",
+    "text": ""
+  },
+  {
+    "idx": 178,
+    "style": "List Paragraph",
+    "text": "Processes should have unique and descriptive names."
+  },
+  {
+    "idx": 179,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 180,
+    "style": "Heading 2",
+    "text": "DFD SYMBOLS"
+  },
+  {
+    "idx": 181,
+    "style": "List Paragraph",
+    "text": "Process (Circle/Rounded Square): Operations performed on data."
+  },
+  {
+    "idx": 182,
+    "style": "List Paragraph",
+    "text": "Data Store (Open Rectangle): Repositories of data (e.g., Users Table)."
+  },
+  {
+    "idx": 183,
+    "style": "List Paragraph",
+    "text": "External Entity (Square): Destination or source of data (User/Staff)."
+  },
+  {
+    "idx": 184,
+    "style": "List Paragraph",
+    "text": "Data Flow (Arrow): The path data takes through the system."
+  },
+  {
+    "idx": 185,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 186,
+    "style": "Heading 2",
+    "text": "DFD LEVEL 0 FOR SMART BANK"
+  },
+  {
+    "idx": 187,
+    "style": "Body Text",
+    "text": "This level 0 diagram shows the absolute basics of how data enters and leaves the application."
+  },
+  {
+    "idx": 188,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 189,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 190,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 191,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 192,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 193,
+    "style": "Normal",
+    "text": "Figure: 3.6 DFD LEVEL 0 FOR SMART BANK"
+  },
+  {
+    "idx": 194,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 195,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 196,
+    "style": "Heading 2",
+    "text": "DFD LEVEL 1 (ADMIN)"
+  },
+  {
+    "idx": 197,
+    "style": "Body Text",
+    "text": "Here I mapped out exactly what the top-level Administrator is allowed to do, like kicking out users or adding new bank branches to the map."
+  },
+  {
+    "idx": 198,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 199,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 200,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 201,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 202,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 203,
+    "style": "Normal",
+    "text": "Figure: 3.7 DFD LEVEL 1 (ADMIN)"
+  },
+  {
+    "idx": 204,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 205,
+    "style": "List Paragraph",
+    "text": "3.7.1 DFD Level 2 (Manage Customers): Create, Block, and Edit customer profiles and account types."
+  },
+  {
+    "idx": 206,
+    "style": "List Paragraph",
+    "text": "3.7.2 DFD Level 2 (Manage Staff): Oversee staff assignments, recruitment approvals, and performance logs."
+  },
+  {
+    "idx": 207,
+    "style": "List Paragraph",
+    "text": "3.7.3 DFD Level 2 (Manage Service Applications): Review and approve Card/Loan escalations from the Staff portal."
+  },
+  {
+    "idx": 208,
+    "style": "List Paragraph",
+    "text": "3.7.4 DFD Level 2 (Manage Locations): Add, edit, and remove Branch and ATM locations with GPS coordinates for the 3D Map Locator."
+  },
+  {
+    "idx": 209,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 210,
+    "style": "Heading 2",
+    "text": "3.7.10 DFD LEVEL 1 (STAFF)"
+  },
+  {
+    "idx": 211,
+    "style": "Body Text",
+    "text": "This chart shows the daily workflow for a bank employee, mostly just approving accounts and looking at farmer loan applications."
+  },
+  {
+    "idx": 212,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 213,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 214,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 215,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 216,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 217,
+    "style": "Normal",
+    "text": "Figure: 3.7.10 DFD LEVEL 1 (STAFF)"
+  },
+  {
+    "idx": 218,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 219,
+    "style": "List Paragraph",
+    "text": "3.7.11 DFD Level 2 (KYC Authentication): Verification of ID proofs and Face Descriptors for new account seekers."
+  },
+  {
+    "idx": 220,
+    "style": "List Paragraph",
+    "text": "3.7.12 DFD Level 2 (Agriculture Hub): Real-time analysis of satellite imagery and land proof uploads (RTC)."
+  },
+  {
+    "idx": 221,
+    "style": "List Paragraph",
+    "text": "3.7.13 DFD Level 2 (Customer Jobs): Managing the queue for card activations and loan disbursements."
+  },
+  {
+    "idx": 222,
+    "style": "List Paragraph",
+    "text": "3.7.14 DFD Level 2 (Crop Marketplace Oversight): Monitoring crop listings, resolving order disputes, and managing escrow settlements."
+  },
+  {
+    "idx": 223,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 224,
+    "style": "Heading 2",
+    "text": "3.7.16 DFD LEVEL 1 (CUSTOMER)"
+  },
+  {
+    "idx": 225,
+    "style": "Body Text",
+    "text": "This is the most complex part: it shows everything a normal user can click on once they get past the login screen."
+  },
+  {
+    "idx": 226,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 227,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 228,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 229,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 230,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 231,
+    "style": "Normal",
+    "text": "Figure: 3.7.16 DFD LEVEL 1 (CUSTOMER)"
+  },
+  {
+    "idx": 232,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 233,
+    "style": "List Paragraph",
+    "text": "3.7.17 DFD Level 2 (Register): Initial onboarding with 256-bit encryption and account type selection."
+  },
+  {
+    "idx": 234,
+    "style": "List Paragraph",
+    "text": "3.7.18 DFD Level 2 (Face Login): The core engine comparing real-time scans with stored descriptors."
+  },
+  {
+    "idx": 235,
+    "style": "List Paragraph",
+    "text": "3.7.19 DFD Level 2 (Savings Goals/Pockets): Setting, monitoring, and funding specific budget targets."
+  },
+  {
+    "idx": 236,
+    "style": "List Paragraph",
+    "text": "3.7.20 DFD Level 2 (UPI/QR Payments): Real-time QR code simulation and UPI PIN validation protocols."
+  },
+  {
+    "idx": 237,
+    "style": "List Paragraph",
+    "text": "3.7.21 DFD Level 2 (Statement Generation): ReportLab PDF processing using dynamic date filters (6-Months/Current)."
+  },
+  {
+    "idx": 238,
+    "style": "List Paragraph",
+    "text": "3.7.22 DFD Level 2 (Agriculture Booking): Application for specialized 7.5% p.a. Farm loans with satellite proof."
+  },
+  {
+    "idx": 239,
+    "style": "List Paragraph",
+    "text": "3.7.23 DFD Level 2 (3D Branch & ATM Locator): MapLibre GL powered 3D terrain rendering with real-time branch/ATM coordinate plotting and proximity search."
+  },
+  {
+    "idx": 240,
+    "style": "List Paragraph",
+    "text": ""
+  },
+  {
+    "idx": 241,
+    "style": "List Paragraph",
+    "text": "3.7.24 DFD Level 2 (Crop Marketplace): Farmer crop listing, buyer browsing, price negotiation, escrow-based payment, and order fulfillment."
+  },
+  {
+    "idx": 242,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 243,
+    "style": "Heading 2",
+    "text": "ENTITY-RELATIONSHIP DIAGRAM (ERD)"
+  },
+  {
+    "idx": 244,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 245,
+    "style": "Heading 4",
+    "text": "ER-Diagram Symbols"
+  },
+  {
+    "idx": 246,
+    "style": "List Paragraph",
+    "text": "Rectangle: Entity (e.g., Users, Transactions)."
+  },
+  {
+    "idx": 247,
+    "style": "List Paragraph",
+    "text": "Ellipse: Attribute (e.g., balance, name)."
+  },
+  {
+    "idx": 248,
+    "style": "List Paragraph",
+    "text": "Diamond: Relationship (e.g., \"owns\", \"initiates\")."
+  },
+  {
+    "idx": 249,
+    "style": "List Paragraph",
+    "text": "Lines: Connecting flows."
+  },
+  {
+    "idx": 250,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 251,
+    "style": "Heading 4",
+    "text": "ER DIAGRAM FOR SMART BANK"
+  },
+  {
+    "idx": 252,
+    "style": "Heading 4",
+    "text": ""
+  },
+  {
+    "idx": 253,
+    "style": "Heading 5",
+    "text": "3.8.2 ER DIAGRAM FOR SMART BANK"
+  },
+  {
+    "idx": 254,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 255,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 256,
+    "style": "Normal",
+    "text": "1:M\tM:M\t1:M"
+  },
+  {
+    "idx": 257,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 258,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 259,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 260,
+    "style": "Normal",
+    "text": "1:M\t1:M\t1:M"
+  },
+  {
+    "idx": 261,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 262,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 263,
+    "style": "Normal",
+    "text": "1:M\t1:M"
+  },
+  {
+    "idx": 264,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 265,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 266,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 267,
+    "style": "Normal",
+    "text": "1:M"
+  },
+  {
+    "idx": 268,
+    "style": "Normal",
+    "text": "1:M"
+  },
+  {
+    "idx": 269,
+    "style": "Normal",
+    "text": "M:M"
+  },
+  {
+    "idx": 270,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 271,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 272,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 273,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 274,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 275,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 276,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 277,
+    "style": "Normal",
+    "text": "M:M"
+  },
+  {
+    "idx": 278,
+    "style": "Normal",
+    "text": "M:1"
+  },
+  {
+    "idx": 279,
+    "style": "Normal",
+    "text": "M:M"
+  },
+  {
+    "idx": 280,
+    "style": "Normal",
+    "text": "1:M"
+  },
+  {
+    "idx": 281,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 282,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 283,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 284,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 285,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 286,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 287,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 288,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 289,
+    "style": "Normal",
+    "text": "1:M\tM:1"
+  },
+  {
+    "idx": 290,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 291,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 292,
+    "style": "Normal",
+    "text": "M:1\tM:1"
+  },
+  {
+    "idx": 293,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 294,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 295,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 296,
+    "style": "Normal",
+    "text": "1:1"
+  },
+  {
+    "idx": 297,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 298,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 299,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 300,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 301,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 302,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 303,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 304,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 305,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 306,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 307,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 308,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 309,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 310,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 311,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 312,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 313,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 314,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 315,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 316,
+    "style": "Normal",
+    "text": "Figure: 3.8.2 ER DIAGRAM FOR SMART BANK"
+  },
+  {
+    "idx": 317,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 318,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 319,
+    "style": "Heading 2",
+    "text": "SEQUENCE DIAGRAMS"
+  },
+  {
+    "idx": 320,
+    "style": "Body Text",
+    "text": "I drew up these sequence diagrams because the face login logic got really confusing. I needed to see exactly when the JavaScript sends the face data to Python and when Python replies."
+  },
+  {
+    "idx": 321,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 322,
+    "style": "Heading 4",
+    "text": "Biometric Authentication Sequence"
+  },
+  {
+    "idx": 323,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 324,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 325,
+    "style": "Normal",
+    "text": "Request Login"
+  },
+  {
+    "idx": 326,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 327,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 328,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 329,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 330,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 331,
+    "style": "Normal",
+    "text": "Capture & Describe Face"
+  },
+  {
+    "idx": 332,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 333,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 334,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 335,
+    "style": "Normal",
+    "text": "Send Face Descriptor (JSON)"
+  },
+  {
+    "idx": 336,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 337,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 338,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 339,
+    "style": "Normal",
+    "text": "Fetch Stored Descriptor"
+  },
+  {
+    "idx": 340,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 341,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 342,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 343,
+    "style": "Normal",
+    "text": "Compare Descriptors (Euclidean Distance)"
+  },
+  {
+    "idx": 344,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 345,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 346,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 347,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 348,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 349,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 350,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 351,
+    "style": "Normal",
+    "text": "Figure: 3.9.1 Biometric Authentication Sequence"
+  },
+  {
+    "idx": 352,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 353,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 354,
+    "style": "Heading 4",
+    "text": "UPI Transaction Sequence"
+  },
+  {
+    "idx": 355,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 356,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 357,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 358,
+    "style": "Normal",
+    "text": "Figure: 3.9.2 UPI Transaction Sequence"
+  },
+  {
+    "idx": 359,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 360,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 361,
+    "style": "Heading 4",
+    "text": "3D Branch & ATM Locator Sequence"
+  },
+  {
+    "idx": 362,
+    "style": "Heading 4",
+    "text": ""
+  },
+  {
+    "idx": 363,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 364,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 365,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 366,
+    "style": "Normal",
+    "text": "Figure: 3.9.3 3D Branch & ATM Locator Sequence"
+  },
+  {
+    "idx": 367,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 368,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 369,
+    "style": "Heading 4",
+    "text": "Crop Marketplace Order Sequence"
+  },
+  {
+    "idx": 370,
+    "style": "Heading 4",
+    "text": ""
+  },
+  {
+    "idx": 371,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 372,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 373,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 374,
+    "style": "Normal",
+    "text": "Figure: 3.9.4 Crop Marketplace Order Sequence"
+  },
+  {
+    "idx": 375,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 376,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 377,
+    "style": "Heading 2",
+    "text": "ACTIVITY DIAGRAMS"
+  },
+  {
+    "idx": 378,
+    "style": "Body Text",
+    "text": "Whenever a process felt too complicated, like the farmer's crop marketplace escrow system, we drew an Activity Diagram. It made it much easier to write the code once we could visualize the exact steps it needed to take."
+  },
+  {
+    "idx": 379,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 380,
+    "style": "Heading 4",
+    "text": "Agriculture Loan Workflow"
+  },
+  {
+    "idx": 381,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 382,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 383,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 384,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 385,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 386,
+    "style": "Normal",
+    "text": "Figure: 3.10.1 Agriculture Loan Workflow"
+  },
+  {
+    "idx": 387,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 388,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 389,
+    "style": "Heading 4",
+    "text": "3D Branch & ATM Locator Workflow"
+  },
+  {
+    "idx": 390,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 391,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 392,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 393,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 394,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 395,
+    "style": "Normal",
+    "text": "Figure: 3.10.2 3D Branch & ATM Locator Workflow"
+  },
+  {
+    "idx": 396,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 397,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 398,
+    "style": "Heading 4",
+    "text": "Admin Location Management Workflow"
+  },
+  {
+    "idx": 399,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 400,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 401,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 402,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 403,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 404,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 405,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 406,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 407,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 408,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 409,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 410,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 411,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 412,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 413,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 414,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 415,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 416,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 417,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 418,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 419,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 420,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 421,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 422,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 423,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 424,
+    "style": "Normal",
+    "text": "Figure: 3.10.3 Admin Location Management Workflow"
+  },
+  {
+    "idx": 425,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 426,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 427,
+    "style": "Heading 4",
+    "text": "Crop Marketplace Workflow"
+  },
+  {
+    "idx": 428,
+    "style": "Heading 4",
+    "text": ""
+  },
+  {
+    "idx": 429,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 430,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 431,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 432,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 433,
+    "style": "Normal",
+    "text": "Figure: 3.10.4 Crop Marketplace Workflow"
+  },
+  {
+    "idx": 434,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 435,
+    "style": "Heading 1",
+    "text": "DATABASE DESIGN"
+  },
+  {
+    "idx": 436,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 437,
+    "style": "Heading 3",
+    "text": "Introduction"
+  },
+  {
+    "idx": 438,
+    "style": "Body Text",
+    "text": "For the database, I just went with SQLite because I didn't want to deal with setting up a heavy MySQL server. Even though it is a single file, I designed the tables very carefully so that money wouldn't randomly duplicate or disappear if the code crashed mid-transfer."
+  },
+  {
+    "idx": 439,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 440,
+    "style": "Heading 3",
+    "text": "Scope"
+  },
+  {
+    "idx": 441,
+    "style": "Body Text",
+    "text": "Below are the actual table structures I wrote. I split everything up logically — one table for users, another for their bank accounts, another for transactions, and so on."
+  },
+  {
+    "idx": 442,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 443,
+    "style": "Heading 3",
+    "text": "Database Schema Relationship"
+  },
+  {
+    "idx": 444,
+    "style": "Heading 3",
+    "text": ""
+  },
+  {
+    "idx": 445,
+    "style": "Heading 5",
+    "text": "4.3 Database Schema Relationship"
+  },
+  {
+    "idx": 446,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 447,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 448,
+    "style": "Normal",
+    "text": "1:M\tM:M\t1:M"
+  },
+  {
+    "idx": 449,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 450,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 451,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 452,
+    "style": "Normal",
+    "text": "1:M\t1:M\t1:M"
+  },
+  {
+    "idx": 453,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 454,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 455,
+    "style": "Normal",
+    "text": "1:M\t1:M"
+  },
+  {
+    "idx": 456,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 457,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 458,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 459,
+    "style": "Normal",
+    "text": "1:M"
+  },
+  {
+    "idx": 460,
+    "style": "Normal",
+    "text": "1:M"
+  },
+  {
+    "idx": 461,
+    "style": "Normal",
+    "text": "M:M"
+  },
+  {
+    "idx": 462,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 463,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 464,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 465,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 466,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 467,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 468,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 469,
+    "style": "Normal",
+    "text": "M:M"
+  },
+  {
+    "idx": 470,
+    "style": "Normal",
+    "text": "M:1"
+  },
+  {
+    "idx": 471,
+    "style": "Normal",
+    "text": "M:M"
+  },
+  {
+    "idx": 472,
+    "style": "Normal",
+    "text": "1:M"
+  },
+  {
+    "idx": 473,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 474,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 475,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 476,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 477,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 478,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 479,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 480,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 481,
+    "style": "Normal",
+    "text": "1:M\tM:1"
+  },
+  {
+    "idx": 482,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 483,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 484,
+    "style": "Normal",
+    "text": "M:1\tM:1"
+  },
+  {
+    "idx": 485,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 486,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 487,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 488,
+    "style": "Normal",
+    "text": "1:1"
+  },
+  {
+    "idx": 489,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 490,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 491,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 492,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 493,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 494,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 495,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 496,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 497,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 498,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 499,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 500,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 501,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 502,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 503,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 504,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 505,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 506,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 507,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 508,
+    "style": "Normal",
+    "text": "Figure: 4.3 Database Schema Relationship"
+  },
+  {
+    "idx": 509,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 510,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 511,
+    "style": "Heading 3",
+    "text": "Table Descriptions"
+  },
+  {
+    "idx": 512,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 513,
+    "style": "List Paragraph",
+    "text": "Admin Table (admins)"
+  },
+  {
+    "idx": 514,
+    "style": "Body Text",
+    "text": "Purpose: Stores high-level administrative credentials and biometric profile data."
+  },
+  {
+    "idx": 515,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 516,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 517,
+    "style": "List Paragraph",
+    "text": "Staff Table (staff)"
+  },
+  {
+    "idx": 518,
+    "style": "Body Text",
+    "text": "Purpose: Manages bank employee data and shift-based authentication permissions."
+  },
+  {
+    "idx": 519,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 520,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 521,
+    "style": "List Paragraph",
+    "text": "Customer Table (users)"
+  },
+  {
+    "idx": 522,
+    "style": "Body Text",
+    "text": "Purpose: Central customer profile management."
+  },
+  {
+    "idx": 523,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 524,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 525,
+    "style": "List Paragraph",
+    "text": "Services Table (service_applications)"
+  },
+  {
+    "idx": 526,
+    "style": "Body Text",
+    "text": "Purpose: Tracks applications for specialized banking products."
+  },
+  {
+    "idx": 527,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 528,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 529,
+    "style": "List Paragraph",
+    "text": "Sub-Services Table (account_requests)"
+  },
+  {
+    "idx": 530,
+    "style": "Body Text",
+    "text": "Purpose: Detailed validation phase for specific service tiers (KYC/Account Setup)."
+  },
+  {
+    "idx": 531,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 532,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 533,
+    "style": "List Paragraph",
+    "text": "Packages Table (accounts)"
+  },
+  {
+    "idx": 534,
+    "style": "Body Text",
+    "text": "Purpose: Financial ledger entities representing customer liquid balance pools."
+  },
+  {
+    "idx": 535,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 536,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 537,
+    "style": "Heading 4",
+    "text": "Sub-Packages Table (cards)"
+  },
+  {
+    "idx": 538,
+    "style": "Body Text",
+    "text": "Purpose: Manages card tiers (Gold/Platinum) linked to respective account packages."
+  },
+  {
+    "idx": 539,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 540,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 541,
+    "style": "List Paragraph",
+    "text": "Interaction/Attendance Table (attendance)"
+  },
+  {
+    "idx": 542,
+    "style": "Body Text",
+    "text": "Purpose: Logging operational shifts and scheduled staff/customer interactions."
+  },
+  {
+    "idx": 543,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 544,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 545,
+    "style": "List Paragraph",
+    "text": "Payment Table (transactions)"
+  },
+  {
+    "idx": 546,
+    "style": "Body Text",
+    "text": "Purpose: Low-level ledger of all individual liquidity movements."
+  },
+  {
+    "idx": 547,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 548,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 549,
+    "style": "List Paragraph",
+    "text": "Feedback Table (support_tickets)"
+  },
+  {
+    "idx": 550,
+    "style": "Body Text",
+    "text": "Purpose: Managing external queries, complaints, and platform feedback."
+  },
+  {
+    "idx": 551,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 552,
+    "style": "Table Paragraph",
+    "text": ""
+  },
+  {
+    "idx": 553,
+    "style": "Heading 1",
+    "text": "DETAILED DESIGN"
+  },
+  {
+    "idx": 554,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 555,
+    "style": "Heading 3",
+    "text": "Introduction"
+  },
+  {
+    "idx": 556,
+    "style": "Body Text",
+    "text": "When I actually started writing the code, I realized I couldn't just dump everything into one giant file. I broke the app down into separate pieces: one chunk handles the Admin dashboard, another handles the Staff portal, and the biggest chunk handles the Customer view."
+  },
+  {
+    "idx": 557,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 558,
+    "style": "Heading 3",
+    "text": "Applicable Documents"
+  },
+  {
+    "idx": 559,
+    "style": "List Paragraph",
+    "text": "Smart Bank Software Requirement Specification (SRS) - Chapter 2"
+  },
+  {
+    "idx": 560,
+    "style": "List Paragraph",
+    "text": "System Flow and Context Diagrams - Chapter 3"
+  },
+  {
+    "idx": 561,
+    "style": "List Paragraph",
+    "text": "Database Schema and Architecture - Chapter 4"
+  },
+  {
+    "idx": 562,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 563,
+    "style": "Heading 3",
+    "text": "Structure of the Software Package"
+  },
+  {
+    "idx": 564,
+    "style": "Body Text",
+    "text": "As mentioned before, the whole thing runs on Python Flask for the backend, serving plain HTML files to the browser."
+  },
+  {
+    "idx": 565,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 566,
+    "style": "Heading 4",
+    "text": "Structure Chart for Admin"
+  },
+  {
+    "idx": 567,
+    "style": "Body Text",
+    "text": "The admin panel is basically the god-mode screen. You can add new staff, see exactly how much money is sitting in the entire bank, and update the 3D map."
+  },
+  {
+    "idx": 568,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 569,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 570,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 571,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 572,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 573,
+    "style": "Normal",
+    "text": "Figure: 5.3.1 Structure Chart for Admin"
+  },
+  {
+    "idx": 574,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 575,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 576,
+    "style": "Heading 4",
+    "text": "Structure Chart for Staff"
+  },
+  {
+    "idx": 577,
+    "style": "Body Text",
+    "text": "The staff screen is basically a to-do list. When a new user signs up, a staff member has to click \"approve\" here before the user can actually log in."
+  },
+  {
+    "idx": 578,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 579,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 580,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 581,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 582,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 583,
+    "style": "Normal",
+    "text": "Figure: 5.3.2 Structure Chart for Staff"
+  },
+  {
+    "idx": 584,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 585,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 586,
+    "style": "Heading 4",
+    "text": "Structure Chart for Customer (User)"
+  },
+  {
+    "idx": 587,
+    "style": "Body Text",
+    "text": "This is the main screen that 99% of people will see. It's where you send money, look at your fake credit card, and use the saving pockets."
+  },
+  {
+    "idx": 588,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 589,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 590,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 591,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 592,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 593,
+    "style": "Normal",
+    "text": "Figure: 5.3.3 Structure Chart for Customer (User)"
+  },
+  {
+    "idx": 594,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 595,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 596,
+    "style": "Heading 3",
+    "text": "Modular Decomposition of Components"
+  },
+  {
+    "idx": 597,
+    "style": "Heading 3",
+    "text": ""
+  },
+  {
+    "idx": 598,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 599,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 600,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 601,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 602,
+    "style": "Normal",
+    "text": "Figure: 5.4 Modular Decomposition of Components"
+  },
+  {
+    "idx": 603,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 604,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 605,
+    "style": "Heading 4",
+    "text": "Admin Layer"
+  },
+  {
+    "idx": 606,
+    "style": "Heading 5",
+    "text": "Login & Central Auth"
+  },
+  {
+    "idx": 607,
+    "style": "Body Text",
+    "text": "Admins can log in using either their password or face scan to access the admin control panel."
+  },
+  {
+    "idx": 608,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 609,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 610,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 611,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 612,
+    "style": "Normal",
+    "text": "Figure: 5.4.1.1 Login & Central Auth"
+  },
+  {
+    "idx": 613,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 614,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 615,
+    "style": "Heading 5",
+    "text": "Manage Staff & Workforce"
+  },
+  {
+    "idx": 616,
+    "style": "Body Text",
+    "text": "The admin can add new staff members, remove existing ones, and assign them specific roles."
+  },
+  {
+    "idx": 617,
+    "style": "Heading 5",
+    "text": "Manage Customers"
+  },
+  {
+    "idx": 618,
+    "style": "Body Text",
+    "text": "If a customer account shows suspicious activity, the admin can directly block or suspend it from here."
+  },
+  {
+    "idx": 619,
+    "style": "Heading 5",
+    "text": "Manage General Ledger (System Finance)"
+  },
+  {
+    "idx": 620,
+    "style": "Body Text",
+    "text": "This module shows the bank's total deposits, outstanding loans, and available funds in real time."
+  },
+  {
+    "idx": 621,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 622,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 623,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 624,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 625,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 626,
+    "style": "Normal",
+    "text": "Figure: 5.4.1.4 Manage General Ledger (System Finance)"
+  },
+  {
+    "idx": 627,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 628,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 629,
+    "style": "Heading 5",
+    "text": "Manage Branch & ATM Locations (Map)"
+  },
+  {
+    "idx": 630,
+    "style": "Body Text",
+    "text": "Admins use this section to add or remove branch and ATM locations on the 3D map, along with uploading photos of each location."
+  },
+  {
+    "idx": 631,
+    "style": "Heading 5",
+    "text": "Audit Logs"
+  },
+  {
+    "idx": 632,
+    "style": "Body Text",
+    "text": "All important actions like login attempts, transaction changes, and setting modifications are logged here for review."
+  },
+  {
+    "idx": 633,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 634,
+    "style": "Heading 4",
+    "text": "Staff Layer"
+  },
+  {
+    "idx": 635,
+    "style": "Heading 5",
+    "text": "Secure Login"
+  },
+  {
+    "idx": 636,
+    "style": "Body Text",
+    "text": "Staff members log in with tracked shift timings so the bank knows who was active and when."
+  },
+  {
+    "idx": 637,
+    "style": "Heading 5",
+    "text": "My Task Desk (Queue Processing)"
+  },
+  {
+    "idx": 638,
+    "style": "Body Text",
+    "text": "This is where staff process new account applications, check KYC documents, and approve or reject requests."
+  },
+  {
+    "idx": 639,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 640,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 641,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 642,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 643,
+    "style": "Normal",
+    "text": "Figure: 5.4.2.2 My Task Desk (Queue Processing)"
+  },
+  {
+    "idx": 644,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 645,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 646,
+    "style": "Heading 5",
+    "text": "Manage Card Approvals"
+  },
+  {
+    "idx": 647,
+    "style": "Body Text",
+    "text": "Staff can approve new card requests and link them to the right customer account."
+  },
+  {
+    "idx": 648,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 649,
+    "style": "Heading 5",
+    "text": "Manage Agriculture Loans"
+  },
+  {
+    "idx": 650,
+    "style": "Body Text",
+    "text": "This module lets staff review farm loan applications by checking the farmer's land documents and satellite health scores before approving or rejecting the loan."
+  },
+  {
+    "idx": 651,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 652,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 653,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 654,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 655,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 656,
+    "style": "Normal",
+    "text": "Figure: 5.4.2.4 Manage Agriculture Loans"
+  },
+  {
+    "idx": 657,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 658,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 659,
+    "style": "Heading 5",
+    "text": "Manage Customer Support"
+  },
+  {
+    "idx": 660,
+    "style": "Body Text",
+    "text": "Staff can view and respond to customer support tickets, and send notifications for important updates."
+  },
+  {
+    "idx": 661,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 662,
+    "style": "Heading 4",
+    "text": "Customer (User) Layer"
+  },
+  {
+    "idx": 663,
+    "style": "Heading 5",
+    "text": "User Registration & Login"
+  },
+  {
+    "idx": 664,
+    "style": "Body Text",
+    "text": "New users sign up by filling in their details and registering their face for biometric login."
+  },
+  {
+    "idx": 665,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 666,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 667,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 668,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 669,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 670,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 671,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 672,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 673,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 674,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 675,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 676,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 677,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 678,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 679,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 680,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 681,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 682,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 683,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 684,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 685,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 686,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 687,
+    "style": "Normal",
+    "text": "Euclidean Comparison"
+  },
+  {
+    "idx": 688,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 689,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 690,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 691,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 692,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 693,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 694,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 695,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 696,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 697,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 698,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 699,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 700,
+    "style": "Normal",
+    "text": "Figure: 5.4.3.1 User Registration & Login"
+  },
+  {
+    "idx": 701,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 702,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 703,
+    "style": "Heading 5",
+    "text": "Financial Dashboard"
+  },
+  {
+    "idx": 704,
+    "style": "Body Text",
+    "text": "The main dashboard where customers see their balance (with a hide/show toggle), recent transactions, and spending charts."
+  },
+  {
+    "idx": 705,
+    "style": "Heading 5",
+    "text": "Funds Transfer (NEFT/UPI)"
+  },
+  {
+    "idx": 706,
+    "style": "Body Text",
+    "text": "Customers can send money to other accounts via NEFT or UPI, and save frequent recipients as beneficiaries."
+  },
+  {
+    "idx": 707,
+    "style": "Heading 5",
+    "text": "Physical/Virtual Cards"
+  },
+  {
+    "idx": 708,
+    "style": "Body Text",
+    "text": "Users can view their cards, request upgrades, and quickly block a card if it gets lost or stolen."
+  },
+  {
+    "idx": 709,
+    "style": "Heading 5",
+    "text": "Savings Goals (Pockets)"
+  },
+  {
+    "idx": 710,
+    "style": "Body Text",
+    "text": "Pockets let users set aside money for specific goals like a vacation or new phone, with a progress bar showing how close they are."
+  },
+  {
+    "idx": 711,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 712,
+    "style": "Heading 5",
+    "text": "Location Finder Map"
+  },
+  {
+    "idx": 713,
+    "style": "Body Text",
+    "text": "Customers can open a 3D map to find the nearest Smart Bank branches and ATMs, with directions and distance shown."
+  },
+  {
+    "idx": 714,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 715,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 716,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 717,
+    "style": "Normal",
+    "text": "Figure: 5.4.3.6 Location Finder Map"
+  },
+  {
+    "idx": 718,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 719,
+    "style": "Body Text",
+    "text": "<div class=\"btn-badge-inline\"><i class=\"fas fa-shield-halved\"></i> SECURE</div>"
+  },
+  {
+    "idx": 720,
+    "style": "Body Text",
+    "text": "<div class=\"user-icon-simple\"></div>"
+  },
+  {
+    "idx": 721,
+    "style": "Body Text",
+    "text": "<span>Face Login</span>"
+  },
+  {
+    "idx": 722,
+    "style": "Body Text",
+    "text": "</button>"
+  },
+  {
+    "idx": 723,
+    "style": "Body Text",
+    "text": "<div class=\"auth-links-modern\">"
+  },
+  {
+    "idx": 724,
+    "style": "Body Text",
+    "text": "<a href=\"mobile-forgot-password.html\">Reset Password</a>"
+  },
+  {
+    "idx": 725,
+    "style": "Body Text",
+    "text": "<a href=\"mobile-signup.html\" class=\"gold-link\">Create Account</a>"
+  },
+  {
+    "idx": 726,
+    "style": "Body Text",
+    "text": "</div>"
+  },
+  {
+    "idx": 727,
+    "style": "Body Text",
+    "text": "<!-- Security & RBI Badges -->"
+  },
+  {
+    "idx": 728,
+    "style": "Body Text",
+    "text": "<div class=\"security-badge\"><i class=\"fas fa-shield-alt\"></i><span>256-bit SSL Encrypted • RBI Licensed</span></div>"
+  },
+  {
+    "idx": 729,
+    "style": "Body Text",
+    "text": "<div class=\"rbi-badge\"><i class=\"fas fa-university\"></i><span>REGULATED BY RESERVE BANK OF INDIA</span></div>"
+  },
+  {
+    "idx": 730,
+    "style": "Body Text",
+    "text": "</div>"
+  },
+  {
+    "idx": 731,
+    "style": "Body Text",
+    "text": "<!-- Bottom Navigation -->"
+  },
+  {
+    "idx": 732,
+    "style": "Body Text",
+    "text": "<nav class=\"bottom-nav-modern\">"
+  },
+  {
+    "idx": 733,
+    "style": "Body Text",
+    "text": "<a href=\"#\" class=\"nav-item-modern\"><i class=\"fas fa-th-large\"></i><span class=\"nav-label\">Services</span></a>"
+  },
+  {
+    "idx": 734,
+    "style": "Body Text",
+    "text": "<a href=\"#\" class=\"nav-item-modern\"><i class=\"fas fa-percent\"></i><span class=\"nav-label\">Offers</span></a>"
+  },
+  {
+    "idx": 735,
+    "style": "Body Text",
+    "text": "<div class=\"nav-center-modern\">"
+  },
+  {
+    "idx": 736,
+    "style": "Body Text",
+    "text": "<div class=\"nav-center-btn-modern\" onclick=\"openQrScanner()\">"
+  },
+  {
+    "idx": 737,
+    "style": "Body Text",
+    "text": "<i class=\"fas fa-qrcode\"></i><span class=\"nav-label\">Scan & Pay</span>"
+  },
+  {
+    "idx": 738,
+    "style": "Body Text",
+    "text": "</div>"
+  },
+  {
+    "idx": 739,
+    "style": "Body Text",
+    "text": "</div>"
+  },
+  {
+    "idx": 740,
+    "style": "Body Text",
+    "text": "<a href=\"#\" class=\"nav-item-modern\"><i class=\"fas fa-headset\"></i><span class=\"nav-label\">Help</span></a>"
+  },
+  {
+    "idx": 741,
+    "style": "Body Text",
+    "text": "<a href=\"#\" class=\"nav-item-modern active\"><i class=\"fas"
+  },
+  {
+    "idx": 742,
+    "style": "Body Text",
+    "text": "fa-sign-in-alt\"></i><span class=\"nav-label\">Login</span></a>"
+  },
+  {
+    "idx": 743,
+    "style": "Body Text",
+    "text": "</nav>"
+  },
+  {
+    "idx": 744,
+    "style": "Body Text",
+    "text": "</div>"
+  },
+  {
+    "idx": 745,
+    "style": "Body Text",
+    "text": "<script src=\"js/face-auth-fixed.js\"></script>"
+  },
+  {
+    "idx": 746,
+    "style": "Body Text",
+    "text": "<script src=\"js/mobile-logic.js\"></script>"
+  },
+  {
+    "idx": 747,
+    "style": "Body Text",
+    "text": "</body>"
+  },
+  {
+    "idx": 748,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 749,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 750,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 751,
+    "style": "Normal",
+    "text": "6.9 FRONTEND — Mobile Signup (mobile-signup.html)"
+  },
+  {
+    "idx": 752,
+    "style": "Body Text",
+    "text": "Mobile-optimized registration with 6-digit OTP verification modal using individual input fields."
+  },
+  {
+    "idx": 753,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 754,
+    "style": "Heading 1",
+    "text": "TESTING"
+  },
+  {
+    "idx": 755,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 756,
+    "style": "Heading 3",
+    "text": "Introduction"
+  },
+  {
+    "idx": 757,
+    "style": "Body Text",
+    "text": "For a financial application like Smart Bank, rigorous testing is not optional — it is the backbone of trust. Every module in the platform, from the biometric Face Login engine (face-api.js) to the multi-currency fund transfer pipeline, must be systematically challenged under both expected and hostile input conditions before it can be considered production-ready."
+  },
+  {
+    "idx": 758,
+    "style": "Body Text",
+    "text": "The testing strategy for Smart Bank was designed around two core principles. First, verification — guaranteeing that each API endpoint, database interaction, and frontend workflow adheres precisely to the technical specifications outlined in Chapter 2 (SRS). Second, validation — confirming that the end-to-end user experience satisfies the real-world banking expectations of retail customers, agricultural account holders, and administrative staff."
+  },
+  {
+    "idx": 759,
+    "style": "Body Text",
+    "text": "Given the multi-layered architecture of Smart Bank (9 Flask Blueprints, 40+ REST endpoints, 25+ database tables, and 3 distinct role-based dashboards), testing was conducted at four progressive stages:"
+  },
+  {
+    "idx": 760,
+    "style": "List Paragraph",
+    "text": "Black-box testing: Treating each module as a sealed unit, inputs were supplied through the frontend forms and API payloads, and only the resulting HTTP responses, UI state changes, and database mutations were evaluated — without inspecting the internal Flask route logic."
+  },
+  {
+    "idx": 761,
+    "style": "List Paragraph",
+    "text": "White-box testing: The internal Python route handlers, SQLite query construction, and JavaScript DOM manipulation logic were directly examined to verify code coverage across conditional branches (e.g., loan penalty edge cases, biometric threshold comparisons, and daily transfer limit bypass attempts)."
+  },
+  {
+    "idx": 762,
+    "style": "Body Text",
+    "text": "Each test case documented in this chapter follows a structured format: a unique identifier (e.g., TC-PAY-5), a specific scenario description, the expected outcome based on the SRS, and a pass/fail status determined against the actual system behavior."
+  },
+  {
+    "idx": 763,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 764,
+    "style": "Heading 3",
+    "text": "Testing Objectives"
+  },
+  {
+    "idx": 765,
+    "style": "Body Text",
+    "text": "The primary goals of the Smart Bank testing phase were:"
+  },
+  {
+    "idx": 766,
+    "style": "List Paragraph",
+    "text": "To detect and resolve defects introduced during the Flask Blueprint development and JavaScript SPA integration stages."
+  },
+  {
+    "idx": 767,
+    "style": "List Paragraph",
+    "text": ""
+  },
+  {
+    "idx": 768,
+    "style": "List Paragraph",
+    "text": "To validate that all 3 user roles (Customer, Staff, Admin) experience secure, role-isolated access to their respective dashboards and API endpoints."
+  },
+  {
+    "idx": 769,
+    "style": "List Paragraph",
+    "text": "To stress-test the financial arithmetic engine — guaranteeing that fund transfers, loan penalty calculations (0.1% daily), and multi-currency conversions (USD/EUR/GBP"
+  },
+  {
+    "idx": 770,
+    "style": "Body Text",
+    "text": "→ INR) produce mathematically precise results with zero rounding drift."
+  },
+  {
+    "idx": 771,
+    "style": "List Paragraph",
+    "text": "To confirm full compliance with the Security Requirements defined in Chapter 2 (session timeout, input sanitization, biometric face descriptor encryption, and XSS/SQL injection prevention)."
+  },
+  {
+    "idx": 772,
+    "style": "List Paragraph",
+    "text": "To verify that the specialized Agriculture Hub, Crop Marketplace, and Savings Pockets modules operate correctly under concurrent user scenarios."
+  },
+  {
+    "idx": 773,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 774,
+    "style": "Heading 3",
+    "text": "Testing Methods"
+  },
+  {
+    "idx": 775,
+    "style": "Body Text",
+    "text": "Smart Bank was subjected to a exhaustive multi-stage testing pipeline prior to deployment on Render.com. This pipeline included functional API testing (using direct HTTP fetch calls against all 40+ endpoints), UI interaction testing (validating form workflows, modal transitions, and toast notification accuracy across Desktop and Mobile dashboards), security penetration testing (SQL injection, XSS payloads, session hijacking attempts), and performance profiling (response latency under concurrent database queries with SQLite WAL mode enabled)."
+  },
+  {
+    "idx": 776,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 777,
+    "style": "Heading 3",
+    "text": "Testing Steps"
+  },
+  {
+    "idx": 778,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 779,
+    "style": "Heading 4",
+    "text": "Unit Testing"
+  },
+  {
+    "idx": 780,
+    "style": "Body Text",
+    "text": "Each Flask Blueprint (auth_routes.py, user_routes.py, staff_routes.py, admin_routes.py, agri_routes.py, marketplace_routes.py) was tested independently by invoking individual route handlers with controlled JSON payloads. For example, the /api/auth/signup endpoint was tested with valid inputs, duplicate usernames, weak passwords, and malformed email formats — each in isolation — to confirm that the route handler returned the correct HTTP status code and error message without side effects on other modules."
+  },
+  {
+    "idx": 781,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 782,
+    "style": "Heading 4",
+    "text": "integration Testing"
+  },
+  {
+    "idx": 783,
+    "style": "Body Text",
+    "text": "After unit testing, the cross-module data flow was validated end-to-end. A important integration path — User Registration → OTP Verification → Account Opening (KYC) → Staff Approval → Card Request → Staff Card Issuance → User Dashboard Card Rendering — was executed as a single continuous workflow. This exposed interface-level"
+  },
+  {
+    "idx": 784,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 785,
+    "style": "Body Text",
+    "text": "issues such as the NOT NULL constraint violation in service_applications.amount during card requests, which was resolved by defaulting the amount field to 0.0 for non-monetary applications."
+  },
+  {
+    "idx": 786,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 787,
+    "style": "Heading 4",
+    "text": "Validation Testing"
+  },
+  {
+    "idx": 788,
+    "style": "Body Text",
+    "text": "The fully assembled Smart Bank platform was validated against the functional requirements from Chapter 2. Key validation checks included: FR1 — biometric face recognition completing within 2 seconds; FR2 — PDF statement generation correctly filtering by current month, last 6 months, or full history; and FR3 — role-based dashboard isolation guaranteeing that a user session token cannot access /api/admin/dashboard or"
+  },
+  {
+    "idx": 789,
+    "style": "Body Text",
+    "text": "/api/staff/customers endpoints."
+  },
+  {
+    "idx": 790,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 791,
+    "style": "Heading 4",
+    "text": "Output Testing"
+  },
+  {
+    "idx": 792,
+    "style": "Body Text",
+    "text": "All system outputs were verified for correctness and professional formatting:"
+  },
+  {
+    "idx": 793,
+    "style": "List Paragraph",
+    "text": "PDF Bank Statements: Generated via ReportLab with proper maroon-themed headers, account summary tables, and color-coded credit/debit transaction rows."
+  },
+  {
+    "idx": 794,
+    "style": "List Paragraph",
+    "text": "3D Map Rendering: MapLibre GL correctly plotted Branch and ATM markers with photo popups at the GPS coordinates stored in the branch_locations database table."
+  },
+  {
+    "idx": 795,
+    "style": "List Paragraph",
+    "text": "Chart.js Analytics: Spending analytics charts on the User Dashboard accurately reflected the transaction history data fetched from the /api/user/dashboard endpoint."
+  },
+  {
+    "idx": 796,
+    "style": "List Paragraph",
+    "text": "Toast Notifications: All 30+ unique toast messages across Desktop and Mobile interfaces displayed the correct severity level (success/error/info/warning)."
+  },
+  {
+    "idx": 797,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 798,
+    "style": "Heading 4",
+    "text": "User Acceptance Testing"
+  },
+  {
+    "idx": 799,
+    "style": "Body Text",
+    "text": "The Smart Bank platform was continuously evaluated with prospective end-users throughout the development cycle. Key acceptance criteria included:"
+  },
+  {
+    "idx": 800,
+    "style": "List Paragraph",
+    "text": "Login Experience: Both the Desktop glassmorphic login (user.html) and the Mobile PWA login (mobile-auth.html) were tested for intuitive flow, including the cached user hydration (\"Welcome Back\" section) and the Face Login biometric modal."
+  },
+  {
+    "idx": 801,
+    "style": "List Paragraph",
+    "text": "Dashboard Usability: The User Dashboard SPA was validated for uninterrupted navigation between the Home, Cards, Transfers, Loans, Savings, and Map sections without page reloads."
+  },
+  {
+    "idx": 802,
+    "style": "List Paragraph",
+    "text": "Mobile Responsiveness: The bottom navigation bar, balance \"Eye Toggle\" privacy feature, and QR Scanner were tested on iPhone and Android devices to guarantee"
+  },
+  {
+    "idx": 803,
+    "style": "List Paragraph",
+    "text": ""
+  },
+  {
+    "idx": 804,
+    "style": "Body Text",
+    "text": "touch targets met the minimum 44px accessibility standard."
+  },
+  {
+    "idx": 805,
+    "style": "List Paragraph",
+    "text": "Staff Workflow: Bank Staff confirmed that the KYC approval queue, cash operations (Add/Withdraw/Transfer), and biometric attendance clock-in/out workflows matched their operational expectations."
+  },
+  {
+    "idx": 806,
+    "style": "List Paragraph",
+    "text": "Report Accuracy: Generated PDF reports were cross-referenced against raw database records to confirm zero discrepancy in financial figures."
+  },
+  {
+    "idx": 807,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 808,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 809,
+    "style": "Heading 3",
+    "text": "Test Cases (for Smart Bank)"
+  },
+  {
+    "idx": 810,
+    "style": "Body Text",
+    "text": "The progressive testing of individual forms and modules guarantees strong inputs, reliable bounds checking, and strict security across the Smart Bank platform. Below is a exhaustive suite of test cases executing high-fidelity validation."
+  },
+  {
+    "idx": 811,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 812,
+    "style": "Heading 4",
+    "text": "Admin Login Form"
+  },
+  {
+    "idx": 813,
+    "style": "Body Text",
+    "text": "Objective: Verify the Administrative gateway protects against unauthorized staff/user escalation, brute force, and injection attacks."
+  },
+  {
+    "idx": 814,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 815,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 816,
+    "style": "Heading 4",
+    "text": "User Register Form"
+  },
+  {
+    "idx": 817,
+    "style": "Body Text",
+    "text": "Objective: Validate customer onboarding, strict KYC compliance, password strength algorithms, and race conditions."
+  },
+  {
+    "idx": 818,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 819,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 820,
+    "style": "Heading 4",
+    "text": "Booking Form (Service & Account Application)"
+  },
+  {
+    "idx": 821,
+    "style": "Body Text",
+    "text": "Objective: guarantee applications for Loans, Cards, and Accounts accurately hit Staff Queues with complete documentation."
+  },
+  {
+    "idx": 822,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 823,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 824,
+    "style": "Heading 4",
+    "text": "Payment Form (Transfer & UPI)"
+  },
+  {
+    "idx": 825,
+    "style": "Heading 4",
+    "text": ""
+  },
+  {
+    "idx": 826,
+    "style": "Body Text",
+    "text": "Objective: Guarantee real-time accounting logic, thwart concurrency race conditions, and secure multi-currency API conversion."
+  },
+  {
+    "idx": 827,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 828,
+    "style": "Table Paragraph",
+    "text": ""
+  },
+  {
+    "idx": 829,
+    "style": "Heading 4",
+    "text": "Support & Feedback Form"
+  },
+  {
+    "idx": 830,
+    "style": "Body Text",
+    "text": "Objective: Confirm that user grievances and tickets correctly escalate to Bank Staff, and that AI fallback handles baseline queries."
+  },
+  {
+    "idx": 831,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 832,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 833,
+    "style": "Heading 4",
+    "text": "Advanced Features & System integration"
+  },
+  {
+    "idx": 834,
+    "style": "Body Text",
+    "text": "Objective: Verify hardware integration, third-party API dependencies (MapLibre), and PDF Generation pipelines."
+  },
+  {
+    "idx": 835,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 836,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 837,
+    "style": "Heading 4",
+    "text": "Staff Operations & Logistics Form"
+  },
+  {
+    "idx": 838,
+    "style": "Body Text",
+    "text": "Objective: Validate middle-office administrative tasks, guaranteeing secure KYC approvals, physical vault handling, and staff attendance reliability."
+  },
+  {
+    "idx": 839,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 840,
+    "style": "Table Paragraph",
+    "text": ""
+  },
+  {
+    "idx": 841,
+    "style": "Heading 1",
+    "text": "USER INTERFACE"
+  },
+  {
+    "idx": 842,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 843,
+    "style": "Heading 3",
+    "text": "Screenshots"
+  },
+  {
+    "idx": 844,
+    "style": "Body Text",
+    "text": "The User Interface of Smart Bank was strictly designed with a \"Premium White\" glassmorphic aesthetic to guarantee maximum trust and accessibility. Below are the key screens capturing the core platform workflows directly from the active project workspace."
+  },
+  {
+    "idx": 845,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 846,
+    "style": "Heading 4",
+    "text": "Public Portals & Onboarding"
+  },
+  {
+    "idx": 847,
+    "style": "Body Text",
+    "text": "Figure 8.1: Landing Page"
+  },
+  {
+    "idx": 848,
+    "style": "Body Text",
+    "text": "(Displays the modern hero section, 3D CSS isometric illustrations, and primary navigation elements.)"
+  },
+  {
+    "idx": 849,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 850,
+    "style": "Normal",
+    "text": "Figure: Landing Page"
+  },
+  {
+    "idx": 851,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 852,
+    "style": "Body Text",
+    "text": "Figure 8.2: Face Authentication Login"
+  },
+  {
+    "idx": 853,
+    "style": "Body Text",
+    "text": "(Shows the biometric liveness popup modal capturing the user's face structure for distance comparison.)"
+  },
+  {
+    "idx": 854,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 855,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 856,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 857,
+    "style": "Normal",
+    "text": "Figure: Face Auth Login"
+  },
+  {
+    "idx": 858,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 859,
+    "style": "Body Text",
+    "text": "Figure 8.3: Customer Registration & OTP"
+  },
+  {
+    "idx": 860,
+    "style": "Body Text",
+    "text": "(Captures the glassmorphic multi-step signup form and the secure 6-digit OTP email verification popup.)"
+  },
+  {
+    "idx": 861,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 862,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 863,
+    "style": "Normal",
+    "text": "Figure: Customer Registration"
+  },
+  {
+    "idx": 864,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 865,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 866,
+    "style": "Heading 4",
+    "text": "User Dashboard (SPA)"
+  },
+  {
+    "idx": 867,
+    "style": "Body Text",
+    "text": "Figure 8.4: Primary User Account View"
+  },
+  {
+    "idx": 868,
+    "style": "Body Text",
+    "text": "(Highlights the main balance card, active Mastercards, quick transfer actions, and the recent transactions ledger.)"
+  },
+  {
+    "idx": 869,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 870,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 871,
+    "style": "Normal",
+    "text": "Figure: User Dashboard"
+  },
+  {
+    "idx": 872,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 873,
+    "style": "Body Text",
+    "text": "Figure 8.5: Fund Transfer & UPI Module"
+  },
+  {
+    "idx": 874,
+    "style": "Body Text",
+    "text": "(Demonstrates the incorporated transfer form, daily limit trackers, and UPI ID payment fields.)"
+  },
+  {
+    "idx": 875,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 876,
+    "style": "Normal",
+    "text": "Figure: Transfer Money"
+  },
+  {
+    "idx": 877,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 878,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 879,
+    "style": "Normal",
+    "text": "Figure: UPI Payments"
+  },
+  {
+    "idx": 880,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 881,
+    "style": "Body Text",
+    "text": "Figure 8.6: Savings Pockets & AI Chatbot"
+  },
+  {
+    "idx": 882,
+    "style": "Body Text",
+    "text": "(Shows interactive progress bars tracking user savings vaults alongside the floating AI customer support window.)"
+  },
+  {
+    "idx": 883,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 884,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 885,
+    "style": "Normal",
+    "text": "Figure: AI Chatbot"
+  },
+  {
+    "idx": 886,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 887,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 888,
+    "style": "Normal",
+    "text": "Figure: Savings Pockets"
+  },
+  {
+    "idx": 889,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 890,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 891,
+    "style": "Heading 4",
+    "text": "Mobile Interface (PWA)"
+  },
+  {
+    "idx": 892,
+    "style": "Body Text",
+    "text": "Figure 8.7: Mobile Dashboard & Balance Masking"
+  },
+  {
+    "idx": 893,
+    "style": "Body Text",
+    "text": "(Captures the responsive bottom-navigation design and the \"Eye Toggle\" hiding the live balance.)"
+  },
+  {
+    "idx": 894,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 895,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 896,
+    "style": "Normal",
+    "text": "Figure: Mobile Dashboard"
+  },
+  {
+    "idx": 897,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 898,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 899,
+    "style": "Heading 4",
+    "text": "Staff & Back-Office Operations"
+  },
+  {
+    "idx": 900,
+    "style": "Body Text",
+    "text": "Figure 8.8: Staff Dashboard Main View"
+  },
+  {
+    "idx": 901,
+    "style": "Body Text",
+    "text": "(Displays the exhaustive middle-office queue where staff review overall bank activities and navigate modules.)"
+  },
+  {
+    "idx": 902,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 903,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 904,
+    "style": "Normal",
+    "text": "Figure: Staff Dashboard Main"
+  },
+  {
+    "idx": 905,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 906,
+    "style": "Body Text",
+    "text": "Figure 8.9: Staff KYC Approval Queue"
+  },
+  {
+    "idx": 907,
+    "style": "Body Text",
+    "text": "(Details the review process for verifying Aadhar/PAN cards and pending customer registrations.)"
+  },
+  {
+    "idx": 908,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 909,
+    "style": "Normal",
+    "text": "Figure: Staff KYC Approvals"
+  },
+  {
+    "idx": 910,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 911,
+    "style": "Body Text",
+    "text": "Figure 8.10: Staff Customers View"
+  },
+  {
+    "idx": 912,
+    "style": "Body Text",
+    "text": "(Lists all active verified banking customers tied to the specific staff regional assignment.)"
+  },
+  {
+    "idx": 913,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 914,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 915,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 916,
+    "style": "Normal",
+    "text": "Figure: Staff Customers"
+  },
+  {
+    "idx": 917,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 918,
+    "style": "Body Text",
+    "text": "Figure 8.11: Vault Transactions"
+  },
+  {
+    "idx": 919,
+    "style": "Body Text",
+    "text": "(Manages physical vault deposits, withdrawals, and inter-branch transfers requested manually at the desk.)"
+  },
+  {
+    "idx": 920,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 921,
+    "style": "Normal",
+    "text": "Figure: Staff Transactions"
+  },
+  {
+    "idx": 922,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 923,
+    "style": "Body Text",
+    "text": "Figure 8.12: Staff Attendance & Biometrics"
+  },
+  {
+    "idx": 924,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 925,
+    "style": "Body Text",
+    "text": "(Shows the dashboard interface logging Face Auth validated clock-in and clock-out mechanisms for staff accountability.)"
+  },
+  {
+    "idx": 926,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 927,
+    "style": "Normal",
+    "text": "Figure: Staff Attendance"
+  },
+  {
+    "idx": 928,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 929,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 930,
+    "style": "Heading 4",
+    "text": "Specialized Portals"
+  },
+  {
+    "idx": 931,
+    "style": "Body Text",
+    "text": "Figure 8.13: Agriculture Hub"
+  },
+  {
+    "idx": 932,
+    "style": "Body Text",
+    "text": "(A dedicated portal enabling farmers and retail buyers to interact with 7.5% subsidized farming loan markets.)"
+  },
+  {
+    "idx": 933,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 934,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 935,
+    "style": "Normal",
+    "text": "Figure: Agri Hub Portal"
+  },
+  {
+    "idx": 936,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 937,
+    "style": "Body Text",
+    "text": "Figure 8.14: Agriculture Loan Processing"
+  },
+  {
+    "idx": 938,
+    "style": "Body Text",
+    "text": "(Displays satellite RTC-verified farm land loans awaiting staff disbursement into the farmer's core banking account.)"
+  },
+  {
+    "idx": 939,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 940,
+    "style": "Normal",
+    "text": "Figure: Agri Loans"
+  },
+  {
+    "idx": 941,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 942,
+    "style": "Body Text",
+    "text": "Figure 8.15: Help Desk & Support Settings"
+  },
+  {
+    "idx": 943,
+    "style": "Body Text",
+    "text": "(Shows the incorporated Support Desk resolving customer-raised priority tickets and routing AI fallback events.)"
+  },
+  {
+    "idx": 944,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 945,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 946,
+    "style": "Normal",
+    "text": "Figure: Support Desk"
+  },
+  {
+    "idx": 947,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 948,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 949,
+    "style": "Heading 4",
+    "text": "Geospatial & Reporting Integrations"
+  },
+  {
+    "idx": 950,
+    "style": "Body Text",
+    "text": "Figure 8.16: Live MapLibre System integration"
+  },
+  {
+    "idx": 951,
+    "style": "Body Text",
+    "text": "(Captures the 3D terrain map rendering geo-located Branch and ATM markers overlaying the active region.)"
+  },
+  {
+    "idx": 952,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 953,
+    "style": "Normal",
+    "text": "Figure: Live Map Locator"
+  },
+  {
+    "idx": 954,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 955,
+    "style": "Body Text",
+    "text": "Figure 8.17: Dynamic Report Generation"
+  },
+  {
+    "idx": 956,
+    "style": "Body Text",
+    "text": "(Highlights the PDF ledger controls exporting active compliance metrics, transactions, and user status reports.)"
+  },
+  {
+    "idx": 957,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 958,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 959,
+    "style": "Normal",
+    "text": "Figure: Reports Panel"
+  },
+  {
+    "idx": 960,
+    "style": "Normal",
+    "text": ""
+  },
+  {
+    "idx": 961,
+    "style": "Heading 1",
+    "text": "USER MANUAL"
+  },
+  {
+    "idx": 962,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 963,
+    "style": "Heading 3",
+    "text": "Introduction"
+  },
+  {
+    "idx": 964,
+    "style": "Body Text",
+    "text": "The Smart Bank User Manual delivers exhaustive instructions for customers, banking staff, and administrators to effectively navigate the digital banking ecosystem. It covers the biometric enrollment process, transaction management, and specialized module access. This manual guarantees that all stakeholders can use the platform's high-fidelity features while maintaining strict financial security."
+  },
+  {
+    "idx": 965,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 966,
+    "style": "Heading 3",
+    "text": "Hardware Requirements"
+  },
+  {
+    "idx": 967,
+    "style": "List Paragraph",
+    "text": "Processor: Intel i5 or equivalent (Minimum); Intel i7 recommended for smoother 3D Map rendering."
+  },
+  {
+    "idx": 968,
+    "style": "List Paragraph",
+    "text": "RAM: 8GB (Mandatory for real-time face-api.js biometric processing)."
+  },
+  {
+    "idx": 969,
+    "style": "List Paragraph",
+    "text": "Camera: incorporated HD Webcam or External USB Camera (Required for Biometric Authentication)."
+  },
+  {
+    "idx": 970,
+    "style": "List Paragraph",
+    "text": "Display: 1920x1080 resolution (Optimized for glassmorphic UI and 3D terrain visualizations)."
+  },
+  {
+    "idx": 971,
+    "style": "List Paragraph",
+    "text": "Connectivity: Stable broadband (Recommended for Geospatial tile loading via MapLibre GL)."
+  },
+  {
+    "idx": 972,
+    "style": "Body Text",
+    "text": ""
+  },
+  {
+    "idx": 973,
+    "style": "Heading 3",
+    "text": "Software Requirement"
+  },
+  {
+    "idx": 974,
+    "style": "List Paragraph",
+    "text": "Operating System: Windows 10/11, macOS, or Linux."
+  },
+  {
+    "idx": 975,
+    "style": "List Paragraph",
+    "text": "Web Browser: Google Chrome v90+ or Microsoft Edge (Must support WebGL 2.0 and MediaDevices API)."
+  },
+  {
+    "idx": 976,
+    "style": "List Paragraph",
+    "text": "JavaScript: Must be enabled in browser settings for face recognition and dynamic Chart.js analytics."
+  },
+  {
+    "idx": 977,
+    "style": "List Paragraph",
+    "text": "PDF Viewer: Adobe Acrobat Reader or any browser-incorporated PDF viewer for reviewing bank statements."
+  }
+]

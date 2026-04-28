@@ -101,7 +101,7 @@ async function loadAll() {
             state.accountRequests = d.account_requests || [];
             state.transactions = d.transactions || [];
             state.cards = d.cards || [];
-            state.cardRequests = d.card_requests || [];
+            state.cardRequests = (d.card_requests || []).filter(cr => cr.status === 'pending');
             state.loans = d.loans || [];
             state.notifications = (d.notifications || []).map(n => ({
                 id: n.id,
@@ -2715,19 +2715,14 @@ async function checkDesktopPasscodeStatus() {
 async function toggleBalanceVisibility() {
     const isHidden = localStorage.getItem('hideBalance') === 'true';
 
-    if (!isHidden) {
-        // Currently visible → just hide (no PIN needed)
+    if (isHidden) {
+        // Currently hidden → just show (no PIN needed)
+        localStorage.setItem('hideBalance', 'false');
+    } else {
+        // Currently visible → just hide
         localStorage.setItem('hideBalance', 'true');
-        renderStats();
-        return;
     }
-
-    // Currently hidden → need PIN to reveal
-    if (_desktopPasscodeEnabled === null) {
-        await checkDesktopPasscodeStatus();
-    }
-
-    openDesktopPinModal();
+    renderStats();
 }
 
 function openDesktopPinModal() {

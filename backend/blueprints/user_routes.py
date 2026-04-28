@@ -647,6 +647,16 @@ def request_card():
             return jsonify({'error': 'No active account found. Please open an account first.'}), 400
 
     try:
+        # Prevent duplicate: check if user already has an active card
+        existing_card = db.execute('SELECT id FROM cards WHERE user_id = ? AND status = "active"', (user_id,)).fetchone()
+        if existing_card:
+            return jsonify({'error': 'You already have an active card. Go to Cards section to manage it.'}), 400
+        
+        # Prevent duplicate: check if user already has a pending card request
+        existing_req = db.execute('SELECT id FROM card_requests WHERE user_id = ? AND status = "pending"', (user_id,)).fetchone()
+        if existing_req:
+            return jsonify({'error': 'You already have a pending card request. Please wait for it to be processed.'}), 400
+
         db.execute('INSERT INTO card_requests (user_id, account_id, card_type, requested_credit_limit, status) VALUES (?, ?, ?, ?, "pending")',
                   (user_id, acc_id, c_type, lim))
         
