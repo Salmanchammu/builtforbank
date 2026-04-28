@@ -2326,8 +2326,9 @@ async function initUserLocator(forceRefresh = false) {
                             el.appendChild(ripple);
                         }
                         
+                        const popupLocId = `3d_${loc.id || Math.random().toString(36).slice(2)}`;
                         const popupHtml = `
-                            <div style="padding:15px;text-align:center;min-width:200px;">
+                            <div style="padding:15px;text-align:center;min-width:220px;">
                                 <div style="width:40px;height:40px;border-radius:50%;background:${loc.type === 'atm' ? '#eff6ff' : '#ffe4e6'};color:${loc.type === 'atm' ? '#3b82f6' : '#e11d48'};display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:20px;">
                                     <i class="fas ${loc.type === 'atm' ? 'fa-money-bill-wave' : 'fa-university'}"></i>
                                 </div>
@@ -2335,14 +2336,48 @@ async function initUserLocator(forceRefresh = false) {
                                 <span style="background:${loc.type === 'atm' ? '#e5e7eb' : '#fecdd3'};color:${loc.type === 'atm' ? '#374151' : '#be123c'};padding:4px 10px;border-radius:20px;font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">${escHtml(loc.type)}</span>
                                 <p style="margin:10px 0 0 0;font-size:13px;color:#4b5563;">${escHtml(loc.address || '')}</p>
                                 <p style="margin:2px 0 0 0;font-size:13px;font-weight:bold;color:#111827;">${escHtml(loc.city || '')}</p>
+                                
+                                <!-- Travel Distance Panel -->
+                                <div style="margin-top:12px; background:#f8fafc; border-radius:10px; padding:10px; border:1px solid #e2e8f0; text-align:left;">
+                                    <div style="font-size:10px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+                                        <i class="fas fa-route" style="color:#800000; margin-right:4px;"></i> Travel Distance
+                                    </div>
+                                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px;">
+                                        <div style="text-align:center; padding:6px 2px; background:white; border-radius:6px; border:1px solid #e2e8f0;">
+                                            <i class="fas fa-car" style="font-size:14px; color:#1e40af; display:block; margin-bottom:3px;"></i>
+                                            <div style="font-size:9px; font-weight:700; color:#1e293b;" id="car-dist-${popupLocId}">—</div>
+                                            <div style="font-size:8px; color:#64748b;" id="car-time-${popupLocId}">—</div>
+                                        </div>
+                                        <div style="text-align:center; padding:6px 2px; background:white; border-radius:6px; border:1px solid #e2e8f0;">
+                                            <i class="fas fa-motorcycle" style="font-size:14px; color:#059669; display:block; margin-bottom:3px;"></i>
+                                            <div style="font-size:9px; font-weight:700; color:#1e293b;" id="bike-dist-${popupLocId}">—</div>
+                                            <div style="font-size:8px; color:#64748b;" id="bike-time-${popupLocId}">—</div>
+                                        </div>
+                                        <div style="text-align:center; padding:6px 2px; background:white; border-radius:6px; border:1px solid #e2e8f0;">
+                                            <i class="fas fa-walking" style="font-size:14px; color:#d97706; display:block; margin-bottom:3px;"></i>
+                                            <div style="font-size:9px; font-weight:700; color:#1e293b;" id="walk-dist-${popupLocId}">—</div>
+                                            <div style="font-size:8px; color:#64748b;" id="walk-time-${popupLocId}">—</div>
+                                        </div>
+                                    </div>
+                                    <div id="travel-status-${popupLocId}" style="font-size:9px; color:#94a3b8; text-align:center; margin-top:4px;">
+                                        <i class="fas fa-crosshairs"></i> Detecting location...
+                                    </div>
+                                </div>
+                                
                                 <a href="https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}" target="_blank" style="display:inline-block;margin-top:12px;padding:8px 16px;background:#111827;color:white;border-radius:8px;text-decoration:none;font-size:12px;font-weight:bold;transition:0.2s;"><i class="fas fa-directions"></i> Get Directions</a>
                             </div>
                         `;
                         
+                        const popup3d = new maplibregl.Popup({ offset: 25, closeButton: false, maxWidth: '320px' })
+                            .setHTML(popupHtml);
+                        
+                        popup3d.on('open', () => {
+                            calculateTravelDistances(loc.lat, loc.lng, popupLocId);
+                        });
+                        
                         new maplibregl.Marker({ element: el })
                             .setLngLat([loc.lng, loc.lat])
-                            .setPopup(new maplibregl.Popup({ offset: 25, closeButton: false, maxWidth: '300px' })
-                            .setHTML(popupHtml))
+                            .setPopup(popup3d)
                             .addTo(userLocatorMapInstance);
                             
                         bounds.extend([loc.lng, loc.lat]);
@@ -4287,6 +4322,7 @@ function renderLocatorMarkers() {
         const color = isBranch ? '#800000' : '#2563eb';
         const icon = isBranch ? 'fa-university' : 'fa-credit-card';
         const label = isBranch ? 'Branch' : 'ATM';
+        const locId = `loc_${loc.id || Math.random().toString(36).slice(2)}`;
 
         // Custom marker element
         const el = document.createElement('div');
@@ -4302,8 +4338,8 @@ function renderLocatorMarkers() {
         el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.2)'; });
         el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
 
-        // Popup
-        const popup = new maplibregl.Popup({ offset: 30, closeButton: true, maxWidth: '280px' })
+        // Popup with travel distance panel
+        const popup = new maplibregl.Popup({ offset: 30, closeButton: true, maxWidth: '320px' })
             .setHTML(`
                 <div style="font-family:system-ui,-apple-system,sans-serif; padding:4px;">
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
@@ -4318,13 +4354,55 @@ function renderLocatorMarkers() {
                     ${loc.photo_url ? `<div style="margin-bottom:8px; border-radius:8px; overflow:hidden;"><img src="${API}/staff/locations/photo/${loc.photo_url}" style="width:100%; height:120px; object-fit:cover; display:block;" alt="Location Photo"></div>` : ''}
                     ${loc.address ? `<div style="font-size:12px;color:#64748b;margin-bottom:4px;"><i class="fas fa-map-marker-alt" style="color:${color};margin-right:4px;"></i>${escHtml(loc.address)}</div>` : ''}
                     ${loc.city ? `<div style="font-size:12px;color:#64748b;"><i class="fas fa-city" style="color:${color};margin-right:4px;"></i>${escHtml(loc.city)}</div>` : ''}
-                    <div style="font-size:11px;color:#94a3b8;margin-top:6px;"><i class="fas fa-map-pin" style="margin-right:4px;"></i>${loc.lat}, ${loc.lng}</div>
-                    <a href="https://www.google.com/maps?q=${loc.lat},${loc.lng}" target="_blank" rel="noopener"
-                       style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:6px 12px;background:${color};color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;">
-                        <i class="fas fa-directions"></i> Get Directions
-                    </a>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:6px;"><i class="fas fa-map-pin" style="margin-right:4px;"></i>${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}</div>
+
+                    <!-- Travel Distance Panel -->
+                    <div id="travel-${locId}" style="margin-top:10px; background:#f8fafc; border-radius:10px; padding:10px; border:1px solid #e2e8f0;">
+                        <div style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
+                            <i class="fas fa-route" style="color:${color}; margin-right:4px;"></i> Travel Distance
+                        </div>
+                        <div id="travel-info-${locId}" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+                            <div style="text-align:center; padding:8px 4px; background:white; border-radius:8px; border:1px solid #e2e8f0; cursor:pointer; transition:all 0.2s;" 
+                                 onclick="showRouteOnMap(${loc.lat}, ${loc.lng}, 'driving', '${locId}')" id="mode-car-${locId}">
+                                <i class="fas fa-car" style="font-size:16px; color:#1e40af; display:block; margin-bottom:4px;"></i>
+                                <div style="font-size:10px; font-weight:700; color:#1e293b;" id="car-dist-${locId}">—</div>
+                                <div style="font-size:9px; color:#64748b;" id="car-time-${locId}">—</div>
+                            </div>
+                            <div style="text-align:center; padding:8px 4px; background:white; border-radius:8px; border:1px solid #e2e8f0; cursor:pointer; transition:all 0.2s;" 
+                                 onclick="showRouteOnMap(${loc.lat}, ${loc.lng}, 'cycling', '${locId}')" id="mode-bike-${locId}">
+                                <i class="fas fa-motorcycle" style="font-size:16px; color:#059669; display:block; margin-bottom:4px;"></i>
+                                <div style="font-size:10px; font-weight:700; color:#1e293b;" id="bike-dist-${locId}">—</div>
+                                <div style="font-size:9px; color:#64748b;" id="bike-time-${locId}">—</div>
+                            </div>
+                            <div style="text-align:center; padding:8px 4px; background:white; border-radius:8px; border:1px solid #e2e8f0; cursor:pointer; transition:all 0.2s;" 
+                                 onclick="showRouteOnMap(${loc.lat}, ${loc.lng}, 'foot', '${locId}')" id="mode-walk-${locId}">
+                                <i class="fas fa-walking" style="font-size:16px; color:#d97706; display:block; margin-bottom:4px;"></i>
+                                <div style="font-size:10px; font-weight:700; color:#1e293b;" id="walk-dist-${locId}">—</div>
+                                <div style="font-size:9px; color:#64748b;" id="walk-time-${locId}">—</div>
+                            </div>
+                        </div>
+                        <div id="travel-status-${locId}" style="font-size:10px; color:#94a3b8; text-align:center; margin-top:6px;">
+                            <i class="fas fa-crosshairs"></i> Detecting your location...
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:6px; margin-top:10px;">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}&travelmode=driving" target="_blank" rel="noopener"
+                           style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 10px;background:${color};color:white;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">
+                            <i class="fas fa-directions"></i> Google Maps
+                        </a>
+                        <button onclick="showRouteOnMap(${loc.lat}, ${loc.lng}, 'driving', '${locId}')"
+                           style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 10px;background:#0f172a;color:white;border-radius:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;">
+                            <i class="fas fa-map"></i> Show Route
+                        </button>
+                    </div>
                 </div>
             `);
+
+        // When popup opens, calculate distances
+        popup.on('open', () => {
+            calculateTravelDistances(loc.lat, loc.lng, locId);
+        });
 
         const marker = new maplibregl.Marker({ element: el })
             .setLngLat([loc.lng, loc.lat])
@@ -4349,6 +4427,8 @@ function filterLocations(type) {
     document.querySelectorAll('.loc-filter-btn').forEach(btn => btn.classList.remove('loc-active'));
     const activeBtn = $id(type === 'all' ? 'locFilterAll' : type === 'branch' ? 'locFilterBranch' : 'locFilterAtm');
     if (activeBtn) activeBtn.classList.add('loc-active');
+    // Clear route when changing filter
+    clearRouteLayer();
     renderLocatorMarkers();
 }
 
@@ -4358,6 +4438,227 @@ function updateLocCountBadge(count) {
         el.textContent = count === 0
             ? 'No locations found'
             : `${count} location${count !== 1 ? 's' : ''} found`;
+    }
+}
+
+/* ── Travel Distance & Route System ───────────────────────── */
+let _userPosition = null;
+let _routeLayerAdded = false;
+
+function haversineDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDistance(km) {
+    if (km < 1) return `${Math.round(km * 1000)}m`;
+    return km < 10 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`;
+}
+
+function formatDuration(mins) {
+    if (mins < 1) return '< 1 min';
+    if (mins < 60) return `${Math.round(mins)} min`;
+    const h = Math.floor(mins / 60);
+    const m = Math.round(mins % 60);
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+async function getUserPosition() {
+    if (_userPosition) return _userPosition;
+    return new Promise((resolve) => {
+        if (!navigator.geolocation) {
+            resolve(null);
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                _userPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                resolve(_userPosition);
+            },
+            () => resolve(null),
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+        );
+    });
+}
+
+async function calculateTravelDistances(destLat, destLng, locId) {
+    const statusEl = document.getElementById(`travel-status-${locId}`);
+    
+    const userPos = await getUserPosition();
+    if (!userPos) {
+        if (statusEl) statusEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i> Enable location for distances';
+        return;
+    }
+
+    if (statusEl) statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating routes...';
+
+    // Calculate straight-line distance for bike/walk estimates
+    const straightDist = haversineDistance(userPos.lat, userPos.lng, destLat, destLng);
+
+    // Try OSRM for accurate driving distance
+    try {
+        const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${userPos.lng},${userPos.lat};${destLng},${destLat}?overview=false`;
+        const res = await fetch(osrmUrl);
+        const data = await res.json();
+
+        if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+            const route = data.routes[0];
+            const drivingDist = route.distance / 1000; // km
+            const drivingTime = route.duration / 60;    // min
+
+            // Car
+            const carDistEl = document.getElementById(`car-dist-${locId}`);
+            const carTimeEl = document.getElementById(`car-time-${locId}`);
+            if (carDistEl) carDistEl.textContent = formatDistance(drivingDist);
+            if (carTimeEl) carTimeEl.textContent = formatDuration(drivingTime);
+
+            // Bike (road distance × 1.1, avg speed ~25 km/h)
+            const bikeDist = drivingDist * 1.05;
+            const bikeTime = bikeDist / 25 * 60;
+            const bikeDistEl = document.getElementById(`bike-dist-${locId}`);
+            const bikeTimeEl = document.getElementById(`bike-time-${locId}`);
+            if (bikeDistEl) bikeDistEl.textContent = formatDistance(bikeDist);
+            if (bikeTimeEl) bikeTimeEl.textContent = formatDuration(bikeTime);
+
+            // Walk (road distance × 1.2, avg speed ~5 km/h)
+            const walkDist = drivingDist * 1.15;
+            const walkTime = walkDist / 5 * 60;
+            const walkDistEl = document.getElementById(`walk-dist-${locId}`);
+            const walkTimeEl = document.getElementById(`walk-time-${locId}`);
+            if (walkDistEl) walkDistEl.textContent = formatDistance(walkDist);
+            if (walkTimeEl) walkTimeEl.textContent = formatDuration(walkTime);
+
+            if (statusEl) statusEl.innerHTML = '<i class="fas fa-check-circle" style="color:#10b981;"></i> Click a mode to see route';
+        } else {
+            fallbackDistances(straightDist, locId, statusEl);
+        }
+    } catch (e) {
+        console.warn('OSRM fetch failed, using estimates:', e);
+        fallbackDistances(straightDist, locId, statusEl);
+    }
+}
+
+function fallbackDistances(straightDist, locId, statusEl) {
+    const roadDist = straightDist * 1.35; // Road factor ~1.35x straight line
+
+    const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+    setEl(`car-dist-${locId}`, formatDistance(roadDist));
+    setEl(`car-time-${locId}`, formatDuration(roadDist / 40 * 60));
+    setEl(`bike-dist-${locId}`, formatDistance(roadDist * 1.05));
+    setEl(`bike-time-${locId}`, formatDuration(roadDist * 1.05 / 25 * 60));
+    setEl(`walk-dist-${locId}`, formatDistance(roadDist * 1.15));
+    setEl(`walk-time-${locId}`, formatDuration(roadDist * 1.15 / 5 * 60));
+
+    if (statusEl) statusEl.innerHTML = '<i class="fas fa-info-circle" style="color:#3b82f6;"></i> Estimated distances';
+}
+
+function clearRouteLayer() {
+    if (!_locatorMap) return;
+    if (_locatorMap.getLayer('route-line')) _locatorMap.removeLayer('route-line');
+    if (_locatorMap.getLayer('route-outline')) _locatorMap.removeLayer('route-outline');
+    if (_locatorMap.getSource('route-source')) _locatorMap.removeSource('route-source');
+    _routeLayerAdded = false;
+}
+
+async function showRouteOnMap(destLat, destLng, mode, locId) {
+    const userPos = await getUserPosition();
+    if (!userPos) {
+        showToast('Please enable location access to see routes', 'warning');
+        return;
+    }
+
+    // Highlight active mode
+    ['car', 'bike', 'walk'].forEach(m => {
+        const btn = document.getElementById(`mode-${m}-${locId}`);
+        if (btn) btn.style.border = '1px solid #e2e8f0';
+    });
+    const modeKey = mode === 'driving' ? 'car' : mode === 'cycling' ? 'bike' : 'walk';
+    const activeBtn = document.getElementById(`mode-${modeKey}-${locId}`);
+    if (activeBtn) {
+        const colors = { car: '#1e40af', bike: '#059669', walk: '#d97706' };
+        activeBtn.style.border = `2px solid ${colors[modeKey]}`;
+        activeBtn.style.background = `${colors[modeKey]}10`;
+    }
+
+    // OSRM only supports "driving" as profile; for bike/walk we use driving route but different ETA
+    const osrmProfile = mode === 'driving' ? 'driving' : mode === 'cycling' ? 'driving' : 'driving';
+    
+    try {
+        const url = `https://router.project-osrm.org/route/v1/${osrmProfile}/${userPos.lng},${userPos.lat};${destLng},${destLat}?overview=full&geometries=geojson`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+            const routeGeometry = data.routes[0].geometry;
+
+            clearRouteLayer();
+
+            const routeColors = { driving: '#1e40af', cycling: '#059669', foot: '#d97706' };
+
+            _locatorMap.addSource('route-source', {
+                type: 'geojson',
+                data: { type: 'Feature', geometry: routeGeometry }
+            });
+
+            // Route outline
+            _locatorMap.addLayer({
+                id: 'route-outline',
+                type: 'line',
+                source: 'route-source',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: { 'line-color': '#ffffff', 'line-width': 8, 'line-opacity': 0.8 }
+            });
+
+            // Route line
+            _locatorMap.addLayer({
+                id: 'route-line',
+                type: 'line',
+                source: 'route-source',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: { 'line-color': routeColors[mode] || '#1e40af', 'line-width': 5, 'line-opacity': 0.9 }
+            });
+
+            _routeLayerAdded = true;
+
+            // Fit map to show entire route
+            const coords = routeGeometry.coordinates;
+            const routeBounds = new maplibregl.LngLatBounds();
+            coords.forEach(c => routeBounds.extend(c));
+            _locatorMap.fitBounds(routeBounds, { padding: 80, maxZoom: 15, duration: 1200, pitch: 40 });
+
+        } else {
+            showToast('Could not calculate route', 'warning');
+        }
+    } catch (e) {
+        console.error('Route fetch error:', e);
+        // Fallback: draw straight line
+        clearRouteLayer();
+        _locatorMap.addSource('route-source', {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [[userPos.lng, userPos.lat], [destLng, destLat]]
+                }
+            }
+        });
+        _locatorMap.addLayer({
+            id: 'route-line',
+            type: 'line',
+            source: 'route-source',
+            layout: { 'line-join': 'round', 'line-cap': 'round' },
+            paint: { 'line-color': '#800000', 'line-width': 3, 'line-dasharray': [2, 2] }
+        });
+        _routeLayerAdded = true;
+
+        const fallbackBounds = new maplibregl.LngLatBounds();
+        fallbackBounds.extend([userPos.lng, userPos.lat]);
+        fallbackBounds.extend([destLng, destLat]);
+        _locatorMap.fitBounds(fallbackBounds, { padding: 80, maxZoom: 15, duration: 1200 });
     }
 }
 
