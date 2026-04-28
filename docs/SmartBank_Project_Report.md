@@ -3337,18 +3337,56 @@ Looking back, Smart Bank turned out to be way more than a simple banking simulat
 # 11. BIBLIOGRAPHY
 # CHAPTER-11
 
-## 11.1 Books reference
-- **Flask Web Development**: Developing Web Applications with Python by Miguel Grinberg (O'Reilly Media).
-- **SQL in 10 Minutes, Sams Teach Yourself** by Ben Forta.
-- **Learning SQLite** by Kevin Sali.
-- **Refactoring UI** by Adam Wathan & Steve Schoger (Design best practices for Glassmorphism).
-- **Mastering JavaScript ES6+** by Simon Holmes.
+## 11.1 Books Reference
+
+1. Miguel Grinberg, *Flask Web Development: Developing Web Applications with Python*, 2nd Edition, O'Reilly Media, 2018. I used this book as my main guide for setting up Flask blueprints, session handling, and REST API design throughout the project.
+
+2. Ben Forta, *SQL in 10 Minutes, Sams Teach Yourself*, 5th Edition, Sams Publishing, 2019. This helped me write clean SQL queries for the transactions, loans, and card tables without overcomplicating things.
+
+3. Kevin Sali, *Learning SQLite*, Packt Publishing, 2020. Since Smart Bank uses SQLite for local development and Neon PostgreSQL for production, I referred to this for understanding row-level operations and schema migrations.
+
+4. Adam Wathan and Steve Schoger, *Refactoring UI*, Self-Published, 2018. The glassmorphism design, card layouts, and color palette choices in Smart Bank came from the principles explained in this book.
+
+5. Simon Holmes, *Mastering JavaScript ES6+*, Packt Publishing, 2019. I used modern JavaScript features like async/await, template literals, and arrow functions heavily in both the desktop and mobile dashboards.
+
+6. Robert C. Martin, *Clean Code: A Handbook of Agile Software Craftsmanship*, Prentice Hall, 2008. This book influenced how I structured the backend into separate blueprint modules and kept functions short and readable.
+
+7. Luke Wroblewski, *Mobile First*, A Book Apart, 2011. I followed the mobile-first approach when building the PWA mobile dashboard, starting with the smallest screen and scaling up.
+
+8. Ilya Grigorik, *High Performance Browser Networking*, O'Reilly Media, 2013. I used concepts from this book for optimizing fetch requests, lazy loading map tiles, and reducing API call overhead.
+
+9. Andrew S. Tanenbaum, *Computer Networks*, 6th Edition, Pearson, 2021. The networking fundamentals in this book helped me understand session cookies, CORS policies, and HTTPS configuration for the deployed app.
+
+10. Pressman, Roger S., *Software Engineering: A Practitioner's Approach*, 9th Edition, McGraw Hill, 2019. The SDLC model, requirement analysis, and testing methodology described in Chapters 2 and 7 of my report are based on concepts from this textbook.
 
 ## 11.2 Web References
-- **Flask Documentation**: [https://flask.palletsprojects.com/](https://flask.palletsprojects.com/)
-- **Face-api.js Documentation**: [https://github.com/justadudewhohacks/face-api.js/](https://github.com/justadudewhohacks/face-api.js/)
-- **MapLibre GL JS Documentation**: [https://maplibre.org/maplibre-gl-js-docs/](https://maplibre.org/maplibre-gl-js-docs/)
-- **MDN Web Docs**: [https://developer.mozilla.org/](https://developer.mozilla.org/)
-- **Chart.js Official Docs**: [https://www.chartjs.org/docs/latest/](https://www.chartjs.org/docs/latest/)
-- **FontAwesome Icon Library**: [https://fontawesome.com/icons](https://fontawesome.com/icons)
-- **Google Fonts (Outfit & Inter)**: [https://fonts.google.com/](https://fonts.google.com/)
+
+1. Flask Official Documentation — [https://flask.palletsprojects.com/](https://flask.palletsprojects.com/) — I referred to this for route decorators, session management, error handling, and blueprint registration.
+
+2. face-api.js GitHub Repository — [https://github.com/justadudewhohacks/face-api.js/](https://github.com/justadudewhohacks/face-api.js/) — This library powers the face recognition login and KYC verification in Smart Bank. I used the TinyFaceDetector model for lightweight detection.
+
+3. MapLibre GL JS Documentation — [https://maplibre.org/maplibre-gl-js-docs/](https://maplibre.org/maplibre-gl-js-docs/) — The 3D Branch and ATM Locator map uses MapLibre for rendering, marker placement, popups, and route visualization.
+
+4. MDN Web Docs — [https://developer.mozilla.org/](https://developer.mozilla.org/) — I used MDN as a daily reference for JavaScript methods, Fetch API, Geolocation API, LocalStorage, and CSS properties.
+
+5. Chart.js Official Documentation — [https://www.chartjs.org/docs/latest/](https://www.chartjs.org/docs/latest/) — The admin and staff dashboards use Chart.js for pie charts, bar graphs, and line charts showing transaction analytics.
+
+6. FontAwesome Icon Library — [https://fontawesome.com/icons](https://fontawesome.com/icons) — Every icon in the user interface comes from FontAwesome Free v6. I used solid and regular icon styles throughout.
+
+7. Google Fonts (Outfit and Inter) — [https://fonts.google.com/](https://fonts.google.com/) — The typography across all pages uses Outfit for headings and Inter for body text, both loaded from Google Fonts CDN.
+
+8. OSRM (Open Source Routing Machine) — [https://router.project-osrm.org/](https://router.project-osrm.org/) — The travel distance feature in the Branch Locator uses OSRM for calculating real driving routes and drawing them on the map.
+
+9. Neon Serverless PostgreSQL — [https://neon.tech/docs](https://neon.tech/docs) — Smart Bank uses Neon as the production database. I followed their connection pooling and migration guides for deployment on Render.
+
+10. Render Cloud Platform — [https://render.com/docs](https://render.com/docs) — The backend Flask app is deployed on Render with automatic HTTPS, environment variables, and persistent disk storage.
+
+11. Python Official Documentation — [https://docs.python.org/3/](https://docs.python.org/3/) — I referred to the standard library docs for modules like hashlib, secrets, datetime, threading, and os used in the backend.
+
+12. SQLite Documentation — [https://www.sqlite.org/docs.html](https://www.sqlite.org/docs.html) — Used for understanding WAL mode, PRAGMA settings, and query optimization during local development.
+
+13. Esri ArcGIS Tile Server — [https://server.arcgisonline.com/](https://server.arcgisonline.com/) — The map tiles in the Branch Locator come from Esri World Street Map, which provides satellite and street-level imagery.
+
+14. W3Schools Web Tutorials — [https://www.w3schools.com/](https://www.w3schools.com/) — I used W3Schools for quick references on HTML form elements, CSS flexbox, grid layouts, and JavaScript event handling.
+
+15. Stack Overflow — [https://stackoverflow.com/](https://stackoverflow.com/) — Whenever I got stuck on a specific bug or error, Stack Overflow community answers helped me find solutions quickly.

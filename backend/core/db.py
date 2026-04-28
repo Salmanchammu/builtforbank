@@ -462,6 +462,18 @@ def migrate_db():
             message TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (order_id) REFERENCES crop_orders(id) ON DELETE CASCADE
+        )''',
+        'bank_locations': '''CREATE TABLE IF NOT EXISTS bank_locations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name VARCHAR(200) NOT NULL,
+            type VARCHAR(20) NOT NULL DEFAULT 'branch',
+            address TEXT,
+            city VARCHAR(100),
+            lat DECIMAL(10, 7),
+            lng DECIMAL(10, 7),
+            photo_url VARCHAR(255),
+            status VARCHAR(20) DEFAULT 'active',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )'''
     }
 

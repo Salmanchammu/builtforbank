@@ -2,6 +2,7 @@ from functools import wraps
 from flask import session, jsonify, request
 import logging
 import threading
+import os
 import requests as http_requests
 import sqlite3
 from .db import get_db
@@ -36,15 +37,33 @@ def geo_lookup_async(user_id, table_name, ip_address):
             logger.error(f"Invalid table_name for geo-lookup: {table_name}")
             return
 
-        conn = sqlite3.connect(DATABASE)
-        cursor = conn.cursor()
-        cursor.execute(f"""
-            UPDATE {table_name} SET 
-                signup_ip=?, signup_city=?, signup_country=?, signup_lat=?, signup_lng=? 
-            WHERE id=?
-        """, (ip_address, city, country, lat, lng, user_id))
-        conn.commit()
-        conn.close()
+        db_url = os.environ.get('DATABASE_URL')
+        if db_url and db_url.startswith('postgres'):
+            # Production: Use PostgreSQL
+            import psycopg2
+            if db_url.startswith('postgres://'):
+                db_url = db_url.replace('postgres://', 'postgresql://', 1)
+            conn = psycopg2.connect(db_url)
+            cursor = conn.cursor()
+            cursor.execute(f"""
+                UPDATE {table_name} SET 
+                    signup_ip=%s, signup_city=%s, signup_country=%s, signup_lat=%s, signup_lng=%s 
+                WHERE id=%s
+            """, (ip_address, city, country, lat, lng, user_id))
+            conn.commit()
+            cursor.close()
+            conn.close()
+        else:
+            # Local dev: Use SQLite
+            conn = sqlite3.connect(DATABASE)
+            cursor = conn.cursor()
+            cursor.execute(f"""
+                UPDATE {table_name} SET 
+                    signup_ip=?, signup_city=?, signup_country=?, signup_lat=?, signup_lng=? 
+                WHERE id=?
+            """, (ip_address, city, country, lat, lng, user_id))
+            conn.commit()
+            conn.close()
         logger.info(f"Updated geo/ip for {table_name} ID {user_id}: {city}, {country} (IP: {ip_address})")
     except Exception as e:
         logger.error(f"Geo lookup error: {e}")
