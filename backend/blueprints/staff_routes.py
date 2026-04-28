@@ -662,6 +662,7 @@ def get_staff_geo_map_data():
     users_rows = db.execute('''
         SELECT u.id, u.name, u.username, u.status, u.created_at,
                u.signup_ip, u.signup_lat, u.signup_lng, u.signup_city, u.signup_country,
+               (SELECT group_concat(account_type) FROM accounts WHERE user_id = u.id) as account_types,
                COUNT(a.id) as account_count
         FROM users u
         LEFT JOIN accounts a ON a.user_id = u.id
@@ -671,8 +672,14 @@ def get_staff_geo_map_data():
     for r in users_rows:
         d = dict(r)
         if d.get('signup_lat') and d.get('signup_lng'):
+            # Differentiate Type: Standard or Farmer
+            u_type = 'User'
+            acc_types = (d.get('account_types') or '').lower()
+            if 'agriculture' in acc_types:
+                u_type = 'Farmer'
+                
             markers.append({
-                'id': f"u_{d['id']}", 'name': d['name'], 'username': d['username'], 'type': 'User', 'status': d['status'],
+                'id': f"u_{d['id']}", 'name': d['name'], 'username': d['username'], 'type': u_type, 'status': d['status'],
                 'city': d.get('signup_city') or 'Unknown', 'country': d.get('signup_country') or '',
                 'ip': d.get('signup_ip') or '', 'lat': float(d['signup_lat']), 'lng': float(d['signup_lng']),
                 'account_count': d['account_count'], 'created_at': d['created_at']
