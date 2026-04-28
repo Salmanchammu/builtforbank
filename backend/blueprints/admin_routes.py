@@ -394,6 +394,9 @@ def admin_promote_admin(admin_id):
 @admin_bp.route('/admins/<int:admin_id>', methods=['DELETE'])
 @role_required('admin')
 def admin_delete_admin(admin_id):
+    if session.get('admin_id') == admin_id:
+        return jsonify({'error': 'You cannot delete your own admin account'}), 403
+        
     db = get_db()
     try:
         db.execute('DELETE FROM admins WHERE id = ?', (admin_id,))

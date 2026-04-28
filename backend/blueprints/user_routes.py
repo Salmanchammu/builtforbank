@@ -278,6 +278,8 @@ def transfer_money():
             return jsonify({'error': f'{limit_msg} You have already spent ₹{today_spent} today.'}), 400
             
         dest = db.execute('SELECT * FROM accounts WHERE account_number = ? OR id = ?', (to_acc_raw, to_acc_raw)).fetchone()
+        if not dest: return jsonify({'error': 'Destination account not found'}), 404
+        if dest['id'] == src['id']: return jsonify({'error': 'Cannot transfer money to the same account'}), 400
         ref = f"TXN{secrets.token_hex(10).upper()}"
         src_bal_after = src['balance'] - inr_amount
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (src_bal_after, from_acc_id))
