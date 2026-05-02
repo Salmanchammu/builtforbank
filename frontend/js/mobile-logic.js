@@ -3452,7 +3452,7 @@ async function downloadTransactionReceiptMobile(txnId, btn) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wait...';
     }
     showMobileToast('Generating premium PDF receipt...', 'info');
-    const downloadURL = `${API}/statements/download/transaction/${txnId}`;
+    const downloadURL = `${API}/user/statements/download/transaction/${txnId}`;
     
     try {
         const response = await fetch(downloadURL, { credentials: 'include' });
@@ -4752,7 +4752,7 @@ async function loadStatementMonths() {
     select.innerHTML = '<option disabled selected>Loading months...</option>';
     
     try {
-        const r = await fetch(`${API}/statements/months`, { credentials: 'include' });
+        const r = await fetch(`${API}/user/statements/months`, { credentials: 'include' });
         if (r.ok) {
             const data = await r.json();
             if (data.months && data.months.length > 0) {
@@ -4785,7 +4785,7 @@ async function handleExportStatement(mode) {
     status.style.color = 'var(--primary-maroon)';
     status.style.display = 'block';
     
-    const downloadURL = `${API}/statements/download/${range}`;
+    const downloadURL = `${API}/user/statements/download/${range}`;
     
     try {
         const response = await fetch(downloadURL, { credentials: 'include' });
