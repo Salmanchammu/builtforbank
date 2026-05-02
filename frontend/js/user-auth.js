@@ -138,12 +138,14 @@ async function userLogin(e) {
             document.getElementById('loginRole').value = data.role;
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('loginOtpModal').classList.add('show');
+            document.getElementById('loginEmailOtp').value = '';
             document.getElementById('loginEmailOtp').focus();
             if (data.dev_otp) {
                 document.getElementById('loginEmailOtp').value = data.dev_otp;
-                showToast(`[DEV/RENDER MODE] OTP Auto-filled: ${data.dev_otp}`, 'success');
+                showToast('OTP Auto-filled. Auto-logging in...', 'success');
+                setTimeout(() => verifyLogin(), 500);
             } else {
-                showToast('Verification code sent to your email.', 'info');
+                showToast('Verification code sent to your registered email.', 'info');
             }
             return;
         }

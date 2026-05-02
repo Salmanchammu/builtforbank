@@ -1,0 +1,281 @@
+/* ============================================================
+   AGRICULTURE LOAN GPS TRACKING STYLES
+   Premium map integration & scanner animations
+   ============================================================ */
+
+/* GPS Map Container */
+#agriMapContainer {
+    position: relative;
+    width: 100%;
+    height: 240px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid #d1fae5;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#agriMapContainer.has-location {
+    border-color: #15803d;
+    box-shadow: 0 8px 32px rgba(21, 128, 61, 0.15);
+}
+
+#agriMap {
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* Map placeholder when no GPS */
+.agri-map-placeholder {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 2;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    transition: opacity 0.4s ease;
+}
+
+.agri-map-placeholder.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.agri-map-placeholder i {
+    font-size: 42px;
+    color: #86efac;
+    animation: pulseIcon 2s ease-in-out infinite;
+}
+
+.agri-map-placeholder p {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    margin: 0;
+}
+
+@keyframes pulseIcon {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; }
+}
+
+/* GPS Capture Button Row */
+.agri-gps-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.agri-gps-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border: 2px dashed #a7f3d0;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+    color: #166534;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.agri-gps-btn:hover {
+    border-color: #15803d;
+    background: linear-gradient(135deg, #dcfce7, #d1fae5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(21, 128, 61, 0.12);
+}
+
+.agri-gps-btn.active {
+    border-style: solid;
+    border-color: #15803d;
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.15);
+}
+
+.agri-gps-btn.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.agri-gps-btn i {
+    font-size: 18px;
+}
+
+.agri-coords-display {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f0fdf4;
+    border: 1.5px solid #a7f3d0;
+    border-radius: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: #166534;
+    min-width: 180px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.agri-coords-display.has-coords {
+    background: #dcfce7;
+    border-color: #15803d;
+    color: #14532d;
+}
+
+.agri-coords-display i {
+    color: #15803d;
+}
+
+/* Scanner Animation Overlay */
+#aiScannerOverlay {
+    display: none;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 10;
+    background: rgba(21, 128, 61, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    pointer-events: none;
+    border: 2px solid #15803d;
+}
+
+.scanner-line {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #15803d, #22c55e, #15803d, transparent);
+    box-shadow: 0 0 20px rgba(21, 128, 61, 0.6), 0 0 60px rgba(21, 128, 61, 0.3);
+    animation: scanLine 2s ease-in-out infinite;
+}
+
+@keyframes scanLine {
+    0% { top: 0; }
+    50% { top: calc(100% - 4px); }
+    100% { top: 0; }
+}
+
+.ai-status-text {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #166534, #15803d);
+    padding: 10px 22px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    animation: statusPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.85; }
+}
+
+/* Satellite scanning corner brackets */
+#aiScannerOverlay::before,
+#aiScannerOverlay::after {
+    content: '';
+    position: absolute;
+    width: 30px; height: 30px;
+    border: 3px solid #22c55e;
+    z-index: 11;
+}
+
+#aiScannerOverlay::before {
+    top: 8px; left: 8px;
+    border-right: none; border-bottom: none;
+    border-radius: 4px 0 0 0;
+}
+
+#aiScannerOverlay::after {
+    bottom: 8px; right: 8px;
+    border-left: none; border-top: none;
+    border-radius: 0 0 4px 0;
+}
+
+/* Result Area Enhancement */
+#agriResultArea {
+    animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Accuracy Badge */
+.gps-accuracy-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+.gps-accuracy-badge.good {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.gps-accuracy-badge.fair {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.gps-accuracy-badge.poor {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Leaflet popup override */
+.leaflet-popup-content-wrapper {
+    border-radius: 14px !important;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
+    padding: 0 !important;
+}
+
+.leaflet-popup-content {
+    margin: 12px 16px !important;
+    font-family: inherit !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #agriMapContainer {
+        height: 200px;
+    }
+    
+    .agri-gps-row {
+        flex-direction: column;
+    }
+    
+    .agri-coords-display {
+        min-width: unset;
+        justify-content: center;
+    }
+}

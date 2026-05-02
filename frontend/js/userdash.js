@@ -192,45 +192,52 @@ function renderAll() {
 function injectAccountModal() {
     if ($id('openAccountModal')) return;
     const css = `<style id="amStyles">
-    #openAccountModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;display:none;justify-content:center;align-items:center;}
-    .am-inner{width:100%;max-width:500px;margin:16px;background:#fff;border-radius:20px;animation:slideIn 0.35s cubic-bezier(.16,1,.3,1);max-height:92vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,0.25);}
-    .am-hdr{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,#7f1d1d 0%,#b91c1c 100%);border-radius:20px 20px 0 0;padding:22px 24px 18px;display:flex;justify-content:space-between;align-items:flex-start;}
-    .am-hdr-text h3{margin:0;color:#fff;font-size:18px;font-weight:700;} .am-hdr-text p{margin:4px 0 0;color:rgba(255,255,255,.7);font-size:13px;}
-    .am-close{background:rgba(255,255,255,.15);border:none;width:34px;height:34px;border-radius:50%;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;margin-top:2px;}
-    .am-close:hover{background:rgba(255,255,255,.3);}
-    .am-body{padding:24px;}
-    .am-sep{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#64748b;margin:22px 0 12px;display:flex;align-items:center;gap:8px;}
-    .am-sep::after{content:'';flex:1;height:1px;background:#e2e8f0;}
-    .am-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-    .am-type-btn{border:2px solid #e2e8f0;border-radius:12px;padding:14px 10px;cursor:pointer;background:#f8fafc;text-align:center;transition:all .2s;position:relative;user-select:none;}
-    .am-type-btn:hover{border-color:#991b1b;background:#fef2f2;}
-    .am-type-btn.am-sel{border-color:#991b1b;background:linear-gradient(135deg,#fef2f2,#fff5f5);box-shadow:0 0 0 3px rgba(153,27,27,.1);}
-    .am-type-icon{width:38px;height:38px;border-radius:10px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:17px;}
-    .am-type-name{font-weight:700;font-size:13px;color:#1e293b;} .am-type-desc{font-size:11px;color:#94a3b8;margin-top:2px;}
-    .am-chk{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;background:#991b1b;display:none;align-items:center;justify-content:center;}
-    .am-type-btn.am-sel .am-chk{display:flex;}
-    .am-field{margin-bottom:16px;}
-    .am-field label{display:block;font-size:12px;font-weight:600;color:#475569;margin-bottom:6px;letter-spacing:.3px;}
-    .am-field label .req{color:#ef4444;margin-left:2px;}
+    #openAccountModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9999;display:none;justify-content:center;align-items:center;}
+    .am-inner{width:100%;max-width:540px;margin:20px;background:#ffffff;border-radius:24px;animation:slideIn 0.4s cubic-bezier(.16,1,.3,1);max-height:88vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,0.3);position:relative;}
+    .am-inner::-webkit-scrollbar { width: 6px; }
+    .am-inner::-webkit-scrollbar-track { background: transparent; margin: 10px 0; }
+    .am-inner::-webkit-scrollbar-thumb { background: rgba(155,28,49,0.3); border-radius: 6px; }
+    .am-inner::-webkit-scrollbar-thumb:hover { background: rgba(155,28,49,0.6); }
+    .am-hdr{position:sticky;top:0;z-index:10;background:linear-gradient(135deg, #800000 0%, #b30000 50%, #800000 100%);box-shadow: 0 4px 15px rgba(128,0,0,0.25);border-radius:24px 24px 0 0;padding:26px 28px 22px;display:flex;justify-content:space-between;align-items:flex-start;}
+    .am-hdr-text h3{margin:0;color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.5px;} .am-hdr-text p{margin:6px 0 0;color:rgba(255,255,255,.8);font-size:13px;font-weight:500;}
+    .am-close{background:rgba(255,255,255,.2);backdrop-filter:blur(4px);border:none;width:36px;height:36px;border-radius:12px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s ease;flex-shrink:0;margin-top:2px;}
+    .am-close:hover{background:rgba(255,255,255,.35);transform:scale(1.05) rotate(90deg);}
+    .am-body{padding:28px;}
+    .am-sep{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#9b1c31;margin:28px 0 16px;display:flex;align-items:center;gap:10px;}
+    .am-sep::after{content:'';flex:1;height:1px;background:linear-gradient(90deg, rgba(155,28,49,0.1), transparent);}
+    .am-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .am-type-btn{border:2px solid #f1f5f9;border-radius:16px;padding:16px 12px;cursor:pointer;background:#ffffff;text-align:center;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);position:relative;user-select:none;box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);}
+    .am-type-btn:hover{border-color:rgba(155,28,49,0.3);background:#fffafb;transform:translateY(-2px);box-shadow: 0 8px 15px -3px rgba(155,28,49,0.08);}
+    .am-type-btn.am-sel{border-color:#9b1c31;background:linear-gradient(135deg,#fffafb,#fff1f2);box-shadow:0 8px 20px rgba(155,28,49,.15);transform:translateY(-2px);}
+    .am-type-icon{width:44px;height:44px;border-radius:12px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:20px;transition:transform 0.3s ease;}
+    .am-type-btn:hover .am-type-icon{transform:scale(1.1);}
+    .am-type-name{font-weight:800;font-size:14px;color:#0f172a;} .am-type-desc{font-size:12px;color:#64748b;margin-top:4px;}
+    .am-chk{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;background:#9b1c31;display:none;align-items:center;justify-content:center;box-shadow: 0 2px 4px rgba(155,28,49,0.3);}
+    .am-type-btn.am-sel .am-chk{display:flex;animation:scaleIn 0.2s ease-out;}
+    .am-field{margin-bottom:20px;}
+    .am-field label{display:block;font-size:13px;font-weight:700;color:#334155;margin-bottom:8px;letter-spacing:0.3px;}
+    .am-field label .req{color:#ef4444;margin-left:4px;}
     .am-inp-wrap{position:relative;}
-    .am-inp-wrap i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;pointer-events:none;}
-    .am-input{width:100%;padding:12px 14px 12px 36px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;color:#1e293b;background:#f8fafc;transition:all .2s;box-sizing:border-box;outline:none;font-family:inherit;}
-    .am-input:focus{border-color:#991b1b;background:#fff;box-shadow:0 0 0 3px rgba(153,27,27,.08);}
-    .am-upload{border:2px dashed #e2e8f0;border-radius:12px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;background:#f8fafc;position:relative;overflow:hidden;}
-    .am-upload:hover{border-color:#991b1b;background:#fef2f2;}
+    .am-inp-wrap i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:14px;pointer-events:none;transition:color 0.3s;}
+    .am-input{width:100%;padding:14px 16px 14px 42px;border:2px solid #e2e8f0;border-radius:14px;font-size:15px;font-weight:500;color:#0f172a;background:#f8fafc;transition:all .3s ease;box-sizing:border-box;outline:none;font-family:inherit;}
+    .am-input:focus{border-color:#9b1c31;background:#ffffff;box-shadow:0 0 0 4px rgba(155,28,49,.08);}
+    .am-input:focus + i, .am-inp-wrap:focus-within i{color:#9b1c31;}
+    .am-upload{border:2px dashed #cbd5e1;border-radius:16px;padding:24px;text-align:center;cursor:pointer;transition:all .3s ease;background:#f8fafc;position:relative;overflow:hidden;}
+    .am-upload:hover{border-color:#9b1c31;background:#fffafb;}
     .am-upload.done{border-color:#10b981;background:#f0fdf4;border-style:solid;}
     .am-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-    .am-upload-icon{font-size:22px;margin-bottom:6px;} .am-upload-lbl{font-size:13px;font-weight:600;color:#475569;} .am-upload-sub{font-size:11px;color:#94a3b8;margin-top:2px;}
-    .am-agri-wrap{border:1.5px solid #a7f3d0;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-radius:14px;padding:18px;margin-top:4px;}
-    .am-agri-badge{display:inline-flex;align-items:center;gap:6px;background:#059669;color:#fff;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;margin-bottom:14px;}
-    .am-face-note{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #bfdbfe;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;font-size:13px;color:#1d4ed8;margin-top:20px;}
-    .am-face-icon{width:36px;height:36px;background:#3b82f6;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
-    .am-actions{display:flex;gap:12px;margin-top:20px;}
-    .am-btn-cancel{flex:1;padding:13px;border-radius:12px;border:1.5px solid #e2e8f0;background:#f8fafc;color:#475569;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;}
-    .am-btn-cancel:hover{background:#f1f5f9;}
-    .am-btn-submit{flex:2;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#881337,#991b1b,#b91c1c);color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(153,27,27,.3);}
-    .am-btn-submit:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(153,27,27,.4);}
-    .am-btn-submit:disabled{opacity:.6;transform:none;cursor:not-allowed;}
+    .am-upload-icon{font-size:26px;margin-bottom:8px;} .am-upload-lbl{font-size:14px;font-weight:700;color:#334155;} .am-upload-sub{font-size:12px;color:#94a3b8;margin-top:4px;}
+    .am-agri-wrap{border:2px solid #6ee7b7;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-radius:16px;padding:20px;margin-top:8px;}
+    .am-agri-badge{display:inline-flex;align-items:center;gap:6px;background:#059669;color:#fff;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:800;margin-bottom:14px;box-shadow:0 4px 10px rgba(5,150,105,0.2);}
+    .am-face-note{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:2px solid #bfdbfe;border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:14px;font-size:13px;color:#1e40af;margin-top:24px;}
+    .am-face-icon{width:40px;height:40px;background:#3b82f6;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;box-shadow:0 4px 10px rgba(59,130,246,0.3);}
+    .am-actions{display:flex;gap:14px;margin-top:28px;}
+    .am-btn-cancel{flex:1;padding:15px;border-radius:14px;border:2px solid #e2e8f0;background:#f8fafc;color:#475569;font-size:15px;font-weight:700;cursor:pointer;transition:all .3s ease;}
+    .am-btn-cancel:hover{background:#f1f5f9;border-color:#cbd5e1;color:#0f172a;}
+    .am-btn-submit{flex:2;padding:15px;border-radius:14px;border:none;background:linear-gradient(135deg,#9b1c31 0%,#800000 100%);color:#fff;font-size:15px;font-weight:800;cursor:pointer;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 20px rgba(155,28,49,.25);}
+    .am-btn-submit:hover{transform:translateY(-2px);box-shadow:0 12px 25px rgba(155,28,49,.35);}
+    .am-btn-submit:disabled{opacity:.6;transform:none;cursor:not-allowed;box-shadow:none;}
+    @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
     </style>`;
     const html = `
     <div id="openAccountModal" class="modal">
@@ -689,7 +696,7 @@ function renderTransactionsPage() {
             </select>
             <select id="txnModeFilter" class="form-select" style="width:auto;min-width:150px;" onchange="filterTxns()">
                 <option value="all">All Modes</option>
-                ${['UPI', 'IMPS', 'NEFT', 'RTGS', 'ATM', 'CASH'].map(m => `<option value="${m}">${m}</option>`).join('')}
+                ${['UPI', 'IMPS', 'NEFT', 'RTGS', 'ATM', 'CASH', 'Card'].map(m => `<option value="${m}">${m}</option>`).join('')}
             </select>
         </div>
         <div id="txnList">${state.transactions.map(txnRowHTML).join('') || emptyState('exchange-alt', 'No transactions found')}</div>`;
@@ -1121,24 +1128,329 @@ function renderCards() {
         const expiry = (c.expiry_date || '').substring(0, 7).replace('-', '/');
         const isCr = c.card_type === 'Credit';
         const isBlocked = c.status === 'blocked';
-        return `<div style="background:linear-gradient(135deg,${isBlocked ? '#475569,#1e293b' : (isCr ? '#6366f1,#8b5cf6' : '#1e3a8a,#1d4ed8')});color:white;border-radius:16px;padding:24px;margin-bottom:16px;min-height:150px;position:relative;opacity:${isBlocked ? '0.9' : '1'}; transition: all 0.3s ease;">
-            <div style="display:flex;justify-content:space-between;"><div>
-                <div style="font-size:11px;opacity:.7;">Smart Bank ${c.card_type}</div>
-                <div style="font-size:20px;letter-spacing:4px;font-weight:700;margin:12px 0;">**** **** **** ${(c.card_number || '').slice(-4)}</div>
-            </div><span style="background:${isBlocked ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,.2)'};padding:4px 10px;border-radius:20px;font-size:12px;height:fit-content;border:${isBlocked ? '1px solid #f87171' : 'none'}">${c.status.toUpperCase()}</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:flex-end;">
-                <div><div style="font-size:11px;opacity:.7;">CARD HOLDER</div>
-                <div style="font-weight:600;">${escHtml(c.card_holder_name || 'CARD HOLDER')}</div>
-                ${isCr ? `<div style="font-size:11px;opacity:.7;margin-top:4px;">Limit: ${fmtINR(c.credit_limit)} | Avail: ${fmtINR(c.available_credit)}</div>` : ''}</div>
-                <div style="text-align:right;"><div style="font-size:11px;opacity:.7;">EXPIRES</div><div>${expiry}</div></div>
+        
+        // Premium Dark Metallic / Glass Theme
+        const bgGradient = isBlocked 
+            ? 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)'
+            : (isCr 
+                ? 'radial-gradient(circle at top right, rgba(212,175,55,0.25) 0%, transparent 60%), linear-gradient(135deg, #1a1813 0%, #0a0907 100%)' 
+                : 'radial-gradient(circle at top right, rgba(255,255,255,0.15) 0%, transparent 60%), linear-gradient(135deg, #141416 0%, #050505 100%)');
+        
+        const borderColor = isBlocked ? 'rgba(255,255,255,0.1)' : (isCr ? 'rgba(212,175,55,0.4)' : 'rgba(255,255,255,0.15)');
+        const textAccent = isBlocked ? '#94a3b8' : (isCr ? '#d4af37' : '#e2e8f0');
+        const btnBg = isBlocked ? 'rgba(255,255,255,0.05)' : (isCr ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.05)');
+        
+        return `<div style="background:${bgGradient}; border: 1px solid ${borderColor}; box-shadow: 0 15px 35px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.1); color:white; border-radius:24px; padding:32px; margin-bottom:24px; min-height:160px; position:relative; opacity:${isBlocked ? '0.85' : '1'}; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden;" class="premium-card">
+            
+            <!-- Shimmer Effect -->
+            <div style="position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0) 100%); transform:skewX(-25deg); animation: shine 8s infinite;"></div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 30px; position:relative; z-index:2;">
+                <div style="display:flex; gap: 16px; align-items:center;">
+                    <i class="fas fa-sim-card" style="font-size: 36px; color: ${textAccent}; transform: rotate(90deg); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));"></i>
+                    ${c.contactless_enabled ? `<i class="fas fa-wifi" style="font-size: 24px; color: ${textAccent}; transform: rotate(90deg); opacity: 0.8;"></i>` : ''}
+                </div>
+                <div style="text-align:right;">
+                    <span style="font-family:'Montserrat', sans-serif; font-weight:900; font-size:20px; letter-spacing:2px; color:${textAccent}; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">SMART<span style="color:white;">BANK</span></span>
+                    <div style="font-size:11px; opacity:0.8; text-align:right; letter-spacing:2px; margin-top:4px; font-weight:600;">${c.card_type.toUpperCase()}</div>
+                </div>
             </div>
-            ${isBlocked ? 
-                `<button onclick="unblockCard(${c.id})" style="position:absolute;top:10px;right:10px;background:rgba(52,211,153,0.2);color:#d1fae5;border:1px solid rgba(52,211,153,0.5);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;backdrop-filter:none;"><i class="fas fa-unlock"></i> Unblock</button>` :
-                `<button onclick="blockCard(${c.id})" style="position:absolute;top:10px;right:10px;background:rgba(239,68,68,0.2);color:#fee2e2;border:1px solid rgba(239,68,68,0.5);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;backdrop-filter:none;"><i class="fas fa-ban"></i> Block</button>`
-            }
+
+            <div style="font-family: 'Space Meno', 'Courier New', monospace; font-size:28px; letter-spacing:5px; font-weight:600; margin-bottom:30px; text-shadow: 0 2px 4px rgba(0,0,0,0.6); position:relative; z-index:2; display:flex; justify-content:space-between;">
+                <span>${(c.card_number || '****').substring(0,4)}</span><span>${(c.card_number || '****').substring(4,8)}</span><span>${(c.card_number || '****').substring(8,12)}</span><span>${(c.card_number || '****').substring(12,16)}</span>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; position:relative; z-index:2;">
+                <div>
+                    <div style="font-size:10px; opacity:0.6; letter-spacing:2px; margin-bottom:6px; text-transform:uppercase;">Card Holder</div>
+                    <div style="font-family: 'Outfit', sans-serif; font-weight:600; font-size:18px; letter-spacing:2px; text-transform:uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${escHtml(c.card_holder_name || 'CARD HOLDER')}</div>
+                    ${isCr ? `<div style="font-size:11px; color:${textAccent}; margin-top:8px; font-weight:600; letter-spacing:1px;">LIMIT: ${fmtINR(c.credit_limit)} &nbsp;|&nbsp; AVAIL: ${fmtINR(c.available_credit)}</div>` : ''}
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-size:10px; opacity:0.6; letter-spacing:2px; margin-bottom:6px; text-transform:uppercase;">CVV</div>
+                    <div style="font-family: 'Space Meno', 'Courier New', monospace; font-weight:500; font-size:18px; letter-spacing:2px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${escHtml(c.cvv || '***')}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:10px; opacity:0.6; letter-spacing:2px; margin-bottom:6px; text-transform:uppercase;">Valid Thru</div>
+                    <div style="font-family: 'Space Meno', 'Courier New', monospace; font-weight:500; font-size:18px; letter-spacing:2px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${expiry}</div>
+                </div>
+            </div>
+            
+            <!-- Actions Layer -->
+            <div style="display:flex; gap:12px; margin-top:30px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px; position:relative; z-index:2;">
+                <button onclick="openCardSettings(${c.id})" style="flex:1; background:${btnBg}; color:white; border:1px solid ${borderColor}; border-radius:12px; padding:12px; font-size:13px; font-weight:600; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:8px; transition:all 0.3s;" class="card-action-btn">
+                    <i class="fas fa-cog" style="color:${textAccent};"></i> Settings
+                </button>
+                <button onclick="openCardPin(${c.id}, ${!!c.pin_hash})" style="flex:1; background:${btnBg}; color:white; border:1px solid ${borderColor}; border-radius:12px; padding:12px; font-size:13px; font-weight:600; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:8px; transition:all 0.3s;" class="card-action-btn">
+                    <i class="fas fa-key" style="color:${textAccent};"></i> ${c.pin_hash ? 'Change PIN' : 'Set PIN'}
+                </button>
+                <button onclick="window.open('payment_gateway.html?card=${c.card_number}', '_blank')" style="flex:1; background:${isCr ? 'linear-gradient(135deg, #d4af37, #aa8529)' : 'linear-gradient(135deg, #e2e8f0, #94a3b8)'}; color:#000; border:none; border-radius:12px; padding:12px; font-size:13px; font-weight:800; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition:all 0.3s;" class="card-action-btn">
+                    <i class="fas fa-shopping-cart"></i> Test Pay
+                </button>
+                ${isBlocked ? 
+                    `<button onclick="unblockCard(${c.id})" style="flex:1; background:rgba(52,211,153,0.15); color:#d1fae5; border:1px solid rgba(52,211,153,0.4); border-radius:12px; padding:12px; font-size:13px; font-weight:700; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:8px; transition:all 0.3s;" class="card-action-btn"><i class="fas fa-unlock"></i> Unblock</button>` :
+                    `<button onclick="blockCard(${c.id})" style="flex:1; background:rgba(239,68,68,0.15); color:#fecaca; border:1px solid rgba(239,68,68,0.4); border-radius:12px; padding:12px; font-size:13px; font-weight:700; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:8px; transition:all 0.3s;" class="card-action-btn"><i class="fas fa-ban"></i> Block</button>`
+                }
+            </div>
+
+            ${isBlocked ? `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) rotate(-15deg); font-size:48px; font-weight:900; color:rgba(239,68,68,0.3); border:4px solid rgba(239,68,68,0.3); padding:10px 30px; border-radius:16px; pointer-events:none; letter-spacing:10px; z-index:1;">BLOCKED</div>` : ''}
             </div>`;
     }).join('');
+    
+    // Inject Settings & PIN Modals if they don't exist
+    if (!document.getElementById('cardSettingsModal')) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal-overlay" id="cardSettingsModal">
+                <div class="modal" style="max-width: 400px; width: 90%; background: var(--bg-card); color: var(--text-primary);">
+                    <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                        <h3><i class="fas fa-cog" style="color:var(--primary-color);"></i> Card Settings</h3>
+                        <button class="close-modal" onclick="closeModal('cardSettingsModal')"><i class="fas fa-times"></i></button>
+                    </div>
+                    <form onsubmit="submitCardSettings(event)" style="padding: 20px;">
+                        <input type="hidden" id="csCardId">
+                        
+                        <div class="form-group" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <label style="display:block; font-weight:600; margin-bottom:2px;"><i class="fas fa-wifi"></i> Contactless (Tap & Pay)</label>
+                                <span style="font-size:11px; color:var(--text-secondary);">Enable NFC transactions</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="csContactless">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <label style="display:block; font-weight:600; margin-bottom:2px;"><i class="fas fa-globe"></i> International Usage</label>
+                                <span style="font-size:11px; color:var(--text-secondary);">Allow transactions outside India</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="csInternational">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <label style="display:block; font-weight:600; margin-bottom:2px;"><i class="fas fa-shopping-cart"></i> Online Transactions</label>
+                                <span style="font-size:11px; color:var(--text-secondary);">Allow E-commerce purchases</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="csOnline">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-weight:600;"><i class="fas fa-sliders-h"></i> Daily Limit (₹)</label>
+                            <input type="number" id="csLimit" class="form-control" style="background:var(--bg-light); border:1px solid var(--border-color); color:var(--text-primary);" min="100" max="1000000">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px;" id="csSubmitBtn">Save Settings</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="modal-overlay" id="cardPinModal">
+                <div class="modal" style="max-width: 350px; width: 90%; background: var(--bg-card); color: var(--text-primary);">
+                    <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                        <h3 id="cpTitle"><i class="fas fa-key" style="color:var(--primary-color);"></i> Manage PIN</h3>
+                        <button class="close-modal" onclick="closeModal('cardPinModal')"><i class="fas fa-times"></i></button>
+                    </div>
+                    <form onsubmit="submitCardPin(event)" style="padding: 20px;">
+                        <input type="hidden" id="cpCardId">
+                        <input type="hidden" id="cpIsChange">
+                        
+                        <div id="cpOldPinGroup" class="form-group" style="display:none; margin-bottom:15px;">
+                            <label style="font-weight:600; font-size:12px;">Current PIN</label>
+                            <input type="password" id="cpOldPin" class="form-control" style="background:var(--bg-light); border:1px solid var(--border-color); color:var(--text-primary); text-align:center; letter-spacing:8px; font-size:18px;" maxlength="4" pattern="[0-9]{4}">
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom:20px;">
+                            <label style="font-weight:600; font-size:12px;" id="cpNewLabel">New 4-Digit PIN</label>
+                            <input type="password" id="cpNewPin" class="form-control" style="background:var(--bg-light); border:1px solid var(--border-color); color:var(--text-primary); text-align:center; letter-spacing:8px; font-size:18px;" maxlength="4" pattern="[0-9]{4}" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" id="cpSubmitBtn">Set PIN</button>
+                    </form>
+                </div>
+            </div>
+        `);
+    }
 }
+
+window.openCardSettings = function(cardId) {
+    const card = state.cards.find(c => c.id == cardId);
+    if (!card) { console.error('Card not found:', cardId); return; }
+
+    // Remove existing modal if any
+    const existing = document.getElementById('cardSettingsModal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'cardSettingsModal';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;animation:fadeIn .2s ease;';
+    overlay.innerHTML = `
+        <div style="max-width:420px;width:92%;background:#111827;color:#f1f5f9;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,0.7),0 0 0 1px rgba(212,175,55,0.2);overflow:hidden;animation:slideUp .3s ease;">
+            <div style="background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.05));padding:20px 24px;border-bottom:1px solid rgba(212,175,55,0.2);display:flex;justify-content:space-between;align-items:center;">
+                <h3 style="margin:0;font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;gap:10px;"><i class="fas fa-cog" style="color:#d4af37;font-size:20px;"></i> Card Settings</h3>
+                <button id="csCloseBtn" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#ccc;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;" onmouseover="this.style.background='rgba(239,68,68,0.3)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,0.1)';this.style.color='#ccc'"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="csForm" style="padding:24px;">
+                <input type="hidden" id="csCardId" value="${cardId}">
+                <div style="margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+                    <div>
+                        <label style="display:block;font-weight:700;font-size:14px;color:#fff;margin-bottom:3px;"><i class="fas fa-wifi" style="color:#d4af37;margin-right:6px;"></i>Contactless</label>
+                        <span style="font-size:11px;color:#94a3b8;">Tap & Pay NFC transactions</span>
+                    </div>
+                    <label style="position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;">
+                        <input type="checkbox" id="csContactless" ${card.contactless_enabled ? 'checked' : ''} style="opacity:0;width:0;height:0;position:absolute;">
+                        <span class="cs-toggle" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:${card.contactless_enabled ? 'linear-gradient(135deg,#d4af37,#b8941f)' : '#374151'};border-radius:26px;transition:all .3s;box-shadow:inset 0 1px 3px rgba(0,0,0,0.3);"></span>
+                        <span style="position:absolute;top:3px;left:${card.contactless_enabled ? '25px' : '3px'};width:20px;height:20px;background:#fff;border-radius:50%;transition:all .3s;box-shadow:0 2px 4px rgba(0,0,0,0.3);pointer-events:none;"></span>
+                    </label>
+                </div>
+                <div style="margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+                    <div>
+                        <label style="display:block;font-weight:700;font-size:14px;color:#fff;margin-bottom:3px;"><i class="fas fa-globe" style="color:#d4af37;margin-right:6px;"></i>International</label>
+                        <span style="font-size:11px;color:#94a3b8;">Allow usage outside India</span>
+                    </div>
+                    <label style="position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;">
+                        <input type="checkbox" id="csInternational" ${card.international_enabled ? 'checked' : ''} style="opacity:0;width:0;height:0;position:absolute;">
+                        <span class="cs-toggle" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:${card.international_enabled ? 'linear-gradient(135deg,#d4af37,#b8941f)' : '#374151'};border-radius:26px;transition:all .3s;box-shadow:inset 0 1px 3px rgba(0,0,0,0.3);"></span>
+                        <span style="position:absolute;top:3px;left:${card.international_enabled ? '25px' : '3px'};width:20px;height:20px;background:#fff;border-radius:50%;transition:all .3s;box-shadow:0 2px 4px rgba(0,0,0,0.3);pointer-events:none;"></span>
+                    </label>
+                </div>
+                <div style="margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+                    <div>
+                        <label style="display:block;font-weight:700;font-size:14px;color:#fff;margin-bottom:3px;"><i class="fas fa-shopping-cart" style="color:#d4af37;margin-right:6px;"></i>Online Payments</label>
+                        <span style="font-size:11px;color:#94a3b8;">E-commerce purchases</span>
+                    </div>
+                    <label style="position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;">
+                        <input type="checkbox" id="csOnline" ${card.online_txn_enabled !== 0 ? 'checked' : ''} style="opacity:0;width:0;height:0;position:absolute;">
+                        <span class="cs-toggle" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:${card.online_txn_enabled !== 0 ? 'linear-gradient(135deg,#d4af37,#b8941f)' : '#374151'};border-radius:26px;transition:all .3s;box-shadow:inset 0 1px 3px rgba(0,0,0,0.3);"></span>
+                        <span style="position:absolute;top:3px;left:${card.online_txn_enabled !== 0 ? '25px' : '3px'};width:20px;height:20px;background:#fff;border-radius:50%;transition:all .3s;box-shadow:0 2px 4px rgba(0,0,0,0.3);pointer-events:none;"></span>
+                    </label>
+                </div>
+                <div style="margin-bottom:20px;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+                    <label style="font-weight:700;font-size:14px;color:#fff;display:block;margin-bottom:10px;"><i class="fas fa-sliders-h" style="color:#d4af37;margin-right:6px;"></i>Daily Limit (₹)</label>
+                    <input type="number" id="csLimit" value="${card.daily_limit || 50000}" min="100" max="1000000" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(212,175,55,0.3);background:#1f2937;color:#fff;font-size:16px;font-weight:600;box-sizing:border-box;outline:none;transition:border .2s;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='rgba(212,175,55,0.3)'">
+                </div>
+                <button type="submit" id="csSubmitBtn" style="width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#d4af37,#aa8529);color:#000;font-weight:800;font-size:15px;cursor:pointer;letter-spacing:0.5px;box-shadow:0 4px 15px rgba(212,175,55,0.3);transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(212,175,55,0.4)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 15px rgba(212,175,55,0.3)'">Save Settings</button>
+            </form>
+        </div>`;
+    document.body.appendChild(overlay);
+
+    // Toggle switches visually (animate dot + track color)
+    overlay.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', () => {
+            const track = cb.nextElementSibling;
+            const dot = track.nextElementSibling;
+            track.style.background = cb.checked ? 'linear-gradient(135deg,#d4af37,#b8941f)' : '#374151';
+            dot.style.left = cb.checked ? '25px' : '3px';
+        });
+    });
+
+    // Close handlers
+    document.getElementById('csCloseBtn').onclick = () => overlay.remove();
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+    // Form submit
+    document.getElementById('csForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('csSubmitBtn');
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        try {
+            const payload = {
+                contactless_enabled: document.getElementById('csContactless').checked ? 1 : 0,
+                international_enabled: document.getElementById('csInternational').checked ? 1 : 0,
+                online_txn_enabled: document.getElementById('csOnline').checked ? 1 : 0,
+                daily_limit: parseFloat(document.getElementById('csLimit').value)
+            };
+            const res = await fetch(`${API}/user/cards/${cardId}/settings`, {
+                method: 'PUT', headers: {'Content-Type': 'application/json'},
+                credentials: 'include', body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                overlay.remove();
+                showToast('Card settings updated!', 'success');
+                await loadAll(); renderCards();
+            } else {
+                showToast(data.error || 'Failed to update settings', 'error');
+            }
+        } catch(err) { showToast('Network Error', 'error'); }
+        finally { btn.disabled = false; btn.innerHTML = 'Save Settings'; }
+    };
+};
+
+window.openCardPin = function(cardId, hasPin) {
+    const existing = document.getElementById('cardPinModal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'cardPinModal';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;animation:fadeIn .2s ease;';
+    overlay.innerHTML = `
+        <div style="max-width:380px;width:92%;background:#111827;color:#f1f5f9;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,0.7),0 0 0 1px rgba(212,175,55,0.2);overflow:hidden;animation:slideUp .3s ease;">
+            <div style="background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.05));padding:20px 24px;border-bottom:1px solid rgba(212,175,55,0.2);display:flex;justify-content:space-between;align-items:center;">
+                <h3 style="margin:0;font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;gap:10px;"><i class="fas fa-key" style="color:#d4af37;font-size:20px;"></i> ${hasPin ? 'Change PIN' : 'Set PIN'}</h3>
+                <button id="cpCloseBtn" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#ccc;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;" onmouseover="this.style.background='rgba(239,68,68,0.3)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,0.1)';this.style.color='#ccc'"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="cpForm" style="padding:24px;">
+                <div style="text-align:center;margin-bottom:20px;">
+                    <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(212,175,55,0.05));display:flex;align-items:center;justify-content:center;margin:0 auto 12px;border:1px solid rgba(212,175,55,0.3);">
+                        <i class="fas fa-lock" style="font-size:24px;color:#d4af37;"></i>
+                    </div>
+                    <p style="color:#94a3b8;font-size:13px;margin:0;">${hasPin ? 'Enter your current PIN and set a new one' : 'Create a secure 4-digit PIN for your card'}</p>
+                </div>
+                ${hasPin ? `
+                <div style="margin-bottom:18px;">
+                    <label style="font-weight:700;font-size:13px;color:#fff;display:block;margin-bottom:8px;">Current PIN</label>
+                    <input type="password" id="cpOldPin" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" required style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.15);background:#1f2937;color:#fff;text-align:center;letter-spacing:12px;font-size:22px;font-weight:700;box-sizing:border-box;outline:none;transition:border .2s;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+                </div>` : ''}
+                <div style="margin-bottom:24px;">
+                    <label style="font-weight:700;font-size:13px;color:#fff;display:block;margin-bottom:8px;">${hasPin ? 'New 4-Digit PIN' : 'Enter 4-Digit PIN'}</label>
+                    <input type="password" id="cpNewPin" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" required style="width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.15);background:#1f2937;color:#fff;text-align:center;letter-spacing:12px;font-size:22px;font-weight:700;box-sizing:border-box;outline:none;transition:border .2s;" onfocus="this.style.borderColor='#d4af37'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+                </div>
+                <button type="submit" id="cpSubmitBtn" style="width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#d4af37,#aa8529);color:#000;font-weight:800;font-size:15px;cursor:pointer;letter-spacing:0.5px;box-shadow:0 4px 15px rgba(212,175,55,0.3);transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">${hasPin ? 'Change PIN' : 'Set PIN'}</button>
+            </form>
+        </div>`;
+    document.body.appendChild(overlay);
+
+    document.getElementById('cpCloseBtn').onclick = () => overlay.remove();
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+    // Form submit
+    document.getElementById('cpForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const newPin = document.getElementById('cpNewPin').value;
+        const oldPin = hasPin ? document.getElementById('cpOldPin').value : '';
+        if (newPin.length !== 4) return showToast('PIN must be 4 digits', 'error');
+        if (hasPin && oldPin.length !== 4) return showToast('Current PIN required', 'error');
+
+        const btn = document.getElementById('cpSubmitBtn');
+        const ogText = btn.textContent;
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        try {
+            const endpoint = hasPin ? `/user/cards/${cardId}/change-pin` : `/user/cards/${cardId}/set-pin`;
+            const payload = hasPin ? { old_pin: oldPin, new_pin: newPin } : { pin: newPin };
+            const res = await fetch(`${API}${endpoint}`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                credentials: 'include', body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                overlay.remove();
+                showToast(data.message, 'success');
+                await loadAll(); renderCards();
+            } else {
+                showToast(data.error || 'Failed to update PIN', 'error');
+            }
+        } catch(err) { showToast('Network Error', 'error'); }
+        finally { btn.disabled = false; btn.textContent = ogText; }
+    };
+};
 
 async function blockCard(cardId) {
     showConfirm({
@@ -1640,6 +1952,14 @@ function showSendMoney() { showPage('transfer'); }
 function showReceiveMoney() { showToast('Your A/C: ' + (state.accounts[0]?.account_number || 'N/A'), 'info'); }
 function showMoreOptions() { showPage('accounts'); }
 function showNotifications() { toggleDropdown('notificationDropdown'); }
+
+function showModal(id) {
+    const modal = $id(id);
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+}
+
 function closeModal(id) {
     const modal = $id(id);
     if (!modal) return;
@@ -2139,6 +2459,35 @@ function setText(id, v) {
 function fmtINR(n) { return '₹' + parseFloat(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
 function maskAcct(n) { if (!n) return ''; const s = String(n); return s.includes('*') ? s : '****' + s.slice(-4); }
 // Removed local escHtml in favor of global premium-ui utility
+
+// ── Expose ALL onclick-callable functions to window (inline onclick= handlers need this) ──
+[
+    'showModal','closeModal','showPage','blockCard','unblockCard','openCardModal',
+    'openLoanModal','closeLoanModal','closeCardModal','selectCardType','showMoreOptions',
+    'showNotifications','showReceiveMoney','logout','acceptFarmerOrder','closeAccountModal',
+    'completePocket','confirmFarmerDelivery','copyAcctNum','deleteBeneficiary','doTransfer',
+    'downloadTransactionReceipt','editListing','hideDesktopChangePinForm','markNotifRead',
+    'openLoanRepayModal','openOrderChat','rejectFarmerOrder','removeListing',
+    'requestAccountConversion','saveProfile','selectAccountType','selectBen',
+    'shareAccountDetails','showAccountModal','showAddBeneficiaryModal','showAddGoalModal',
+    'showBeneficiarySelector','showDesktopChangePinForm','showRouteOnMap',
+    'showTransferFromAccount','submitDesktopChangePin','submitNewAccount','switchMode',
+    'toggleBalanceVisibility','toggleTheme','updatePocket','useBeneficiary',
+    'submitCardSettings','submitCardPin',
+    'applyForCard','applyForLoan','captureAgriGPS','closeAgriLoanModal',
+    'closeApplicationModal','closeChangeUpiPinModal','closeDesktopPinModal',
+    'closeGoldLoanModal','closeLoanRepayModal','closeOrderChatModal','closeQrScanner',
+    'desktopPinBackspace','desktopPinInput','downloadPDFStatement','filterLocations',
+    'loadMandiPrices','openChangeUpiPinModal','openNewAccount','openQrScanner',
+    'requestUpiPinChangeOtp','sendOrderMessage','showAddContactModal','showAgriLoanModal',
+    'showApplicationModal','showCreateListingModal','showFixedDepositModal',
+    'showGoldLoanModal','showLifeInsuranceModal','showLoanModal','showMutualFundModal',
+    'showNewSupportRequestModal','showTip','showTransferModal','showUpiTransfer',
+    'submitCreateListing','submitFinancialApplication','submitLoanRepayment',
+    'submitUpiPinChange','switchCamera','switchMarketTab','toggleDashboardTxnFilter',
+    'toggleDashboardTxnSearch','toggleDropdown','toggleSidebar','renderCards',
+    'renderAll','loadAll','startAutoRefresh','stopAutoRefresh'
+].forEach(fn => { try { if (typeof eval(fn) === 'function') window[fn] = eval(fn); } catch(e){} });
 function emptyState(icon, msg) {
     return `<div style="padding:3rem;text-align:center;color:var(--text-secondary,#6b7280);">
         <i class="fas fa-${icon}" style="font-size:2.5rem;margin-bottom:1rem;opacity:.4;display:block;"></i><p>${msg}</p></div>`;
@@ -3194,8 +3543,15 @@ async function completePocket(id) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   AGRICULTURE LOAN (AI + SATELLITE)
+   AGRICULTURE LOAN (AI + SATELLITE + GPS TRACKING)
    ════════════════════════════════════════════════════════════ */
+
+// GPS & Map State
+let _agriMap = null;
+let _agriMarker = null;
+let _agriLat = null;
+let _agriLng = null;
+let _agriGpsAccuracy = null;
 
 function showAgriLoanModal() {
     openSimpleModal('agriLoanModal');
@@ -3205,28 +3561,277 @@ function showAgriLoanModal() {
     if(form) form.reset();
     $id('agriResultArea').style.display = 'none';
     $id('aiScannerOverlay').style.display = 'none';
+    $id('agriAccuracyBadge').innerHTML = '';
     const btn = $id('agriSubmitBtn');
     btn.style.display = 'block';
     btn.disabled = false;
+    
+    // Reset GPS state
+    _agriLat = null;
+    _agriLng = null;
+    _agriGpsAccuracy = null;
+    $id('agriLat').value = '';
+    $id('agriLng').value = '';
+    $id('agriCoordsText').textContent = 'No GPS yet';
+    $id('agriCoordsDisplay').classList.remove('has-coords');
+    $id('agriMapContainer').classList.remove('has-location');
+    $id('agriGpsBtn').classList.remove('active');
+    $id('agriGpsBtnText').textContent = 'Detect My Farm Location';
+    
+    // Show placeholder, hide map
+    const placeholder = $id('agriMapPlaceholder');
+    if (placeholder) placeholder.classList.remove('hidden');
+    
+    // Initialize or reset map
+    setTimeout(() => { _initAgriMap(); }, 300);
 }
 
 function closeAgriLoanModal() {
     closeSimpleModal('agriLoanModal');
+    // Cleanup map to prevent memory leak
+    if (_agriMap) {
+        _agriMap.remove();
+        _agriMap = null;
+        _agriMarker = null;
+    }
+}
+
+function _initAgriMap() {
+    const mapEl = $id('agriMap');
+    if (!mapEl) return;
+    
+    // Remove existing map if any
+    if (_agriMap) {
+        _agriMap.remove();
+        _agriMap = null;
+        _agriMarker = null;
+    }
+    
+    // Default center: India
+    _agriMap = L.map('agriMap', {
+        center: [22.5, 78.5],
+        zoom: 4,
+        zoomControl: true,
+        attributionControl: false
+    });
+    
+    // Satellite tile layer for authentic farm view
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19
+    }).addTo(_agriMap);
+    
+    // Add label overlay for readability
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        pane: 'overlayPane'
+    }).addTo(_agriMap);
+    
+    // Allow clicking on map to set location
+    _agriMap.on('click', function(e) {
+        _setAgriLocation(e.latlng.lat, e.latlng.lng, null, 'map_click');
+    });
+}
+
+function captureAgriGPS() {
+    if (!navigator.geolocation) {
+        showToast('GPS not supported on this browser. Please click on the map to set your location.', 'error');
+        return;
+    }
+    
+    const btn = $id('agriGpsBtn');
+    const btnText = $id('agriGpsBtnText');
+    btn.classList.add('loading');
+    btnText.textContent = 'Acquiring GPS Signal...';
+    
+    navigator.geolocation.getCurrentPosition(
+        // SUCCESS
+        function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy; // meters
+            
+            btn.classList.remove('loading');
+            btn.classList.add('active');
+            btnText.textContent = 'GPS Locked ✓';
+            
+            _setAgriLocation(lat, lng, accuracy, 'gps');
+            showToast(`Farm location captured! Accuracy: ${Math.round(accuracy)}m`, 'success');
+        },
+        // ERROR
+        function(error) {
+            btn.classList.remove('loading');
+            btnText.textContent = 'Detect My Farm Location';
+            
+            let msg = 'Unable to get GPS location. ';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    msg += 'Please allow location access in your browser settings, or click on the map to set location manually.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    msg += 'Location unavailable. Try clicking on the map instead.';
+                    break;
+                case error.TIMEOUT:
+                    msg += 'GPS timed out. Try again or click on the map.';
+                    break;
+            }
+            showToast(msg, 'error');
+        },
+        // OPTIONS
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        }
+    );
+}
+
+function _setAgriLocation(lat, lng, accuracy, source) {
+    _agriLat = parseFloat(lat.toFixed(6));
+    _agriLng = parseFloat(lng.toFixed(6));
+    _agriGpsAccuracy = accuracy;
+    
+    // Update hidden fields
+    $id('agriLat').value = _agriLat;
+    $id('agriLng').value = _agriLng;
+    
+    // Update coordinate display
+    $id('agriCoordsText').textContent = `${_agriLat}, ${_agriLng}`;
+    $id('agriCoordsDisplay').classList.add('has-coords');
+    $id('agriMapContainer').classList.add('has-location');
+    
+    // Hide placeholder
+    const placeholder = $id('agriMapPlaceholder');
+    if (placeholder) placeholder.classList.add('hidden');
+    
+    // Accuracy badge
+    if (accuracy) {
+        let level = accuracy < 50 ? 'good' : (accuracy < 200 ? 'fair' : 'poor');
+        let label = accuracy < 50 ? 'High Accuracy' : (accuracy < 200 ? 'Moderate Accuracy' : 'Low Accuracy');
+        $id('agriAccuracyBadge').innerHTML = `
+            <span class="gps-accuracy-badge ${level}">
+                <i class="fas fa-${level === 'good' ? 'check-circle' : (level === 'fair' ? 'exclamation-circle' : 'times-circle')}"></i>
+                ${label} (±${Math.round(accuracy)}m) ${source === 'gps' ? '• GPS' : '• Manual'}
+            </span>`;
+    } else {
+        $id('agriAccuracyBadge').innerHTML = `
+            <span class="gps-accuracy-badge fair">
+                <i class="fas fa-mouse-pointer"></i>
+                Map Pin • Manual Selection
+            </span>`;
+    }
+    
+    // Update GPS btn if it was a map click
+    if (source === 'map_click') {
+        $id('agriGpsBtn').classList.add('active');
+        $id('agriGpsBtnText').textContent = 'Location Set ✓ (Map Click)';
+    }
+    
+    // Update map
+    if (_agriMap) {
+        _agriMap.flyTo([_agriLat, _agriLng], 16, { duration: 1.2 });
+        
+        if (_agriMarker) {
+            _agriMarker.setLatLng([_agriLat, _agriLng]);
+        } else {
+            const farmIcon = L.divIcon({
+                className: 'agri-farm-marker',
+                html: `<div style="width:36px;height:36px;background:linear-gradient(135deg,#166534,#22c55e);border-radius:50%;border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-tractor" style="color:white;font-size:14px;"></i>
+                </div>`,
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
+            });
+            _agriMarker = L.marker([_agriLat, _agriLng], { icon: farmIcon, draggable: true }).addTo(_agriMap);
+            
+            _agriMarker.bindPopup(`<div style="text-align:center;">
+                <strong style="color:#166534;">📍 Your Farm</strong><br>
+                <span style="font-family:monospace;font-size:12px;">${_agriLat}, ${_agriLng}</span><br>
+                <em style="font-size:11px;color:#6b7280;">Drag pin to adjust</em>
+            </div>`).openPopup();
+            
+            // Allow dragging the marker to refine location
+            _agriMarker.on('dragend', function(e) {
+                const pos = e.target.getLatLng();
+                _setAgriLocation(pos.lat, pos.lng, null, 'drag');
+            });
+        }
+        
+        // Update popup with new coords
+        if (_agriMarker) {
+            _agriMarker.setPopupContent(`<div style="text-align:center;">
+                <strong style="color:#166534;">📍 Your Farm</strong><br>
+                <span style="font-family:monospace;font-size:12px;">${_agriLat}, ${_agriLng}</span><br>
+                <em style="font-size:11px;color:#6b7280;">Drag pin to adjust</em>
+            </div>`);
+        }
+        
+        // Add accuracy circle if GPS
+        if (accuracy && source === 'gps') {
+            // Remove existing circle
+            _agriMap.eachLayer(l => { if (l instanceof L.Circle) _agriMap.removeLayer(l); });
+            L.circle([_agriLat, _agriLng], {
+                radius: accuracy,
+                color: '#22c55e',
+                fillColor: '#22c55e',
+                fillOpacity: 0.1,
+                weight: 2,
+                dashArray: '5,5'
+            }).addTo(_agriMap);
+        }
+    }
+    
+    // Reverse geocode to auto-fill address fields
+    _reverseGeocodeAgri(_agriLat, _agriLng);
+}
+
+async function _reverseGeocodeAgri(lat, lng) {
+    try {
+        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`, {
+            headers: { 'Accept-Language': 'en' }
+        });
+        const data = await r.json();
+        
+        if (data && data.address) {
+            const addr = data.address;
+            // Auto-fill village/area
+            const village = addr.village || addr.town || addr.city || addr.suburb || addr.hamlet || '';
+            const stateDistrict = [addr.county || addr.state_district || '', addr.state || ''].filter(Boolean).join(', ');
+            
+            if (village && $id('agriAddress')) {
+                $id('agriAddress').value = village;
+            }
+            if (stateDistrict && $id('agriState')) {
+                $id('agriState').value = stateDistrict;
+            }
+        }
+    } catch (e) {
+        // Silently fail — user can still type manually
+        console.log('Reverse geocode failed:', e);
+    }
 }
 
 async function submitAgriLoan(e) {
     if(e) e.preventDefault();
     
     const address = $id('agriAddress').value;
-    const state = $id('agriState').value;
+    const agriState = $id('agriState').value;
     const survey = $id('agriSurvey').value;
-    const coords = `${address}, ${state}, Survey/Khata: ${survey}`;
     
     const size = $id('agriSize').value;
     const crop = $id('agriCrop').value;
     const amt = $id('agriAmount').value;
     
-    if(!address || !state || !survey) return showToast('Please enter complete farm details', 'error');
+    if(!address || !agriState || !survey) return showToast('Please enter complete farm details', 'error');
+    
+    // Build coordinates: prefer actual GPS lat/lng, fallback to text
+    let coords;
+    if (_agriLat && _agriLng) {
+        coords = `${_agriLat},${_agriLng}`;
+    } else {
+        // No GPS captured — warn user but allow submission
+        showToast('GPS location not detected. For best results, click "Detect My Farm Location" first.', 'warning');
+        coords = `${address}, ${agriState}, Survey/Khata: ${survey}`;
+    }
     
     const btn = $id('agriSubmitBtn');
     btn.disabled = true;
@@ -3249,22 +3854,28 @@ async function submitAgriLoan(e) {
         
         const data = await r.json();
         
-        // Wait for animation mock effect (e.g. 3 seconds)
+        // Wait for scanner animation (3 seconds)
         setTimeout(() => {
             $id('aiScannerOverlay').style.display = 'none';
-            btn.style.display = 'none'; // Hide submit button, show results
+            btn.style.display = 'none';
             
             if(r.ok) {
-                showToast('Farm Analysis Complete', 'success');
+                showToast('Farm Analysis Complete — Satellite data verified', 'success');
                 $id('agriResultArea').style.display = 'block';
                 $id('agriResultScore').textContent = data.score + '/100';
-                $id('agriResultMoisture').textContent = (data.soil_moisture !== null ? data.soil_moisture + ' m³' : 'N/A');
+                $id('agriResultMoisture').textContent = (data.soil_moisture !== null ? data.soil_moisture + ' m³/m³' : 'N/A');
+                
+                // Show GPS coords in result
+                const coordsEl = $id('agriResultCoords');
+                if (coordsEl) {
+                    coordsEl.textContent = _agriLat && _agriLng ? `${_agriLat}°N, ${_agriLng}°E` : 'Manual entry';
+                }
                 
                 const recEl = $id('agriResultRec');
                 recEl.textContent = data.recommendation;
-                recEl.style.color = data.score >= 75 ? 'var(--success)' : (data.score >= 50 ? 'var(--warning)' : 'var(--danger)');
+                recEl.style.color = data.score >= 75 ? '#15803d' : (data.score >= 50 ? '#b45309' : '#dc2626');
                 
-                addNotification('Agri Loan App', `Analysis complete. AI Score: ${data.score}`, 'info');
+                addNotification('Agri Loan App', `GPS-verified analysis complete. AI Score: ${data.score}`, 'info');
             } else {
                 showToast(data.error || 'Analysis failed', 'error');
                 btn.disabled = false;
@@ -4582,6 +5193,21 @@ async function renderSettingsPage() {
                 </div>
             </div>
 
+            <!-- Face Auth Card -->
+            <div style="background:white;border:1px solid var(--border-color);border-radius:14px;padding:20px;margin-bottom:24px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div style="font-weight:700;font-size:15px;color:var(--text-primary);margin-bottom:4px;">
+                            <i class="fas fa-user-shield" style="margin-right:8px;color:#10b981;"></i>Face Login
+                        </div>
+                        <div style="font-size:12px;color:var(--text-secondary);">Login securely using facial recognition</div>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="window.openFaceRegistration()" style="background: #10b981; border-color: #10b981;">
+                        <i class="fas fa-camera"></i> Setup Face
+                    </button>
+                </div>
+            </div>
+
             <!-- Preferences Section -->
             <div>
                 <h4 style="font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:16px;">
@@ -4891,3 +5517,171 @@ async function closeQrScanner() {
         }
     }
 }
+
+/* ════════════════════════════════════════════════════════════
+   LIVE CHAT — Encrypted Direct Support
+   ════════════════════════════════════════════════════════════ */
+let _liveChatSessionId = null;
+let _liveChatPollTimer = null;
+let _liveChatPendingImage = null;
+
+async function openLiveChat() {
+    const modal = $id('liveChatModal');
+    if (modal) modal.classList.add('active');
+    
+    try {
+        const r = await fetch(`${API}/user/livechat/start`, { method: 'POST', credentials: 'include' });
+        const d = await r.json();
+        if (d.success) {
+            _liveChatSessionId = d.session_id;
+            const statusEl = $id('liveChatStatus');
+            if (d.status === 'waiting') {
+                statusEl.textContent = 'Waiting for agent...';
+            } else if (d.status === 'active') {
+                statusEl.textContent = 'Connected to agent';
+            }
+            await loadLiveChatMessages();
+            startLiveChatPolling();
+        } else {
+            showToast(d.error || 'Could not start chat', 'error');
+        }
+    } catch (e) {
+        showToast('Network error starting chat', 'error');
+    }
+}
+
+function closeLiveChatModal() {
+    const modal = $id('liveChatModal');
+    if (modal) modal.classList.remove('active');
+    stopLiveChatPolling();
+}
+
+function startLiveChatPolling() {
+    stopLiveChatPolling();
+    _liveChatPollTimer = setInterval(loadLiveChatMessages, 3000);
+}
+
+function stopLiveChatPolling() {
+    if (_liveChatPollTimer) {
+        clearInterval(_liveChatPollTimer);
+        _liveChatPollTimer = null;
+    }
+}
+
+async function loadLiveChatMessages() {
+    if (!_liveChatSessionId) return;
+    try {
+        const r = await fetch(`${API}/user/livechat/${_liveChatSessionId}/messages`, { credentials: 'include' });
+        const d = await r.json();
+        if (!d.success) return;
+        
+        // Update status
+        const statusEl = $id('liveChatStatus');
+        if (d.session.status === 'waiting') {
+            statusEl.textContent = 'Waiting for agent...';
+        } else if (d.session.status === 'active') {
+            statusEl.textContent = '● Connected to agent';
+            statusEl.style.color = '#34d399';
+        } else if (d.session.status === 'closed') {
+            statusEl.textContent = 'Chat ended';
+            stopLiveChatPolling();
+        }
+        
+        const container = $id('liveChatMessages');
+        if (!container) return;
+        
+        container.innerHTML = d.messages.map(m => {
+            const isUser = m.sender_type === 'user';
+            const isSystem = m.sender_type === 'system';
+            const isImage = m.message_type === 'image';
+            const time = new Date(m.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            
+            if (isSystem) {
+                return `<div style="text-align: center; padding: 6px 0;">
+                    <span style="background: rgba(99,102,241,0.1); color: #6366f1; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                        <i class="fas fa-shield-alt" style="margin-right: 4px;"></i>${escHtml(m.message)}
+                    </span>
+                </div>`;
+            }
+            
+            const msgContent = isImage 
+                ? `<img src="${m.message}" style="max-width: 240px; border-radius: 10px; cursor: pointer;" onclick="window.open(this.src)">` 
+                : `<span>${escHtml(m.message)}</span>`;
+            
+            const align = isUser ? 'flex-end' : 'flex-start';
+            const bg = isUser ? 'linear-gradient(135deg, #800000, #4a0000)' : 'white';
+            const color = isUser ? 'white' : '#1e293b';
+            const border = isUser ? 'none' : '1px solid #e2e8f0';
+            const radius = isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px';
+            
+            return `<div style="display: flex; flex-direction: column; align-items: ${align};">
+                <div style="max-width: 75%; background: ${bg}; color: ${color}; border: ${border}; padding: 10px 16px; border-radius: ${radius}; font-size: 14px; line-height: 1.5; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+                    ${msgContent}
+                </div>
+                <span style="font-size: 10px; color: #94a3b8; margin-top: 4px; padding: 0 4px;">${time}</span>
+            </div>`;
+        }).join('');
+        
+        container.scrollTop = container.scrollHeight;
+    } catch (e) { /* silent */ }
+}
+
+async function sendLiveChatMsg() {
+    if (!_liveChatSessionId) return;
+    
+    // Check for pending image first
+    if (_liveChatPendingImage) {
+        await sendLiveChatPayload(_liveChatPendingImage, 'image');
+        cancelLiveChatImage();
+        return;
+    }
+    
+    const input = $id('liveChatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    
+    await sendLiveChatPayload(msg, 'text');
+}
+
+async function sendLiveChatPayload(message, type) {
+    try {
+        const r = await fetch(`${API}/user/livechat/${_liveChatSessionId}/send`, {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, type })
+        });
+        const d = await r.json();
+        if (!d.success) showToast(d.error || 'Send failed', 'error');
+        await loadLiveChatMessages();
+    } catch (e) {
+        showToast('Network error', 'error');
+    }
+}
+
+function handleLiveChatImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('Image must be under 5MB', 'error');
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        _liveChatPendingImage = e.target.result;
+        $id('liveChatPreviewImg').src = _liveChatPendingImage;
+        $id('liveChatImagePreview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+function cancelLiveChatImage() {
+    _liveChatPendingImage = null;
+    $id('liveChatImagePreview').style.display = 'none';
+    $id('liveChatImageInput').value = '';
+}
+
+// Expose functions
+['openLiveChat', 'closeLiveChatModal', 'sendLiveChatMsg', 'handleLiveChatImage', 'cancelLiveChatImage'].forEach(fn => {
+    try { if (typeof eval(fn) === 'function') window[fn] = eval(fn); } catch(e){}
+});

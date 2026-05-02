@@ -83,16 +83,27 @@ def apply_loan():
         if not coords or size <= 0 or not crop or amt <= 0:
             return jsonify({'error': 'Missing or invalid fields'}), 400
 
-        # Try to parse Lat Lng if provided directly, otherwise use a fallback for the AI mock
+        # Parse coordinates — prefer real GPS lat,lng from frontend
+        gps_source = 'fallback'
         try:
-            # Check if it looks like lat,lng (2 numbers)
+            # Frontend sends "lat,lng" when GPS is captured
             parts = [p.strip() for p in str(coords).split(',')]
             if len(parts) == 2:
-                lat, lng = float(parts[0]), float(parts[1])
+                parsed_lat, parsed_lng = float(parts[0]), float(parts[1])
+                # Validate lat/lng ranges
+                if -90 <= parsed_lat <= 90 and -180 <= parsed_lng <= 180:
+                    lat, lng = parsed_lat, parsed_lng
+                    gps_source = 'gps'
+                    logger.info(f'Agri loan GPS captured: lat={lat}, lng={lng} for user {user_id}')
+                else:
+                    lat, lng = 28.6139, 77.2090  # Default Delhi
+                    logger.warning(f'Invalid GPS range from user {user_id}: {parsed_lat},{parsed_lng}. Using Delhi fallback.')
             else:
-                lat, lng = 28.6139, 77.2090 # Default Delhi
-        except Exception:
-            lat, lng = 28.6139, 77.2090 # Default Delhi if text address
+                lat, lng = 28.6139, 77.2090  # Default Delhi for text addresses
+                logger.info(f'Agri loan text address (no GPS): "{coords}" for user {user_id}. Using Delhi fallback.')
+        except (ValueError, TypeError):
+            lat, lng = 28.6139, 77.2090  # Default Delhi if unparseable
+            logger.info(f'Agri loan coord parse failed: "{coords}" for user {user_id}. Using Delhi fallback.')
 
         # Call Open-Meteo
         moisture = get_open_meteo_soil_data(lat, lng)

@@ -61,6 +61,14 @@ def register_face():
     table = allowed_tables[role]
     
     try:
+        if role == 'user':
+            kyc_record = db.execute('SELECT face_descriptor FROM account_requests WHERE user_id = ? AND status = "approved" AND face_descriptor IS NOT NULL ORDER BY id DESC LIMIT 1', (user_id,)).fetchone()
+            if kyc_record and kyc_record['face_descriptor']:
+                from core.auth import compare_face_descriptors
+                is_match = compare_face_descriptors(descriptor, kyc_record['face_descriptor'])
+                if not is_match:
+                    return jsonify({'error': 'Face mismatch: The detected face does not match the person who completed KYC. Registration blocked.'}), 403
+
         # Descriptor is stored as JSON string
         descriptor_json = json.dumps(descriptor)
         db.execute(f'UPDATE {table} SET face_auth_enabled = 1, face_descriptor = ? WHERE id = ?', 

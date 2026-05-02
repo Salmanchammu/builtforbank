@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/face-auth-fixed.css">
     <link rel="stylesheet" href="css/chatbot.css">
+    <link rel="stylesheet" href="css/agri-gps.css">
     <!-- Leaflet mapping for Agri Loans -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -134,7 +135,7 @@
                             <div class="dropdown-content" id="notificationList">No new notifications</div>
                         </div>
                     </div>
-                    <button class="action-btn" onclick="openQrScanner()" title="Scan & Pay" style="background: rgba(139,0,0,0.1); color: var(--primary-maroon);">
+                    <button class="action-btn mobile-only-btn" onclick="openQrScanner()" title="Scan & Pay" style="background: rgba(139,0,0,0.1); color: var(--primary-maroon);">
                         <i class="fas fa-qrcode"></i>
                     </button>
                     <div style="display: flex; gap: 10px; margin-left: 10px;">
@@ -1049,10 +1050,16 @@
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Support Center</h3>
-                        <button class="btn btn-primary btn-sm" onclick="showNewSupportRequestModal()">
-                            <i class="fas fa-plus"></i>
-                            New Request
-                        </button>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-sm" onclick="openLiveChat()" style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: white; border: none; padding: 8px 18px; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-comments"></i>
+                                Live Chat
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="showNewSupportRequestModal()">
+                                <i class="fas fa-plus"></i>
+                                New Request
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Support Stats -->
@@ -1093,6 +1100,61 @@
                     </div>
                 </div>
             </div>
+
+    <!-- Live Chat Modal -->
+    <div id="liveChatModal" class="modal">
+        <div class="modal-content" style="max-width: 520px; height: 85vh; display: flex; flex-direction: column; padding: 0; border-radius: 20px; overflow: hidden;">
+            <!-- Chat Header -->
+            <div style="background: linear-gradient(135deg, #800000, #4a0000); padding: 18px 24px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 42px; height: 42px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-headset" style="color: white; font-size: 18px;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; color: white; font-size: 16px; font-weight: 700;">Live Support</h3>
+                        <p id="liveChatStatus" style="margin: 2px 0 0; color: rgba(255,255,255,0.7); font-size: 12px;">Connecting...</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="background: rgba(16,185,129,0.25); color: #34d399; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;">
+                        <i class="fas fa-lock" style="margin-right: 4px;"></i>Encrypted
+                    </span>
+                    <button onclick="closeLiveChatModal()" style="background: none; border: none; color: rgba(255,255,255,0.7); font-size: 20px; cursor: pointer;">&times;</button>
+                </div>
+            </div>
+
+            <!-- Chat Messages Area -->
+            <div id="liveChatMessages" style="flex: 1; overflow-y: auto; padding: 16px; background: #f8fafc; display: flex; flex-direction: column; gap: 10px;">
+                <div style="text-align: center; padding: 40px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
+                    <p style="margin-top: 8px; color: var(--text-secondary); font-size: 13px;">Loading chat...</p>
+                </div>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div style="padding: 12px 16px; background: white; border-top: 1px solid #e2e8f0;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label for="liveChatImageInput" style="cursor: pointer; color: var(--primary); padding: 8px; border-radius: 8px; background: rgba(128,0,0,0.06);">
+                        <i class="fas fa-image" style="font-size: 18px;"></i>
+                    </label>
+                    <input type="file" id="liveChatImageInput" accept="image/*" style="display: none;" onchange="handleLiveChatImage(event)">
+                    <input type="text" id="liveChatInput" placeholder="Type a message..." 
+                        style="flex: 1; border: 1px solid #e2e8f0; border-radius: 24px; padding: 10px 16px; font-size: 14px; outline: none; transition: border 0.2s;"
+                        onfocus="this.style.borderColor='#800000'" onblur="this.style.borderColor='#e2e8f0'"
+                        onkeypress="if(event.key==='Enter') sendLiveChatMsg()">
+                    <button onclick="sendLiveChatMsg()" 
+                        style="background: linear-gradient(135deg, #800000, #4a0000); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-paper-plane" style="font-size: 14px;"></i>
+                    </button>
+                </div>
+                <!-- Image Preview -->
+                <div id="liveChatImagePreview" style="display: none; margin-top: 10px; position: relative;">
+                    <img id="liveChatPreviewImg" style="max-height: 120px; border-radius: 10px; border: 2px solid #e2e8f0;">
+                    <button onclick="cancelLiveChatImage()" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px;">×</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
             <!-- Settings Page -->
             <div id="settings" class="page-content">
@@ -1771,32 +1833,56 @@
     <script>
         // FaceAuthManager is already initialized by face-auth-fixed.js
     </script>
-    <!-- Agriculture Loan Modal -->
+    <!-- Agriculture Loan Modal (GPS-Enabled) -->
     <div id="agriLoanModal" class="modal">
-        <div class="modal-content agri-theme" style="max-width: 650px;">
+        <div class="modal-content agri-theme" style="max-width: 700px;">
             <div class="modal-header">
-                <h3 class="modal-title"><i class="fas fa-satellite"></i> Agriculture Loan</h3>
+                <h3 class="modal-title"><i class="fas fa-satellite-dish" style="margin-right:8px;"></i> Agriculture Loan — GPS Verified</h3>
                 <button class="modal-close" onclick="closeAgriLoanModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <p style="color: var(--text-secondary); margin-bottom: 24px;">Use our satellite AI to analyze your farmland and get an instant loan pre-approval.</p>
-                
-                <form id="agriLoanForm" onsubmit="submitAgriLoan(event)">
-                    <div class="form-group" style="position: relative;" id="agriDetailsGroup">
-                        <label class="form-label">Farm Location & Identification</label>
-                        <div class="dashboard-grid grid-2" style="margin-bottom: 12px;">
-                            <input type="text" id="agriAddress" class="form-input" placeholder="Village / Area" required>
-                            <input type="text" id="agriState" class="form-input" placeholder="State / District" required>
-                        </div>
-                        <input type="text" id="agriSurvey" class="form-input" placeholder="Survey Number / Khata Number / Khasra" required>
-                        
-                        <div id="aiScannerOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: rgba(21, 128, 61, 0.1); border-radius: 12px; overflow: hidden; pointer-events: none; border: 2px solid var(--primary-green);">
-                            <div class="scanner-line" style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary-green); box-shadow: 0 0 15px var(--primary-green); animation: scan 2s infinite linear;"></div>
-                            <div class="ai-status-text" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; background: var(--primary-green-dark); padding: 8px 16px; border-radius: 20px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">AI SATELLITE SCANNING...</div>
-                        </div>
+                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size:14px;">Pinpoint your farmland via GPS and our AI will analyze satellite soil data for an instant loan pre-approval.</p>
+
+                <!-- GPS Capture Row -->
+                <div class="agri-gps-row">
+                    <button type="button" id="agriGpsBtn" class="agri-gps-btn" onclick="captureAgriGPS()">
+                        <i class="fas fa-crosshairs"></i>
+                        <span id="agriGpsBtnText">Detect My Farm Location</span>
+                    </button>
+                    <div class="agri-coords-display" id="agriCoordsDisplay">
+                        <i class="fas fa-map-pin"></i>
+                        <span id="agriCoordsText">No GPS yet</span>
                     </div>
+                </div>
+
+                <!-- Live Map -->
+                <div id="agriMapContainer">
+                    <div class="agri-map-placeholder" id="agriMapPlaceholder">
+                        <i class="fas fa-globe-asia"></i>
+                        <p>Click "Detect My Farm Location" to pin your farm on the map</p>
+                    </div>
+                    <div id="agriMap"></div>
+                    <!-- Scanner overlay sits on top of the map -->
+                    <div id="aiScannerOverlay">
+                        <div class="scanner-line"></div>
+                        <div class="ai-status-text"><i class="fas fa-satellite" style="margin-right:8px;"></i>AI SATELLITE SCANNING...</div>
+                    </div>
+                </div>
+                <div id="agriAccuracyBadge" style="text-align:center; margin-bottom:16px;"></div>
+
+                <!-- Hidden lat/lng fields -->
+                <input type="hidden" id="agriLat" value="">
+                <input type="hidden" id="agriLng" value="">
+
+                <form id="agriLoanForm" onsubmit="submitAgriLoan(event)">
+                    <label class="form-label" style="margin-bottom:10px;">Farm Location & Identification</label>
+                    <div class="dashboard-grid grid-2" style="margin-bottom: 12px;">
+                        <input type="text" id="agriAddress" class="form-input" placeholder="Village / Area" required>
+                        <input type="text" id="agriState" class="form-input" placeholder="State / District" required>
+                    </div>
+                    <input type="text" id="agriSurvey" class="form-input" placeholder="Survey Number / Khata Number / Khasra" required style="margin-bottom:16px;">
 
                     <div class="dashboard-grid grid-3" style="gap: 16px;">
                         <div class="form-group">
@@ -1815,29 +1901,32 @@
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-cancel" onclick="closeAgriLoanModal()">Cancel</button>
-                        <button type="submit" id="agriSubmitBtn" class="btn btn-primary" style="background: var(--primary-green-dark);">
+                        <button type="submit" id="agriSubmitBtn" class="btn btn-primary" style="background: linear-gradient(135deg, #166534, #15803d);">
                             <i class="fas fa-microchip"></i> Analyze & Apply
                         </button>
                     </div>
-                    
-                    <div id="agriResultArea" style="display: none; margin-top: 24px; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--bg-light);">
-                        <h4 style="margin-bottom: 16px; text-align: center; color: var(--text-primary); font-weight: 700;">Satellite Analysis Complete</h4>
-                        <div class="dashboard-grid grid-2">
-                            <div class="card" style="text-align: center; padding: 15px; border-radius: 12px;">
-                                <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Yield Health Score</div>
-                                <div id="agriResultScore" style="font-size: 32px; font-weight: 900; color: var(--success); margin-top: 4px;">--</div>
+
+                    <div id="agriResultArea" style="display: none; margin-top: 24px; padding: 24px; border-radius: 18px; border: 1.5px solid #a7f3d0; background: linear-gradient(135deg, #f0fdf4, #ecfdf5);">
+                        <h4 style="margin-bottom: 16px; text-align: center; color: #166534; font-weight: 800; font-size:16px;"><i class="fas fa-check-circle" style="margin-right:8px; color:#22c55e;"></i>Satellite Analysis Complete</h4>
+                        <div class="dashboard-grid grid-3" style="gap:14px;">
+                            <div class="card" style="text-align: center; padding: 18px; border-radius: 14px;">
+                                <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Yield Health Score</div>
+                                <div id="agriResultScore" style="font-size: 30px; font-weight: 900; color: #15803d; margin-top: 6px;">--</div>
                             </div>
-                            <div class="card" style="text-align: center; padding: 15px; border-radius: 12px;">
-                                <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Soil Index</div>
-                                <div id="agriResultMoisture" style="font-size: 32px; font-weight: 900; color: var(--primary-blue); margin-top: 4px;">--</div>
+                            <div class="card" style="text-align: center; padding: 18px; border-radius: 14px;">
+                                <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Soil Moisture</div>
+                                <div id="agriResultMoisture" style="font-size: 30px; font-weight: 900; color: #2563eb; margin-top: 6px;">--</div>
+                            </div>
+                            <div class="card" style="text-align: center; padding: 18px; border-radius: 14px;">
+                                <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">GPS Coordinates</div>
+                                <div id="agriResultCoords" style="font-size: 12px; font-weight: 700; color: #166534; margin-top: 10px; font-family: 'Courier New', monospace;">--</div>
                             </div>
                         </div>
-                        <div id="agriResultRec" style="text-align: center; font-weight: 600; margin-top: 16px; padding: 14px; border-radius: 12px; background: white; border: 1px solid var(--border-color);">--</div>
+                        <div id="agriResultRec" style="text-align: center; font-weight: 700; margin-top: 16px; padding: 16px; border-radius: 14px; background: white; border: 1.5px solid #d1fae5; font-size: 15px;">--</div>
                     </div>
                 </form>
             </div>
         </div>
-        <!-- (Locator page moved into main content area above) -->
     </div>
 
     <!-- Desktop Balance PIN Modal -->

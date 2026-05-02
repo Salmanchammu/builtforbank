@@ -131,14 +131,14 @@ async function handleLogin(e) {
              const modal = document.getElementById('loginOtpModal');
              if (modal) modal.style.display = 'flex';
              
+             const otpInput = document.getElementById('loginEmailOtp');
+             if (otpInput) otpInput.value = '';
              if (d.dev_otp) {
-                 const otpInput = document.getElementById('loginEmailOtp');
-                 if (otpInput) {
-                     otpInput.value = d.dev_otp;
-                     showMobileToast(`[DEV/RENDER MODE] OTP Auto-filled: ${d.dev_otp}`, 'success');
-                 }
+                 if (otpInput) otpInput.value = d.dev_otp;
+                 showMobileToast('OTP Auto-filled. Logging in...', 'success');
+                 setTimeout(() => handleMobileVerifyLogin(), 500);
              } else {
-                 showMobileToast('Verification code sent to your email.', 'info');
+                 showMobileToast('Verification code sent to your registered email.', 'info');
              }
              return;
         }
@@ -1117,35 +1117,284 @@ function renderProfile(user, profileImageUrl) {
              cardsList.innerHTML = window._dashboardData.cards.map(card => {
                  const isCredit = (card.card_type && String(card.card_type).toLowerCase() === 'credit');
                  const isBlocked = card.status === 'blocked';
-                 const bg = isBlocked ? 'linear-gradient(135deg, #475569, #1e293b)' : 
-                           (isCredit ? 'linear-gradient(135deg, #1e293b, #0f172a)' : 'linear-gradient(135deg, var(--primary-maroon), #2a0000)');
+                 
+                 // Premium Dark Metallic / Glass Theme
+                 const bgGradient = isBlocked 
+                     ? 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)'
+                     : (isCredit 
+                         ? 'radial-gradient(circle at top right, rgba(212,175,55,0.25) 0%, transparent 60%), linear-gradient(135deg, #1a1813 0%, #0a0907 100%)' 
+                         : 'radial-gradient(circle at top right, rgba(255,255,255,0.15) 0%, transparent 60%), linear-gradient(135deg, #141416 0%, #050505 100%)');
+                 
+                 const borderColor = isBlocked ? 'rgba(255,255,255,0.1)' : (isCredit ? 'rgba(212,175,55,0.4)' : 'rgba(255,255,255,0.15)');
+                 const textAccent = isBlocked ? '#94a3b8' : (isCredit ? '#d4af37' : '#e2e8f0');
+                 const btnBg = isBlocked ? 'rgba(255,255,255,0.05)' : (isCredit ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.05)');
                  
                  return `
-                 <div style="background: ${bg}; border-radius: 12px; padding: 16px; margin-bottom: 12px; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; opacity: ${isBlocked ? '0.85' : '1'}; transition: all 0.3s ease;">
-                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                         <div>
-                             <div style="font-size: 11px; opacity: 0.8; letter-spacing: 0.5px;">SmartBank ${escHtml(card.card_type)}</div>
-                             <div style="font-size: 16px; font-weight: 700; margin-top: 4px; letter-spacing: 2px;">${maskCard(card.card_number)}</div>
+                 <div style="background: ${bgGradient}; border: 1px solid ${borderColor}; box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.1); color: #fff; border-radius: 20px; padding: 24px; margin-bottom: 20px; position: relative; opacity: ${isBlocked ? '0.85' : '1'}; transition: all 0.3s ease; overflow: hidden;" class="premium-card">
+                     <!-- Shimmer Effect -->
+                     <div style="position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0) 100%); transform:skewX(-25deg); animation: shine 8s infinite;"></div>
+                     
+                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; position:relative; z-index:2;">
+                         <div style="display:flex; gap: 12px; align-items:center;">
+                             <i class="fas fa-sim-card" style="font-size: 28px; color: ${textAccent}; transform: rotate(90deg); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));"></i>
+                             ${card.contactless_enabled ? `<i class="fas fa-wifi" style="font-size: 18px; color: ${textAccent}; transform: rotate(90deg); opacity: 0.8;"></i>` : ''}
                          </div>
-                         <div style="font-size: 10px; font-weight: 800; background: ${isBlocked ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255,255,255,0.2)'}; padding: 4px 8px; border-radius: 12px; border: 1px solid ${isBlocked ? '#f87171' : 'transparent'};">
-                             ${escHtml(card.status ? card.status.toUpperCase() : 'ACTIVE')}
+                         <div style="text-align: right;">
+                             <div style="font-family:'Montserrat', sans-serif; font-weight:900; font-size:16px; letter-spacing:2px; color:${textAccent}; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">SMART<span style="color:white;">BANK</span></div>
+                             <div style="font-size: 10px; opacity: 0.8; letter-spacing: 2px; margin-top: 4px; font-weight:600;">${escHtml(card.card_type).toUpperCase()}</div>
                          </div>
                      </div>
+                     
+                     <div style="font-family: 'Space Meno', 'Courier New', monospace; font-size: 24px; font-weight: 600; margin-bottom: 24px; letter-spacing: 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.6); position:relative; z-index:2; display:flex; justify-content:space-between;">
+                         <span>${(card.card_number || '****').substring(0,4)}</span><span>${(card.card_number || '****').substring(4,8)}</span><span>${(card.card_number || '****').substring(8,12)}</span><span>${(card.card_number || '****').substring(12,16)}</span>
+                     </div>
+                     
+                     <div style="display:flex; justify-content:space-between; align-items:flex-end; position:relative; z-index:2; margin-bottom: 24px;">
+                         <div>
+                             <div style="font-size:10px; opacity:0.6; letter-spacing:2px; margin-bottom:6px; text-transform:uppercase;">CVV</div>
+                             <div style="font-family: 'Space Meno', 'Courier New', monospace; font-weight:500; font-size:16px; letter-spacing:2px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${escHtml(card.cvv || '***')}</div>
+                         </div>
+                         <div style="text-align:right;">
+                             <div style="font-size:10px; opacity:0.6; letter-spacing:2px; margin-bottom:6px; text-transform:uppercase;">Valid Thru</div>
+                             <div style="font-family: 'Space Meno', 'Courier New', monospace; font-weight:500; font-size:16px; letter-spacing:2px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${(card.expiry_date || '').substring(0, 7).replace('-', '/')}</div>
+                         </div>
+                     </div>
+                     
+                     <div style="display:flex; gap:10px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; position:relative; z-index:2;">
+                        <button onclick="openCardSettingsMobile(${card.id})" style="flex:1; background:${btnBg}; color:white; border:1px solid ${borderColor}; border-radius:10px; padding:12px; font-size:11px; font-weight:600; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:6px;">
+                            <i class="fas fa-cog" style="color:${textAccent};"></i> SETTINGS
+                        </button>
+                        <button onclick="openCardPinMobile(${card.id}, ${!!card.pin_hash})" style="flex:1; background:${btnBg}; color:white; border:1px solid ${borderColor}; border-radius:10px; padding:12px; font-size:11px; font-weight:600; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:6px;">
+                            <i class="fas fa-key" style="color:${textAccent};"></i> ${card.pin_hash ? 'PIN' : 'PIN'}
+                        </button>
+                        <button onclick="window.open('payment_gateway.html?card=${card.card_number}', '_blank')" style="flex:1; background:${isCredit ? 'linear-gradient(135deg, #d4af37, #aa8529)' : 'linear-gradient(135deg, #e2e8f0, #94a3b8)'}; color:#000; border:none; border-radius:10px; padding:12px; font-size:11px; font-weight:800; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                            <i class="fas fa-shopping-cart"></i> PAY
+                        </button>
+                     </div>
+
                      ${isBlocked ? `
-                         <button onclick="unblockCardMobile(${card.id})" style="width: 100%; background: rgba(52, 211, 153, 0.15); color: #d1fae5; border: 1px solid rgba(52, 211, 153, 0.5); padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                         <button onclick="unblockCardMobile(${card.id})" style="position:relative; z-index:3; width: 100%; background: rgba(52, 211, 153, 0.15); color: #d1fae5; border: 1px solid rgba(52, 211, 153, 0.4); padding: 12px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px;">
                              <i class="fas fa-unlock"></i> UNBLOCK CARD
                          </button>
                      ` : `
-                         <button onclick="blockCardMobile(${card.id})" style="width: 100%; background: rgba(239, 68, 68, 0.15); color: #fecaca; border: 1px solid rgba(239, 68, 68, 0.5); padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                         <button onclick="blockCardMobile(${card.id})" style="position:relative; z-index:3; width: 100%; background: rgba(239, 68, 68, 0.15); color: #fecaca; border: 1px solid rgba(239, 68, 68, 0.4); padding: 12px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px;">
                              <i class="fas fa-ban"></i> BLOCK CARD
                          </button>
                      `}
-                 </div>
-                 `;
+                     ${isBlocked ? `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) rotate(-15deg); font-size:36px; font-weight:900; color:rgba(239,68,68,0.3); border:4px solid rgba(239,68,68,0.3); padding:8px 24px; border-radius:12px; pointer-events:none; letter-spacing:6px; z-index:1;">BLOCKED</div>` : ''}
+                 </div>`;
              }).join('');
+             
+             // Inject Settings & PIN Modals if they don't exist
+            if (!document.getElementById('cardSettingsModalMobile')) {
+                document.body.insertAdjacentHTML('beforeend', `
+                    <div class="modal-overlay" id="cardSettingsModalMobile" style="z-index:9999;">
+                        <div class="modal" style="max-width: 400px; width: 90%; background: var(--bg-card); color: var(--text-primary); border-radius: 16px;">
+                            <div class="modal-header" style="border-bottom: 1px solid var(--border-color); padding: 15px 20px;">
+                                <h3 style="margin:0; font-size:16px;"><i class="fas fa-cog" style="color:var(--primary-color);"></i> Card Settings</h3>
+                                <button class="close-modal" onclick="closeModalMobile('cardSettingsModalMobile')" style="background:none;border:none;color:var(--text-secondary);font-size:18px;"><i class="fas fa-times"></i></button>
+                            </div>
+                            <form onsubmit="submitCardSettingsMobile(event)" style="padding: 20px;">
+                                <input type="hidden" id="csmCardId">
+                                
+                                <div class="form-group" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <label style="display:block; font-weight:600; margin-bottom:2px; font-size:13px;"><i class="fas fa-wifi"></i> Contactless</label>
+                                    </div>
+                                    <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px;">
+                                        <input type="checkbox" id="csmContactless" style="opacity:0; width:0; height:0;">
+                                        <span class="slider round" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:24px;"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <label style="display:block; font-weight:600; margin-bottom:2px; font-size:13px;"><i class="fas fa-globe"></i> International</label>
+                                    </div>
+                                    <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px;">
+                                        <input type="checkbox" id="csmInternational" style="opacity:0; width:0; height:0;">
+                                        <span class="slider round" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:24px;"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <label style="display:block; font-weight:600; margin-bottom:2px; font-size:13px;"><i class="fas fa-shopping-cart"></i> Online Txn</label>
+                                    </div>
+                                    <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px;">
+                                        <input type="checkbox" id="csmOnline" style="opacity:0; width:0; height:0;">
+                                        <span class="slider round" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:24px;"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom:20px;">
+                                    <label style="font-weight:600; font-size:13px;"><i class="fas fa-sliders-h"></i> Daily Limit (₹)</label>
+                                    <input type="number" id="csmLimit" class="form-control" style="width:100%; padding:10px; margin-top:5px; border-radius:8px; background:var(--bg-light); border:1px solid var(--border-color); color:var(--text-primary);" min="100" max="1000000">
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary" style="width: 100%; padding:12px; border-radius:8px; background:var(--primary-color); color:white; border:none; font-weight:600;" id="csmSubmitBtn">Save Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-overlay" id="cardPinModalMobile" style="z-index:9999;">
+                        <div class="modal" style="max-width: 350px; width: 90%; background: var(--bg-card); color: var(--text-primary); border-radius: 16px;">
+                            <div class="modal-header" style="border-bottom: 1px solid var(--border-color); padding: 15px 20px;">
+                                <h3 id="cpmTitle" style="margin:0; font-size:16px;"><i class="fas fa-key" style="color:var(--primary-color);"></i> Manage PIN</h3>
+                                <button class="close-modal" onclick="closeModalMobile('cardPinModalMobile')" style="background:none;border:none;color:var(--text-secondary);font-size:18px;"><i class="fas fa-times"></i></button>
+                            </div>
+                            <form onsubmit="submitCardPinMobile(event)" style="padding: 20px;">
+                                <input type="hidden" id="cpmCardId">
+                                <input type="hidden" id="cpmIsChange">
+                                
+                                <div id="cpmOldPinGroup" class="form-group" style="display:none; margin-bottom:15px;">
+                                    <label style="font-weight:600; font-size:12px;">Current PIN</label>
+                                    <input type="password" id="cpmOldPin" class="form-control" style="width:100%; padding:10px; margin-top:5px; border-radius:8px; background:var(--bg-light); border:1px solid var(--border-color); color:var(--text-primary); text-align:center; letter-spacing:8px; font-size:18px;" maxlength="4" pattern="[0-9]{4}" inputmode="numeric">
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom:20px;">
+                                    <label style="font-weight:600; font-size:12px;" id="cpmNewLabel">New 4-Digit PIN</label>
+                                    <input type="password" id="cpmNewPin" class="form-control" style="width:100%; padding:10px; margin-top:5px; border-radius:8px; background:var(--bg-light); border:1px solid var(--border-color); color:var(--text-primary); text-align:center; letter-spacing:8px; font-size:18px;" maxlength="4" pattern="[0-9]{4}" required inputmode="numeric">
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary" style="width: 100%; padding:12px; border-radius:8px; background:var(--primary-color); color:white; border:none; font-weight:600;" id="cpmSubmitBtn">Set PIN</button>
+                            </form>
+                        </div>
+                    </div>
+                `);
+                
+                // Add CSS for switches dynamically
+                document.head.insertAdjacentHTML('beforeend', `
+                    <style>
+                        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+                        .switch input { opacity: 0; width: 0; height: 0; }
+                        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; }
+                        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
+                        input:checked + .slider { background-color: var(--primary-color, #10b981); }
+                        input:focus + .slider { box-shadow: 0 0 1px var(--primary-color, #10b981); }
+                        input:checked + .slider:before { transform: translateX(20px); }
+                        .slider.round { border-radius: 24px; }
+                        .slider.round:before { border-radius: 50%; }
+                    </style>
+                `);
+            }
         }
     }
 }
+
+window.closeModalMobile = function(id) {
+    const m = document.getElementById(id);
+    if(m) m.classList.remove('active');
+}
+
+window.openCardSettingsMobile = function(cardId) {
+    const card = window._dashboardData.cards.find(c => c.id == cardId);
+    if (!card) return;
+    
+    document.getElementById('csmCardId').value = cardId;
+    document.getElementById('csmContactless').checked = card.contactless_enabled !== 0;
+    document.getElementById('csmInternational').checked = card.international_enabled === 1;
+    document.getElementById('csmOnline').checked = card.online_txn_enabled !== 0;
+    document.getElementById('csmLimit').value = card.daily_limit || 50000;
+    
+    const m = document.getElementById('cardSettingsModalMobile');
+    m.classList.add('active');
+    m.style.display = 'flex';
+};
+
+window.submitCardSettingsMobile = async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('csmSubmitBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
+    try {
+        const payload = {
+            contactless_enabled: document.getElementById('csmContactless').checked ? 1 : 0,
+            international_enabled: document.getElementById('csmInternational').checked ? 1 : 0,
+            online_txn_enabled: document.getElementById('csmOnline').checked ? 1 : 0,
+            daily_limit: parseFloat(document.getElementById('csmLimit').value)
+        };
+        const id = document.getElementById('csmCardId').value;
+        const res = await fetch(`${API}/user/cards/${id}/settings`, {
+            method: 'PUT', headers: {'Content-Type': 'application/json'}, credentials: 'include', body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(res.ok) {
+            closeModalMobile('cardSettingsModalMobile');
+            showMobileToast('Card settings updated!', 'success');
+            await fetchDashboardData();
+        } else {
+            showMobileToast(data.error || 'Failed to update settings', 'error');
+        }
+    } catch(err) {
+        showMobileToast('Network Error', 'error');
+    } finally {
+        btn.disabled = false; btn.innerHTML = 'Save Settings';
+    }
+};
+
+window.openCardPinMobile = function(cardId, hasPin) {
+    document.getElementById('cpmCardId').value = cardId;
+    document.getElementById('cpmIsChange').value = hasPin ? '1' : '0';
+    
+    document.getElementById('cpmTitle').innerHTML = hasPin ? '<i class="fas fa-key" style="color:var(--primary-color);"></i> Change PIN' : '<i class="fas fa-key" style="color:var(--primary-color);"></i> Set PIN';
+    document.getElementById('cpmSubmitBtn').textContent = hasPin ? 'Change PIN' : 'Set PIN';
+    document.getElementById('cpmNewLabel').textContent = hasPin ? 'New 4-Digit PIN' : 'Enter 4-Digit PIN';
+    
+    const oldGroup = document.getElementById('cpmOldPinGroup');
+    const oldInput = document.getElementById('cpmOldPin');
+    oldInput.value = '';
+    document.getElementById('cpmNewPin').value = '';
+    
+    if (hasPin) {
+        oldGroup.style.display = 'block';
+        oldInput.required = true;
+    } else {
+        oldGroup.style.display = 'none';
+        oldInput.required = false;
+    }
+    
+    const m = document.getElementById('cardPinModalMobile');
+    m.classList.add('active');
+    m.style.display = 'flex';
+};
+
+window.submitCardPinMobile = async function(e) {
+    e.preventDefault();
+    const isChange = document.getElementById('cpmIsChange').value === '1';
+    const id = document.getElementById('cpmCardId').value;
+    const oldPin = document.getElementById('cpmOldPin').value;
+    const newPin = document.getElementById('cpmNewPin').value;
+    
+    if (newPin.length !== 4) return showMobileToast('PIN must be 4 digits', 'error');
+    if (isChange && oldPin.length !== 4) return showMobileToast('Current PIN required', 'error');
+    
+    const btn = document.getElementById('cpmSubmitBtn');
+    const ogText = btn.textContent;
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    try {
+        const endpoint = isChange ? `/user/cards/${id}/change-pin` : `/user/cards/${id}/set-pin`;
+        const payload = isChange ? { old_pin: oldPin, new_pin: newPin } : { pin: newPin };
+        
+        const res = await fetch(`${API}${endpoint}`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'include', body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            closeModalMobile('cardPinModalMobile');
+            showMobileToast(data.message, 'success');
+            await fetchDashboardData();
+        } else {
+            showMobileToast(data.error || 'Failed to update PIN', 'error');
+        }
+    } catch(err) {
+        showMobileToast('Network Error', 'error');
+    } finally {
+        btn.disabled = false; btn.textContent = ogText;
+    }
+};
 
 async function blockCardMobile(cardId) {
     if (!(await confirm('Are you sure you want to block this card? This prevents all future transactions.'))) return;
@@ -2793,12 +3042,11 @@ async function handleMobileSignup(e) {
     if (e) e.preventDefault();
     const name = document.getElementById('signupName').value.trim();
     const email = document.getElementById('signupEmail').value.trim();
-    const phone = document.getElementById('signupPhone').value.trim();
     const username = document.getElementById('signupUsername').value.trim();
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('signupConfirmPassword').value;
 
-    if (!name || !email || !phone || !username || !password) {
+    if (!name || !email || !username || !password) {
         return showMobileToast('Please fill all required fields', 'warning');
     }
 
@@ -2818,7 +3066,7 @@ async function handleMobileSignup(e) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ name, email, phone, username, password, device_type: deviceType })
+            body: JSON.stringify({ name, email, username, password, device_type: deviceType })
         });
         const d = await r.json();
         if (r.ok) {
@@ -2904,9 +3152,9 @@ async function handleMobileResendOtp() {
             if (d.dev_otp) {
                 const eInput = document.getElementById('email_otp');
                 if (eInput) eInput.value = d.dev_otp;
-                showMobileToast(`[DEV/RENDER] New OTP Auto-filled: ${d.dev_otp}`, 'success');
+                showMobileToast(`New OTP Auto-filled: ${d.dev_otp}`, 'success');
             } else {
-                showMobileToast('New verification code sent to your email! 📧', 'success');
+                showMobileToast('New verification code sent to your email!', 'success');
                 const eInput = document.getElementById('email_otp');
                 if (eInput) eInput.value = '';
             }
@@ -3176,8 +3424,13 @@ async function loadMobileTransactions() {
                             <div style="font-weight: 800; color: ${color}; font-size: 16px; letter-spacing: -0.3px;">
                                 ${sign}₹${Number(t.amount).toLocaleString('en-IN')}
                             </div>
-                            <div style="display: inline-block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 6px; margin-top: 6px; background: ${t.status === 'completed' ? '#d1fae5' : '#fef3c7'}; color: ${t.status === 'completed' ? '#065f46' : '#92400e'};">
-                                ${escHtml(t.status === 'completed' ? 'Success' : (t.status || 'Pending'))}
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; margin-top: 6px;">
+                                <div style="display: inline-block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 6px; background: ${t.status === 'completed' ? '#d1fae5' : '#fef3c7'}; color: ${t.status === 'completed' ? '#065f46' : '#92400e'};">
+                                    ${escHtml(t.status === 'completed' ? 'Success' : (t.status || 'Pending'))}
+                                </div>
+                                <button onclick="downloadTransactionReceiptMobile('${t.id}', this)" style="background:#fff1f2;border:1px solid #9b1c31;color:#9b1c31;font-size:10px;font-weight:700;padding:4px 8px;border-radius:8px;cursor:pointer;box-shadow:0 2px 4px rgba(155,28,49,0.1); display:flex; align-items:center; gap:4px; transition:all 0.3s;" title="Download PDF">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -3189,6 +3442,53 @@ async function loadMobileTransactions() {
     } catch (e) {
         console.error('Error fetching mobile transactions:', e);
         container.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 20px;">Connection error while loading transactions.</p>';
+    }
+}
+
+async function downloadTransactionReceiptMobile(txnId, btn) {
+    if (btn) {
+        btn.dataset.originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wait...';
+    }
+    showMobileToast('Generating premium PDF receipt...', 'info');
+    const downloadURL = `${API}/statements/download/transaction/${txnId}`;
+    
+    try {
+        const response = await fetch(downloadURL, { credentials: 'include' });
+        if (!response.ok) throw new Error('Generation failed');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `SmartBank_Premium_Receipt_${txnId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        showMobileToast('Receipt downloaded successfully!', 'success');
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-check"></i> Done';
+            btn.style.background = '#d1fae5';
+            btn.style.color = '#065f46';
+            btn.style.borderColor = '#059669';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = btn.dataset.originalHtml || '<i class="fas fa-file-pdf"></i> PDF';
+                btn.style.background = '#fff1f2';
+                btn.style.color = '#9b1c31';
+                btn.style.borderColor = '#9b1c31';
+            }, 3000);
+        }
+    } catch (err) {
+        console.error('Export failed', err);
+        showMobileToast('System error generating receipt', 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = btn.dataset.originalHtml || '<i class="fas fa-file-pdf"></i> PDF';
+        }
     }
 }
 

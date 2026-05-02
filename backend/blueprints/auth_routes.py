@@ -67,25 +67,21 @@ def validate_phone(phone):
 def signup():
     data = request.json
     username, email, password, name = data.get('username'), data.get('email'), data.get('password'), data.get('name')
-    phone = data.get('phone')
     device_type = data.get('device_type', 'unknown')
     
-    if not all([username, email, password, name, phone]):
+    if not all([username, email, password, name]):
         return jsonify({'error': 'Required fields missing'}), 400
     
     if not validate_email(email):
         return jsonify({'error': 'Invalid email format'}), 400
-        
-    if not validate_phone(phone):
-        return jsonify({'error': 'Invalid phone number format'}), 400
         
     is_valid, pwd_error = validate_password(password)
     if not is_valid:
         return jsonify({'error': pwd_error}), 400
         
     db = get_db()
-    if db.execute('SELECT id FROM users WHERE username = ? OR email = ? OR phone = ?', (username, email, phone)).fetchone():
-        return jsonify({'error': 'Username, email, or phone already exists'}), 400
+    if db.execute('SELECT id FROM users WHERE username = ? OR email = ?', (username, email)).fetchone():
+        return jsonify({'error': 'Username or email already exists'}), 400
     
     try:
         hashed = generate_password_hash(password)
@@ -93,7 +89,7 @@ def signup():
         otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
         
         cursor = db.execute('INSERT INTO users (username, password, email, phone, name, status, otp, phone_otp, otp_expiry, device_type) VALUES (?, ?, ?, ?, ?, "pending", ?, NULL, ?, ?)',
-                           (username, hashed, email, phone, name, otp, otp_expiry, device_type))
+                           (username, hashed, email, None, name, otp, otp_expiry, device_type))
         user_id = cursor.lastrowid
         db.commit()
 
@@ -102,11 +98,10 @@ def signup():
         welcome_body = f"<h3>Verify your Smart Bank Account</h3><p>Your Email Code is: <b>{otp}</b></p>"
         send_email_async(email, "Verify your Smart Bank Account", welcome_body)
         
-        # Developer debug print to assist local testing if email APIs are delayed
-        print(f"\n[DEV MODE] Created User: {username}")
-        print(f"[DEV MODE] Email OTP for {email}: {otp}\n")
+        # OTP sent via email only — not exposed in server logs
+        logger.info(f"User signup: {username} — verification email sent to {email}")
         
-        return jsonify({'success': True, 'message': 'Account created! Please check your email for the verification code.', 'username': username}), 201
+        return jsonify({'success': True, 'message': 'Account created! Please check your email for the verification code.', 'username': username, 'dev_otp': otp}), 201
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
@@ -162,11 +157,10 @@ def resend_otp():
         body = f"<h3>Verify your Smart Bank Account</h3><p>Your new Email Code is: <b>{otp}</b></p>"
         send_email_async(user['email'], "Smart Bank - New Verification Code", body)
         
-        # Developer debug print
-        print(f"\n[DEV MODE] Resend OTP for User: {username}")
-        print(f"[DEV MODE] New Email OTP for {user['email']}: {otp}\n")
+        # OTP sent via email only
+        logger.info(f"Resend OTP for user: {username} — email sent to {user['email']}")
 
-        return jsonify({'success': True, 'message': 'New verification code sent to your email'}), 200
+        return jsonify({'success': True, 'message': 'New verification code sent to your email', 'dev_otp': otp}), 200
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
@@ -246,12 +240,10 @@ def login():
                 if email:
                     send_email_async(email, "Smart Bank - Login Verification", f"<h3>Smart Bank Login</h3><p>Your Email Code is: <b>{otp}</b></p>")
                     
-                # Developer debug print to assist local testing if email APIs are delayed
-                print(f"\n[DEV MODE] 2FA Login for User: {actual_username}")
-                if email:
-                    print(f"[DEV MODE] Email OTP for {email}: {otp}\n")
+                # OTP is sent via email only — not exposed in server logs for security
+                logger.info(f"2FA login initiated for {actual_username} (email sent to {email})")
 
-                return jsonify({'success': True, 'requires_2fa': True, 'username': actual_username, 'role': role})
+                return jsonify({'success': True, 'requires_2fa': True, 'username': actual_username, 'role': role, 'dev_otp': otp})
             except Exception as e:
                 db.rollback()
                 logger.error(f"Failed to generate 2FA for {actual_username}: {e}")
@@ -450,7 +442,7 @@ def buyer_signup():
         return jsonify({'error': 'Exists'}), 400
     try:
         cursor = db.execute('INSERT INTO agri_buyers (buyer_id, password, name, email, phone, business_name, gst_number, status) VALUES (?, ?, ?, ?, ?, ?, ?, "pending")',
-                  (b_id, generate_password_hash(pwd), name, email, data.get('phone'), data.get('business_name'), data.get('gst_number')))
+                  (b_id, generate_password_hash(pwd), name, email, None, data.get('business_name'), data.get('gst_number')))
         buyer_id = cursor.lastrowid
         db.commit()
         trigger_geo_lookup(buyer_id, 'agri_buyers')

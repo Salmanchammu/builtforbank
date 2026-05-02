@@ -124,6 +124,11 @@ CREATE TABLE IF NOT EXISTS cards (
     available_credit DECIMAL(15, 2),
     status VARCHAR(20) DEFAULT 'active',
     issued_date DATE DEFAULT CURRENT_DATE,
+    pin_hash VARCHAR(255),
+    contactless_enabled INTEGER DEFAULT 1,
+    international_enabled INTEGER DEFAULT 0,
+    online_txn_enabled INTEGER DEFAULT 1,
+    daily_limit DECIMAL(15, 2) DEFAULT 50000.00,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL
 );

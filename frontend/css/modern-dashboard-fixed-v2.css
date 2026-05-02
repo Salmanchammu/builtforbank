@@ -2386,7 +2386,8 @@ h1, h2, h3, h4, h5, h6, .logo-text, .welcome-name {
 .mode-neft { background: #d1fae5; color: #065f46; }
 .mode-rtgs { background: #fef3c7; color: #92400e; }
 .mode-atm  { background: #fce7f3; color: #be185d; }
-.mode-cash { background: #f1f5f9; color: #475569; }
+.mode-cash { background: #f1f5f9; color: #475569; }
+.mode-card { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #78350f; font-weight: 600; }
 
 /* ===== RESPONSIVE ENHANCEMENTS ===== */
 @media (max-width: 1024px) {
@@ -2400,4 +2401,34 @@ h1, h2, h3, h4, h5, h6, .logo-text, .welcome-name {
     .spending-legend-item { font-size: 11px; }
     .tips-dots { position: static; margin-top: 16px; justify-content: center; }
     .dashboard-bg-orbs { display: none; }
+}
+
+/* ===== GOLDEN GLASSMORPHISM CARDS ===== */
+.glass-card {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease;
+}
+.glass-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(212, 175, 55, 0.2);
+    border-color: rgba(212, 175, 55, 0.6) !important;
+}
+.glass-card button:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-2px);
+}
+@keyframes shine {
+    0% { left: -100%; }
+    20% { left: 200%; }
+    100% { left: 200%; }
+}
+
+/* Mobile Only Utilities */
+.mobile-only-btn {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .mobile-only-btn {
+        display: flex !important;
+    }
 }

@@ -111,6 +111,13 @@ def diag_email():
         "note": "If success=False, check SMTP credentials in Render Dashboard."
     }), status_code
 
+@app.route('/checkout')
+def checkout_page():
+    checkout_file = os.path.join(FRONTEND_DIR, 'payment_gateway.html')
+    if os.path.exists(checkout_file):
+        return send_file(checkout_file)
+    return jsonify({'error': 'Checkout page not found'}), 404
+
 @app.route('/<path:path>')
 def serve_static(path):
     # Security: Prevent path traversal by normalizing the path and checking the base directory

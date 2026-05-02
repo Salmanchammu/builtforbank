@@ -11,7 +11,6 @@ async function handleSignup(e) {
     const name = document.getElementById('signupName').value.trim();
     const email = document.getElementById('signupEmail').value.trim();
     const username = document.getElementById('signupUsername').value.trim();
-    const phone = document.getElementById('signupPhone').value.trim();
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('signupConfirmPassword').value;
     const agreeTerms = document.getElementById('agreeTerms').checked;
@@ -19,7 +18,6 @@ async function handleSignup(e) {
     // Validation
     if (!name || name.length < 2) return showToast('Please enter your full name', 'error');
     if (!email || !email.includes('@')) return showToast('Please enter a valid email address', 'error');
-    if (!phone || phone.length < 10) return showToast('Please enter a valid phone number', 'error');
     if (!username || username.length < 3) return showToast('Username must be at least 3 characters', 'error');
     
     if (!password || !/^[A-Z]/.test(password)) {
@@ -32,7 +30,7 @@ async function handleSignup(e) {
 
     // Prepare data
     const device_type = window.SmartBankDeviceDetector ? window.SmartBankDeviceDetector.getDeviceType() : 'unknown';
-    const userData = { username, email, phone, password, name, device_type };
+    const userData = { username, email, password, name, device_type };
 
     // Show loading state
     const originalText = btn.innerHTML;

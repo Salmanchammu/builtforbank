@@ -6,6 +6,7 @@ from datetime import datetime
 import secrets
 import random
 from functools import wraps
+from core.email_utils import send_email_async
 
 marketplace_bp = Blueprint('marketplace', __name__)
 logger = logging.getLogger('smart_bank.marketplace')
@@ -122,6 +123,16 @@ def accept_order(oid):
         return jsonify({'error': f'Cannot accept order in "{order["status"]}" status'}), 400
     db.execute("UPDATE crop_orders SET status = 'accepted', updated_at = CURRENT_TIMESTAMP WHERE id = ?", (oid,))
     db.commit()
+    
+    # Email Notification to Buyer
+    buyer = db.execute('SELECT email FROM agri_buyers WHERE id = ?', (order['buyer_id'],)).fetchone()
+    if buyer and buyer['email']:
+        send_email_async(
+            buyer['email'], 
+            f"SmartBank Agri: Order #{oid} Accepted",
+            f"<p>The farmer has accepted your order #{oid}. Please proceed to pay the amount into escrow to confirm.</p>"
+        )
+        
     return jsonify({'success': True, 'message': 'Order accepted'})
 
 @marketplace_bp.route('/orders/<int:oid>/reject', methods=['PUT'])
@@ -136,6 +147,16 @@ def reject_order(oid):
         return jsonify({'error': 'Cannot reject this order'}), 400
     db.execute("UPDATE crop_orders SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE id = ?", (oid,))
     db.commit()
+    
+    # Email Notification to Buyer
+    buyer = db.execute('SELECT email FROM agri_buyers WHERE id = ?', (order['buyer_id'],)).fetchone()
+    if buyer and buyer['email']:
+        send_email_async(
+            buyer['email'], 
+            f"SmartBank Agri: Order #{oid} Rejected",
+            f"<p>Unfortunately, the farmer has rejected your order #{oid}.</p>"
+        )
+        
     return jsonify({'success': True, 'message': 'Order rejected'})
 
 @marketplace_bp.route('/orders/<int:oid>/confirm-delivery', methods=['PUT'])
@@ -149,6 +170,16 @@ def confirm_delivery(oid):
     db.execute("UPDATE crop_orders SET status = 'delivered', delivery_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                (datetime.now().date().isoformat(), oid))
     db.commit()
+    
+    # Email Notification to Buyer
+    buyer = db.execute('SELECT email FROM agri_buyers WHERE id = ?', (order['buyer_id'],)).fetchone()
+    if buyer and buyer['email']:
+        send_email_async(
+            buyer['email'], 
+            f"SmartBank Agri: Order #{oid} Delivered",
+            f"<p>The farmer has marked your order #{oid} as delivered. Please inspect the crop and confirm in your dashboard.</p>"
+        )
+        
     return jsonify({'success': True, 'message': 'Delivery confirmed. Awaiting buyer inspection.'})
 
 # Farmer — Escrow & Tax
@@ -282,6 +313,16 @@ def place_order():
              'pending', neg_price, note))
         
         db.commit()
+        
+        # Email Notification to Farmer
+        farmer = db.execute('SELECT email FROM users WHERE id = ?', (listing['farmer_user_id'],)).fetchone()
+        if farmer and farmer['email']:
+            send_email_async(
+                farmer['email'], 
+                f"SmartBank Agri: New Order Received!",
+                f"<p>You have received a new order request for {qty} kg of {listing['crop_name']}. Please log in to accept or reject the order.</p>"
+            )
+            
         return jsonify({'success': True, 'message': 'Order request submitted! Please wait for farmer acceptance.'})
     except Exception as e:
         db.rollback()
@@ -334,6 +375,24 @@ def pay_order(oid):
                    (oid, total))
         
         db.commit()
+        
+        # Email Notifications
+        farmer = db.execute('SELECT email FROM users WHERE id = ?', (order['farmer_user_id'],)).fetchone()
+        if farmer and farmer['email']:
+            send_email_async(
+                farmer['email'], 
+                f"SmartBank Agri: Escrow Funded for Order #{oid}",
+                f"<p>Good news! The buyer has paid ₹{total:.2f} into Escrow for Order #{oid}. Please proceed with delivering the crop.</p>"
+            )
+            
+        buyer = db.execute('SELECT email FROM agri_buyers WHERE id = ?', (bid,)).fetchone()
+        if buyer and buyer['email']:
+            send_email_async(
+                buyer['email'], 
+                f"SmartBank Agri: Payment Held in Escrow (Order #{oid})",
+                f"<p>Your payment of ₹{total:.2f} for Order #{oid} has been securely held in Escrow.</p>"
+            )
+            
         return jsonify({'success': True, 'message': 'Payment successful! Funds are now securely held in escrow.'})
     except Exception as e:
         db.rollback()
@@ -373,6 +432,16 @@ def confirm_inspection(oid):
     db.execute("UPDATE crop_orders SET status='inspected', inspection_notes=?, updated_at=CURRENT_TIMESTAMP WHERE id=?",
                (data.get('notes', 'Inspection passed'), oid))
     db.commit()
+    
+    # Email Notification to Staff (optional/not strictly required, but sending to farmer is good)
+    farmer = db.execute('SELECT email FROM users WHERE id = ?', (order['farmer_user_id'],)).fetchone()
+    if farmer and farmer['email']:
+        send_email_async(
+            farmer['email'], 
+            f"SmartBank Agri: Order #{oid} Inspected",
+            f"<p>The buyer has successfully inspected the crop. Awaiting bank staff to release your escrow payment.</p>"
+        )
+        
     return jsonify({'success': True, 'message': 'Inspection confirmed. Awaiting staff to release payment.'})
 
 @marketplace_bp.route('/buyer/orders', methods=['GET'])
@@ -636,6 +705,24 @@ def release_escrow(oid):
 
         # CRITICAL: Atomic commit
         db.commit()
+        
+        # Email Notifications
+        farmer = db.execute('SELECT email FROM users WHERE id = ?', (order['farmer_user_id'],)).fetchone()
+        if farmer and farmer['email']:
+            send_email_async(
+                farmer['email'], 
+                f"SmartBank Agri: Escrow Released (Order #{oid})",
+                f"<p>The bank has released the escrow. ₹{farmer_credit:,.2f} has been credited to your agriculture account.</p>"
+            )
+            
+        buyer = db.execute('SELECT email FROM agri_buyers WHERE id = ?', (order['buyer_id'],)).fetchone()
+        if buyer and buyer['email']:
+            send_email_async(
+                buyer['email'], 
+                f"SmartBank Agri: Order #{oid} Complete",
+                f"<p>The farmer's payment has been released. The transaction for Order #{oid} is now completely settled.</p>"
+            )
+            
         return jsonify({'success': True,
             'message': f'Escrow released! ₹{farmer_credit:,.2f} credited to farmer. Commission: ₹{commission:,.2f}'})
     except Exception as e:
@@ -656,6 +743,16 @@ def refund_escrow(oid):
             (oid, float(order['total_amount']), f'Full refund to buyer for order #{oid}'))
         db.execute("UPDATE crop_orders SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE id = ?", (oid,))
         db.commit()
+        
+        # Email Notification
+        buyer = db.execute('SELECT email FROM agri_buyers WHERE id = ?', (order['buyer_id'],)).fetchone()
+        if buyer and buyer['email']:
+            send_email_async(
+                buyer['email'], 
+                f"SmartBank Agri: Order #{oid} Refunded",
+                f"<p>Order #{oid} has been cancelled and a full refund has been issued.</p>"
+            )
+            
         return jsonify({'success': True, 'message': 'Order refunded and cancelled'})
     except Exception as e:
         db.rollback()
@@ -780,6 +877,15 @@ def approve_agri_buyer(bid):
         
         db.execute("UPDATE agri_buyers SET status = 'active', associated_account_id = ? WHERE id = ?", (acc_id, bid))
         db.commit()
+        
+        # Email Notification
+        if buyer.get('email'):
+            send_email_async(
+                buyer['email'], 
+                f"SmartBank Agri: Business Account Approved",
+                f"<p>Congratulations, {buyer['name']}! Your SmartBank Agriculture Business Account has been approved and provisioned. You can now login and start placing orders.</p>"
+            )
+            
         return jsonify({'success': True, 'message': 'Retail Agri Buyer approved and Business Account provisioned.'})
     except Exception as e:
         db.rollback()
@@ -791,6 +897,16 @@ def suspend_agri_buyer(bid):
     db = get_db()
     db.execute("UPDATE agri_buyers SET status = 'suspended' WHERE id = ?", (bid,))
     db.commit()
+    
+    # Email Notification
+    buyer = db.execute('SELECT email FROM agri_buyers WHERE id = ?', (bid,)).fetchone()
+    if buyer and buyer['email']:
+        send_email_async(
+            buyer['email'], 
+            f"SmartBank Agri: Account Suspended",
+            f"<p>Your SmartBank Agriculture Business Account has been suspended. Please contact support for more information.</p>"
+        )
+        
     return jsonify({'success': True, 'message': 'Retail Agri Buyer suspended.'})
 # ═══════════════════════════════════════════════════════════════════════════════
 # SMART MANDI INTELLIGENCE (India Specific)
@@ -944,4 +1060,27 @@ def handle_order_chat(oid):
             VALUES (?, ?, ?, ?)
         ''', (oid, sender_type, sender_id, message))
         db.commit()
+        
+        # Email Notification to Recipient
+        order = db.execute('SELECT farmer_user_id, buyer_id FROM crop_orders WHERE id = ?', (oid,)).fetchone()
+        if order:
+            if sender_type == 'farmer':
+                # Notify Buyer
+                buyer = db.execute('SELECT email FROM agri_buyers WHERE id = ?', (order['buyer_id'],)).fetchone()
+                if buyer and buyer['email']:
+                    send_email_async(
+                        buyer['email'], 
+                        f"SmartBank Agri: New Message on Order #{oid}",
+                        f"<p>The farmer has sent you a message: <br><br><i>{message}</i><br><br>Log in to reply.</p>"
+                    )
+            elif sender_type == 'buyer':
+                # Notify Farmer
+                farmer = db.execute('SELECT email FROM users WHERE id = ?', (order['farmer_user_id'],)).fetchone()
+                if farmer and farmer['email']:
+                    send_email_async(
+                        farmer['email'], 
+                        f"SmartBank Agri: New Message on Order #{oid}",
+                        f"<p>The buyer has sent you a message: <br><br><i>{message}</i><br><br>Log in to reply.</p>"
+                    )
+                    
         return jsonify({'success': True, 'message': 'Message sent'})

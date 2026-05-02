@@ -474,6 +474,26 @@ def migrate_db():
             photo_url VARCHAR(255),
             status VARCHAR(20) DEFAULT 'active',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''',
+        'live_chat_sessions': '''CREATE TABLE IF NOT EXISTS live_chat_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            staff_id INTEGER,
+            status VARCHAR(20) DEFAULT 'waiting',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            closed_at TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )''',
+        'live_chat_messages': '''CREATE TABLE IF NOT EXISTS live_chat_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id INTEGER NOT NULL,
+            sender_type VARCHAR(20) NOT NULL,
+            sender_id INTEGER NOT NULL,
+            message TEXT NOT NULL,
+            message_type VARCHAR(20) DEFAULT 'text',
+            is_encrypted INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (session_id) REFERENCES live_chat_sessions(id) ON DELETE CASCADE
         )'''
     }
 

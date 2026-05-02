@@ -4801,8 +4801,7 @@ h1, h2, h3, h4, h5, h6, .logo-text, .welcome-name {
 
 .mode-cash { background: #f1f5f9; color: #475569; }
 
-
-
+.mode-card { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #78350f; font-weight: 600; }
 /* ===== RESPONSIVE ENHANCEMENTS ===== */
 
 @media (max-width: 1024px) {
@@ -5014,4 +5013,15 @@ h1, h2, h3, h4, h5, h6, .logo-text, .welcome-name {
     overflow-y: auto !important;
     flex-grow: 1 !important;
     min-height: 0 !important;
+}
+
+/* Mobile Only Utilities */
+.mobile-only-btn {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .mobile-only-btn {
+        display: flex !important;
+    }
 }

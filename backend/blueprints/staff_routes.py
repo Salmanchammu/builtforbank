@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from core.db import get_db
 from core.auth import login_required, role_required, compare_face_descriptors
 from core.email_utils import send_email_async
+from core.encryption import encrypt_message, decrypt_message
 from core.constants import PROFILE_PICS_FOLDER, allowed_file
 
 staff_bp = Blueprint('staff', __name__)
@@ -763,6 +764,40 @@ def update_customer(user_id):
         logger.error(f'Error updating customer {user_id}: {e}')
         return jsonify({'error': str(e)}), 500
 
+@staff_bp.route('/customers/<int:user_id>/agri-proof', methods=['POST'])
+@role_required(['admin', 'staff'])
+def update_agri_proof(user_id):
+    """Update farmer's land document (agri_proof)."""
+    data = request.json
+    agri_proof = data.get('agri_proof')
+    
+    if not agri_proof:
+        return jsonify({'error': 'No document provided'}), 400
+        
+    db = get_db()
+    
+    # Try to find an existing Agriculture account request for this user
+    req = db.execute('SELECT id FROM account_requests WHERE user_id = ? AND account_type = "Agriculture" ORDER BY request_date DESC LIMIT 1', (user_id,)).fetchone()
+    
+    try:
+        if req:
+            db.execute('UPDATE account_requests SET agri_proof = ?, status = "pending" WHERE id = ?', (agri_proof, req['id']))
+        else:
+            # If no request exists, we might just update the most recent one or create a dummy one
+            # Alternatively, if they are a farmer, they should have an Agriculture request. Let's just create one if not found.
+            db.execute('INSERT INTO account_requests (user_id, account_type, status, agri_proof) VALUES (?, "Agriculture", "pending", ?)', (user_id, agri_proof))
+            
+        # Log the action
+        staff_id = session.get('staff_id') or session.get('admin_id')
+        db.execute('INSERT INTO staff_activity_logs (staff_id, action, details) VALUES (?, ?, ?)',
+                  (staff_id, 'Update Land Document', f'Updated land document for user {user_id}'))
+        db.commit()
+        return jsonify({'success': True, 'message': 'Land document updated successfully'})
+    except Exception as e:
+        db.rollback()
+        logger.error(f'Error updating land document for user {user_id}: {e}')
+        return jsonify({'error': str(e)}), 500
+
 @staff_bp.route('/accounts/<int:account_id>', methods=['PUT'])
 @role_required(['admin', 'staff'])
 def update_account(account_id):
@@ -794,6 +829,52 @@ def update_account(account_id):
     except Exception as e:
         db.rollback()
         logger.error(f'Error updating account {account_id}: {e}')
+        return jsonify({'error': str(e)}), 500
+
+@staff_bp.route('/cards/<int:card_id>/block', methods=['POST'])
+@role_required(['admin', 'staff'])
+def staff_block_card(card_id):
+    db = get_db()
+    staff_id = session.get('staff_id') or session.get('admin_id')
+    try:
+        card = db.execute('SELECT * FROM cards WHERE id = ?', (card_id,)).fetchone()
+        if not card:
+            return jsonify({'error': 'Card not found'}), 404
+            
+        db.execute('UPDATE cards SET status = "blocked", updated_at = CURRENT_TIMESTAMP WHERE id = ?', (card_id,))
+        
+        # Log action
+        db.execute('INSERT INTO staff_activity_logs (staff_id, action, details) VALUES (?, ?, ?)',
+                  (staff_id, 'Block Card', f'Blocked card ID {card_id} for user {card["user_id"]}'))
+                  
+        db.commit()
+        return jsonify({'success': True, 'message': 'Card blocked successfully'})
+    except Exception as e:
+        db.rollback()
+        logger.error(f'Error blocking card {card_id}: {e}')
+        return jsonify({'error': str(e)}), 500
+
+@staff_bp.route('/cards/<int:card_id>/unblock', methods=['POST'])
+@role_required(['admin', 'staff'])
+def staff_unblock_card(card_id):
+    db = get_db()
+    staff_id = session.get('staff_id') or session.get('admin_id')
+    try:
+        card = db.execute('SELECT * FROM cards WHERE id = ?', (card_id,)).fetchone()
+        if not card:
+            return jsonify({'error': 'Card not found'}), 404
+            
+        db.execute('UPDATE cards SET status = "active", updated_at = CURRENT_TIMESTAMP WHERE id = ?', (card_id,))
+        
+        # Log action
+        db.execute('INSERT INTO staff_activity_logs (staff_id, action, details) VALUES (?, ?, ?)',
+                  (staff_id, 'Unblock Card', f'Unblocked card ID {card_id} for user {card["user_id"]}'))
+                  
+        db.commit()
+        return jsonify({'success': True, 'message': 'Card unblocked successfully'})
+    except Exception as e:
+        db.rollback()
+        logger.error(f'Error unblocking card {card_id}: {e}')
         return jsonify({'error': str(e)}), 500
 
 @staff_bp.route('/add_account', methods=['POST'])
@@ -1244,6 +1325,158 @@ def delete_location(loc_id):
         
         db.commit()
         return jsonify({'success': True, 'message': 'Location removed'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# =============================================
+# LIVE CHAT — Staff Side (Encrypted)
+# =============================================
+
+@staff_bp.route('/livechat/sessions', methods=['GET'])
+@role_required(['staff', 'admin'])
+def get_live_chat_sessions():
+    """Get all active/waiting live chat sessions for staff dashboard."""
+    db = get_db()
+    rows = db.execute('''
+        SELECT lcs.*, u.name as user_name, u.email as user_email,
+               (SELECT COUNT(*) FROM live_chat_messages WHERE session_id = lcs.id) as message_count
+        FROM live_chat_sessions lcs
+        JOIN users u ON lcs.user_id = u.id
+        WHERE lcs.status IN ('waiting', 'active')
+        ORDER BY CASE WHEN lcs.status = 'waiting' THEN 0 ELSE 1 END, lcs.created_at ASC
+    ''').fetchall()
+    return jsonify({'success': True, 'sessions': [dict(r) for r in rows]})
+
+@staff_bp.route('/livechat/<int:sid>/join', methods=['POST'])
+@role_required(['staff', 'admin'])
+def join_live_chat(sid):
+    """Staff joins (picks up) a waiting live chat session."""
+    db = get_db()
+    staff_id = session.get('staff_id') or session.get('user_id')
+    
+    chat_session = db.execute('SELECT * FROM live_chat_sessions WHERE id = ?', (sid,)).fetchone()
+    if not chat_session:
+        return jsonify({'error': 'Session not found'}), 404
+    if chat_session['status'] == 'closed':
+        return jsonify({'error': 'Session already closed'}), 400
+    
+    try:
+        db.execute(
+            "UPDATE live_chat_sessions SET staff_id = ?, status = 'active' WHERE id = ?",
+            (staff_id, sid)
+        )
+        # Send a system message
+        joined_msg = encrypt_message('A support agent has joined the chat. How can we help you today?')
+        db.execute(
+            'INSERT INTO live_chat_messages (session_id, sender_type, sender_id, message, message_type, is_encrypted) VALUES (?, ?, ?, ?, ?, ?)',
+            (sid, 'system', 0, joined_msg, 'text', 1)
+        )
+        db.commit()
+        return jsonify({'success': True, 'message': 'Joined chat session'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@staff_bp.route('/livechat/<int:sid>/messages', methods=['GET'])
+@role_required(['staff', 'admin'])
+def get_staff_live_chat_messages(sid):
+    """Get all messages for a live chat session (decrypted for staff)."""
+    db = get_db()
+    chat_session = db.execute('SELECT * FROM live_chat_sessions WHERE id = ?', (sid,)).fetchone()
+    if not chat_session:
+        return jsonify({'error': 'Session not found'}), 404
+    
+    user = db.execute('SELECT name, email FROM users WHERE id = ?', (chat_session['user_id'],)).fetchone()
+    messages = db.execute(
+        'SELECT * FROM live_chat_messages WHERE session_id = ? ORDER BY created_at ASC', (sid,)
+    ).fetchall()
+    
+    decrypted = []
+    for m in messages:
+        md = dict(m)
+        if md.get('is_encrypted'):
+            md['message'] = decrypt_message(md['message'])
+        decrypted.append(md)
+    
+    return jsonify({
+        'success': True,
+        'session': {'id': chat_session['id'], 'status': chat_session['status'], 'user_name': user['name'] if user else 'Unknown', 'user_email': user['email'] if user else ''},
+        'messages': decrypted
+    })
+
+@staff_bp.route('/livechat/<int:sid>/send', methods=['POST'])
+@role_required(['staff', 'admin'])
+def send_staff_live_chat_message(sid):
+    """Staff sends a message in a live chat session (encrypted)."""
+    db = get_db()
+    staff_id = session.get('staff_id') or session.get('user_id')
+    data = request.json
+    
+    chat_session = db.execute(
+        'SELECT * FROM live_chat_sessions WHERE id = ? AND status = "active"', (sid,)
+    ).fetchone()
+    if not chat_session:
+        return jsonify({'error': 'Session not found or not active'}), 404
+    
+    message = data.get('message', '').strip()
+    msg_type = data.get('type', 'text')
+    
+    if not message:
+        return jsonify({'error': 'Message cannot be empty'}), 400
+    
+    try:
+        encrypted = encrypt_message(message)
+        db.execute(
+            'INSERT INTO live_chat_messages (session_id, sender_type, sender_id, message, message_type, is_encrypted) VALUES (?, ?, ?, ?, ?, ?)',
+            (sid, 'staff', staff_id, encrypted, msg_type, 1)
+        )
+        db.commit()
+        
+        # Also email the user about the new message
+        user = db.execute('SELECT email FROM users WHERE id = ?', (chat_session['user_id'],)).fetchone()
+        if user and user['email']:
+            send_email_async(
+                user['email'],
+                'SmartBank: New Live Chat Message',
+                f'<p>You have a new message from our support team. Please check your Live Chat in the dashboard.</p>'
+            )
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@staff_bp.route('/livechat/<int:sid>/close', methods=['POST'])
+@role_required(['staff', 'admin'])
+def close_staff_live_chat(sid):
+    """Staff closes a live chat session."""
+    db = get_db()
+    chat_session = db.execute('SELECT * FROM live_chat_sessions WHERE id = ?', (sid,)).fetchone()
+    if not chat_session:
+        return jsonify({'error': 'Session not found'}), 404
+    
+    try:
+        db.execute(
+            "UPDATE live_chat_sessions SET status = 'closed', closed_at = CURRENT_TIMESTAMP WHERE id = ?", (sid,)
+        )
+        goodbye = encrypt_message('This chat has been closed by a support agent. If you need further assistance, please start a new chat.')
+        db.execute(
+            'INSERT INTO live_chat_messages (session_id, sender_type, sender_id, message, message_type, is_encrypted) VALUES (?, ?, ?, ?, ?, ?)',
+            (sid, 'system', 0, goodbye, 'text', 1)
+        )
+        db.commit()
+        
+        # Email notification
+        user = db.execute('SELECT email FROM users WHERE id = ?', (chat_session['user_id'],)).fetchone()
+        if user and user['email']:
+            send_email_async(
+                user['email'],
+                'SmartBank: Live Chat Closed',
+                '<p>Your live chat session has been resolved and closed. If you need more help, you can start a new chat anytime.</p>'
+            )
+        
+        return jsonify({'success': True, 'message': 'Chat closed'})
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500

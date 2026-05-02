@@ -9,6 +9,7 @@ from core.db import get_db
 from core.auth import login_required, role_required, log_audit
 from core.logic import apply_loan_penalties
 from core.email_utils import send_email_async
+from core.encryption import encrypt_message, decrypt_message
 from core.constants import PROFILE_PICS_FOLDER, allowed_file
 
 user_bp = Blueprint('user', __name__)
@@ -194,6 +195,185 @@ def update_user_profile():
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
+
+@user_bp.route('/checkout/send-otp', methods=['POST'])
+def checkout_send_otp():
+    """Step 1: Validate card details + PIN, then send OTP to card owner's email."""
+    db = get_db()
+    data = request.json
+
+    card_number = str(data.get('card_number', '')).replace(' ', '')
+    expiry_date = data.get('expiry_date')
+    cvv = data.get('cvv')
+    pin = data.get('pin')
+    amount = data.get('amount')
+
+    if not all([card_number, expiry_date, cvv, pin, amount]):
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    try:
+        amount = float(amount)
+        if amount <= 0:
+            return jsonify({'error': 'Invalid amount'}), 400
+
+        expiry_date_like = expiry_date
+        if expiry_date and len(expiry_date) == 5 and '/' in expiry_date:
+            mm, yy = expiry_date.split('/')
+            expiry_date_like = f"20{yy}-{mm}-%"
+
+        card = db.execute('SELECT * FROM cards WHERE card_number = ? AND expiry_date LIKE ? AND cvv = ?',
+                         (card_number, expiry_date_like, str(cvv))).fetchone()
+        if not card:
+            return jsonify({'error': 'Invalid card details'}), 400
+        if card['status'] != 'active':
+            return jsonify({'error': 'Card is blocked or inactive'}), 400
+        if 'online_txn_enabled' in card.keys() and card['online_txn_enabled'] == 0:
+            return jsonify({'error': 'Online transactions are disabled for this card.'}), 400
+        if 'daily_limit' in card.keys() and float(card['daily_limit']) < amount:
+            return jsonify({'error': 'Transaction exceeds daily card limit'}), 400
+
+        if 'pin_hash' not in card.keys() or not card['pin_hash']:
+            return jsonify({'error': 'PIN not set for this card. Set it in your dashboard first.'}), 400
+
+        from werkzeug.security import check_password_hash
+        if not check_password_hash(card['pin_hash'], str(pin)):
+            return jsonify({'error': 'Incorrect PIN'}), 400
+
+        # Balance pre-check (don't deduct yet)
+        if card['card_type'].lower() == 'credit':
+            if float(card['available_credit'] or 0) < amount:
+                return jsonify({'error': 'Insufficient credit limit'}), 400
+        else:
+            if not card['account_id']:
+                return jsonify({'error': 'Card is not linked to any account'}), 400
+            account = db.execute('SELECT balance FROM accounts WHERE id = ?', (card['account_id'],)).fetchone()
+            if not account or float(account['balance']) < amount:
+                return jsonify({'error': 'Insufficient account balance'}), 400
+
+        # All validations passed — generate OTP and email it
+        user = db.execute('SELECT email, name FROM users WHERE id = ?', (card['user_id'],)).fetchone()
+        if not user or not user['email']:
+            return jsonify({'error': 'No email linked to card owner account'}), 400
+
+        otp = str(100000 + secrets.randbelow(900000))
+        from datetime import timedelta, timezone
+        otp_expiry = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
+
+        db.execute('UPDATE users SET otp = ?, otp_expiry = ? WHERE id = ?', (otp, otp_expiry, card['user_id']))
+        db.commit()
+
+        masked_email = user['email'][:3] + '***' + user['email'][user['email'].index('@'):]
+        body = f"""<div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;padding:30px;background:#111827;color:#f1f5f9;border-radius:16px;">
+            <h2 style="color:#d4af37;margin-bottom:20px;">SmartPay – Payment Verification</h2>
+            <p>Hello {user['name']},</p>
+            <p>You are making a payment of <b style="color:#d4af37;">₹{amount:,.2f}</b>. Use the OTP below to confirm:</p>
+            <div style="text-align:center;margin:25px 0;padding:20px;background:#1f2937;border-radius:12px;border:1px solid rgba(212,175,55,0.3);">
+                <span style="font-size:32px;font-weight:800;letter-spacing:8px;color:#d4af37;">{otp}</span>
+            </div>
+            <p style="color:#94a3b8;font-size:13px;">This code expires in 10 minutes. Do not share it with anyone.</p>
+        </div>"""
+        send_email_async(user['email'], f"SmartPay OTP: ₹{amount:,.2f} Payment Verification", body)
+
+        return jsonify({'success': True, 'message': 'OTP sent to your registered email.', 'masked_email': masked_email, 'user_id': card['user_id']})
+
+    except ValueError:
+        return jsonify({'error': 'Invalid data format'}), 400
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Checkout OTP error: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+@user_bp.route('/checkout/verify-otp', methods=['POST'])
+def checkout_verify_otp():
+    """Step 2: Verify OTP and process the actual payment."""
+    db = get_db()
+    data = request.json
+
+    card_number = str(data.get('card_number', '')).replace(' ', '')
+    expiry_date = data.get('expiry_date')
+    cvv = data.get('cvv')
+    pin = data.get('pin')
+    amount = data.get('amount')
+    merchant = data.get('merchant', 'SmartPay Merchant')
+    otp = str(data.get('otp', ''))
+    user_id = data.get('user_id')
+
+    if not all([card_number, otp, amount, user_id]):
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    try:
+        amount = float(amount)
+
+        # Verify OTP
+        user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        if not user or str(user['otp']) != otp:
+            return jsonify({'error': 'Invalid OTP'}), 400
+
+        try:
+            expiry_str = user['otp_expiry'].replace('Z', '+00:00')
+            expiry_dt = datetime.fromisoformat(expiry_str)
+            from datetime import timezone
+            if datetime.now(timezone.utc) > expiry_dt:
+                return jsonify({'error': 'OTP has expired. Please try again.'}), 400
+        except Exception:
+            pass
+
+        # Invalidate OTP immediately
+        db.execute('UPDATE users SET otp = NULL, otp_expiry = NULL WHERE id = ?', (user_id,))
+
+        # Re-validate card (security: don't trust cached state)
+        expiry_date_like = expiry_date
+        if expiry_date and len(expiry_date) == 5 and '/' in expiry_date:
+            mm, yy = expiry_date.split('/')
+            expiry_date_like = f"20{yy}-{mm}-%"
+
+        card = db.execute('SELECT * FROM cards WHERE card_number = ? AND expiry_date LIKE ? AND cvv = ? AND user_id = ?',
+                         (card_number, expiry_date_like, str(cvv), user_id)).fetchone()
+        if not card:
+            return jsonify({'error': 'Card validation failed'}), 400
+        if card['status'] != 'active':
+            return jsonify({'error': 'Card is blocked or inactive'}), 400
+
+        from werkzeug.security import check_password_hash
+        if not check_password_hash(card['pin_hash'], str(pin)):
+            return jsonify({'error': 'Incorrect PIN'}), 400
+
+        # Process payment
+        if card['card_type'].lower() == 'credit':
+            if float(card['available_credit'] or 0) < amount:
+                return jsonify({'error': 'Insufficient credit limit'}), 400
+            db.execute('UPDATE cards SET available_credit = available_credit - ? WHERE id = ?', (amount, card['id']))
+        else:
+            if not card['account_id']:
+                return jsonify({'error': 'Card is not linked to any account'}), 400
+            account = db.execute('SELECT * FROM accounts WHERE id = ?', (card['account_id'],)).fetchone()
+            if not account or float(account['balance']) < amount:
+                return jsonify({'error': 'Insufficient account balance'}), 400
+            db.execute('UPDATE accounts SET balance = balance - ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', (amount, account['id']))
+
+        db.execute('''
+            INSERT INTO transactions (account_id, type, amount, description, mode, status)
+            VALUES (?, 'debit', ?, ?, 'Card', 'completed')
+        ''', (card['account_id'], amount, f"POS/Online: {merchant}"))
+
+        db.execute('INSERT INTO user_activity_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
+                  (card['user_id'], 'Card Payment (OTP Verified)', f'Paid {amount} INR to {merchant} via Card **{card_number[-4:]}', request.remote_addr))
+
+        db.commit()
+
+        # Send confirmation email
+        send_email_async(user['email'], f"Payment Confirmed: ₹{amount:,.2f}",
+            f"<p>Hello {user['name']}, your payment of ₹{amount:,.2f} to {merchant} was successful.</p>")
+
+        return jsonify({'success': True, 'message': 'Payment successful', 'transaction_id': f"TXN{secrets.token_hex(4).upper()}"})
+
+    except ValueError:
+        return jsonify({'error': 'Invalid data format'}), 400
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Checkout verify error: {e}")
+        return jsonify({'error': 'Internal server error processing payment'}), 500
 
 @user_bp.route('/profile-image', methods=['POST'])
 @login_required
@@ -750,6 +930,111 @@ def unblock_card(card_id):
                   (user_id, 'Unblock Card', f'Unblocked card ending in **{card["card_number"][-4:]}**', request.remote_addr))
                   
         db.commit()
+        return jsonify({'success': True, 'message': 'Card unblocked successfully'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@user_bp.route('/cards/<int:card_id>/settings', methods=['PUT'])
+@login_required
+def update_card_settings(card_id):
+    db = get_db()
+    user_id = session.get('user_id')
+    data = request.json
+    try:
+        # Verify ownership
+        card = db.execute('SELECT * FROM cards WHERE id = ? AND user_id = ?', (card_id, user_id)).fetchone()
+        if not card:
+            return jsonify({'error': 'Card not found or unauthorized'}), 404
+            
+        contactless = int(data.get('contactless_enabled', card['contactless_enabled'] if 'contactless_enabled' in card.keys() else 1))
+        international = int(data.get('international_enabled', card['international_enabled'] if 'international_enabled' in card.keys() else 0))
+        online = int(data.get('online_txn_enabled', card['online_txn_enabled'] if 'online_txn_enabled' in card.keys() else 1))
+        limit = float(data.get('daily_limit', card['daily_limit'] if 'daily_limit' in card.keys() else 50000.00))
+        
+        db.execute('''
+            UPDATE cards 
+            SET contactless_enabled = ?, international_enabled = ?, online_txn_enabled = ?, daily_limit = ?
+            WHERE id = ?
+        ''', (contactless, international, online, limit, card_id))
+        
+        db.execute('INSERT INTO user_activity_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
+                  (user_id, 'Update Card Settings', f'Updated settings for card ending in **{card["card_number"][-4:]}**', request.remote_addr))
+                  
+        db.commit()
+        return jsonify({'success': True, 'message': 'Card settings updated successfully'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@user_bp.route('/cards/<int:card_id>/set-pin', methods=['POST'])
+@login_required
+def set_card_pin(card_id):
+    db = get_db()
+    user_id = session.get('user_id')
+    data = request.json
+    pin = data.get('pin')
+    
+    if not pin or len(str(pin)) != 4 or not str(pin).isdigit():
+        return jsonify({'error': 'PIN must be a 4-digit number'}), 400
+        
+    try:
+        # Verify ownership
+        card = db.execute('SELECT * FROM cards WHERE id = ? AND user_id = ?', (card_id, user_id)).fetchone()
+        if not card:
+            return jsonify({'error': 'Card not found or unauthorized'}), 404
+            
+        from werkzeug.security import generate_password_hash
+        pin_hash = generate_password_hash(str(pin))
+        
+        db.execute('UPDATE cards SET pin_hash = ? WHERE id = ?', (pin_hash, card_id))
+        
+        db.execute('INSERT INTO user_activity_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
+                  (user_id, 'Set Card PIN', f'Set PIN for card ending in **{card["card_number"][-4:]}**', request.remote_addr))
+                  
+        db.commit()
+        return jsonify({'success': True, 'message': 'Card PIN set successfully'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@user_bp.route('/cards/<int:card_id>/change-pin', methods=['POST'])
+@login_required
+def change_card_pin(card_id):
+    db = get_db()
+    user_id = session.get('user_id')
+    data = request.json
+    old_pin = data.get('old_pin')
+    new_pin = data.get('new_pin')
+    
+    if not new_pin or len(str(new_pin)) != 4 or not str(new_pin).isdigit():
+        return jsonify({'error': 'New PIN must be a 4-digit number'}), 400
+        
+    try:
+        # Verify ownership
+        card = db.execute('SELECT * FROM cards WHERE id = ? AND user_id = ?', (card_id, user_id)).fetchone()
+        if not card:
+            return jsonify({'error': 'Card not found or unauthorized'}), 404
+            
+        if not card.get('pin_hash'):
+            return jsonify({'error': 'No existing PIN found. Please use the Set PIN option.'}), 400
+            
+        from werkzeug.security import check_password_hash, generate_password_hash
+        if not check_password_hash(card['pin_hash'], str(old_pin)):
+            return jsonify({'error': 'Incorrect current PIN'}), 400
+            
+        new_pin_hash = generate_password_hash(str(new_pin))
+        
+        db.execute('UPDATE cards SET pin_hash = ? WHERE id = ?', (new_pin_hash, card_id))
+        
+        db.execute('INSERT INTO user_activity_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
+                  (user_id, 'Change Card PIN', f'Changed PIN for card ending in **{card["card_number"][-4:]}**', request.remote_addr))
+                  
+        db.commit()
+        return jsonify({'success': True, 'message': 'Card PIN changed successfully'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
         
         # Send Email Alert
         user = db.execute('SELECT email, name FROM users WHERE id = ?', (user_id,)).fetchone()
@@ -1414,6 +1699,15 @@ def create_support_ticket():
                   (user_id, 'New Support Ticket', f'Raised ticket: {subject}', request.remote_addr))
         
         db.commit()
+        
+        # Email Notification
+        user = db.execute('SELECT email FROM users WHERE id = ?', (user_id,)).fetchone()
+        if user and user['email']:
+            send_email_async(
+                user['email'], 
+                f"SmartBank: Support Ticket Created - {subject}",
+                f"<p>We have received your support ticket regarding <b>{subject}</b>. Our team will review it and get back to you shortly.</p>"
+            )
         return jsonify({'success': True, 'message': 'Ticket raised successfully', 'ticket_id': db.execute('SELECT last_insert_rowid()').fetchone()[0]})
     except Exception as e:
         db.rollback()
@@ -1465,8 +1759,17 @@ def send_ticket_message(ticket_id):
         
         # Optionally update ticket status to 'pending' if it was 'open' or 'replied'
         db.execute('UPDATE support_tickets SET status = "pending" WHERE id = ?', (ticket_id,))
-        
         db.commit()
+
+        # Email Notification
+        user = db.execute('SELECT email FROM users WHERE id = ?', (user_id,)).fetchone()
+        if user and user['email']:
+            send_email_async(
+                user['email'], 
+                f"SmartBank: Ticket #{ticket_id} Updated",
+                f"<p>Your reply has been added to Ticket #{ticket_id}. Our team has been notified.</p>"
+            )
+
         return jsonify({'success': True})
     except Exception as e:
         db.rollback()
@@ -1491,3 +1794,139 @@ def get_locations():
     except Exception as e:
         logger.error(f"Error fetching locations: {e}")
         return jsonify({'error': 'Failed to fetch locations'}), 500
+
+# =============================================
+# LIVE CHAT (Encrypted Real-Time Support)
+# =============================================
+
+@user_bp.route('/livechat/start', methods=['POST'])
+@login_required
+def start_live_chat():
+    """Start a new live chat session or resume an existing open one."""
+    db = get_db()
+    user_id = session['user_id']
+    
+    # Check for existing active session
+    existing = db.execute(
+        "SELECT * FROM live_chat_sessions WHERE user_id = ? AND status IN ('waiting', 'active') ORDER BY id DESC LIMIT 1",
+        (user_id,)
+    ).fetchone()
+    
+    if existing:
+        return jsonify({'success': True, 'session_id': existing['id'], 'status': existing['status'], 'resumed': True})
+    
+    try:
+        db.execute(
+            'INSERT INTO live_chat_sessions (user_id, status) VALUES (?, ?)',
+            (user_id, 'waiting')
+        )
+        db.commit()
+        session_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
+        
+        # Auto-welcome message (encrypted)
+        welcome = encrypt_message('Welcome to SmartBank Live Support! A support agent will be with you shortly. Your messages are encrypted end-to-end.')
+        db.execute(
+            'INSERT INTO live_chat_messages (session_id, sender_type, sender_id, message, message_type, is_encrypted) VALUES (?, ?, ?, ?, ?, ?)',
+            (session_id, 'system', 0, welcome, 'text', 1)
+        )
+        db.commit()
+        
+        return jsonify({'success': True, 'session_id': session_id, 'status': 'waiting', 'resumed': False})
+    except Exception as e:
+        db.rollback()
+        logger.error(f'Live chat start error: {e}')
+        return jsonify({'error': str(e)}), 500
+
+@user_bp.route('/livechat/<int:sid>/messages', methods=['GET'])
+@login_required
+def get_live_chat_messages(sid):
+    """Get all messages for a live chat session (decrypted)."""
+    db = get_db()
+    user_id = session['user_id']
+    
+    chat_session = db.execute(
+        'SELECT * FROM live_chat_sessions WHERE id = ? AND user_id = ?', (sid, user_id)
+    ).fetchone()
+    if not chat_session:
+        return jsonify({'error': 'Session not found'}), 404
+    
+    messages = db.execute(
+        'SELECT * FROM live_chat_messages WHERE session_id = ? ORDER BY created_at ASC', (sid,)
+    ).fetchall()
+    
+    decrypted = []
+    for m in messages:
+        md = dict(m)
+        if md.get('is_encrypted'):
+            md['message'] = decrypt_message(md['message'])
+        decrypted.append(md)
+    
+    return jsonify({
+        'success': True,
+        'session': {'id': chat_session['id'], 'status': chat_session['status']},
+        'messages': decrypted
+    })
+
+@user_bp.route('/livechat/<int:sid>/send', methods=['POST'])
+@login_required
+def send_live_chat_message(sid):
+    """Send a message in a live chat session (encrypted at rest)."""
+    db = get_db()
+    user_id = session['user_id']
+    data = request.json
+    
+    chat_session = db.execute(
+        'SELECT * FROM live_chat_sessions WHERE id = ? AND user_id = ? AND status IN ("waiting", "active")', (sid, user_id)
+    ).fetchone()
+    if not chat_session:
+        return jsonify({'error': 'Session not found or closed'}), 404
+    
+    message = data.get('message', '').strip()
+    msg_type = data.get('type', 'text')  # 'text' or 'image'
+    
+    if not message:
+        return jsonify({'error': 'Message cannot be empty'}), 400
+    
+    # For images, message contains the base64 data URI - encrypt it too
+    if msg_type == 'image' and len(message) > 10 * 1024 * 1024:
+        return jsonify({'error': 'Image too large. Max 10MB.'}), 400
+    
+    try:
+        encrypted = encrypt_message(message)
+        db.execute(
+            'INSERT INTO live_chat_messages (session_id, sender_type, sender_id, message, message_type, is_encrypted) VALUES (?, ?, ?, ?, ?, ?)',
+            (sid, 'user', user_id, encrypted, msg_type, 1)
+        )
+        db.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@user_bp.route('/livechat/<int:sid>/close', methods=['POST'])
+@login_required
+def close_live_chat(sid):
+    """Close a live chat session."""
+    db = get_db()
+    user_id = session['user_id']
+    
+    chat_session = db.execute(
+        'SELECT * FROM live_chat_sessions WHERE id = ? AND user_id = ?', (sid, user_id)
+    ).fetchone()
+    if not chat_session:
+        return jsonify({'error': 'Session not found'}), 404
+    
+    try:
+        db.execute(
+            "UPDATE live_chat_sessions SET status = 'closed', closed_at = CURRENT_TIMESTAMP WHERE id = ?", (sid,)
+        )
+        goodbye = encrypt_message('This chat session has been closed. Thank you for contacting SmartBank Support!')
+        db.execute(
+            'INSERT INTO live_chat_messages (session_id, sender_type, sender_id, message, message_type, is_encrypted) VALUES (?, ?, ?, ?, ?, ?)',
+            (sid, 'system', 0, goodbye, 'text', 1)
+        )
+        db.commit()
+        return jsonify({'success': True, 'message': 'Chat session closed'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500

@@ -741,7 +741,7 @@ function showPage(pageName) {
         case 'profile': loadProfilePage(); break;
         case 'settings': loadSettingsPage(); break;
         case 'attendance': loadAttendancePage(); break;
-        case 'supportdesk': loadSupportTickets(); break;
+        case 'supportdesk': loadSupportTickets(); loadLiveChatSessions(); break;
         case 'services': loadServicesPage(); break;
         case 'map': loadMapPage(); break;
         case 'agrihub': loadAgriHubPage(); break;
@@ -1869,7 +1869,6 @@ async function submitAddCustomer(event) {
         name: document.getElementById('newCustomerName').value.trim(),
         username: document.getElementById('newCustomerUsername').value.trim(),
         email: document.getElementById('newCustomerEmail').value.trim(),
-        phone: document.getElementById('newCustomerPhone').value.trim(),
         password: pwd,
         dob: document.getElementById('newCustomerDob')?.value || null
     };
@@ -1913,7 +1912,6 @@ window.showEditCustomerModal = function () {
     document.getElementById('editCustomerId').value = c.id;
     document.getElementById('editCustomerName').value = c.name || '';
     document.getElementById('editCustomerEmail').value = c.email || '';
-    document.getElementById('editCustomerPhone').value = c.phone || '';
     document.getElementById('editCustomerAddress').value = c.address || '';
     document.getElementById('editCustomerDob').value = c.date_of_birth || '';
     document.getElementById('editCustomerAadhaar').value = c.aadhaar_number || '';
@@ -1931,7 +1929,6 @@ window.submitEditCustomer = async function (event) {
     const payload = {
         name: document.getElementById('editCustomerName').value.trim(),
         email: document.getElementById('editCustomerEmail').value.trim(),
-        phone: document.getElementById('editCustomerPhone').value.trim(),
         address: document.getElementById('editCustomerAddress').value.trim(),
         date_of_birth: document.getElementById('editCustomerDob').value,
         aadhaar_number: document.getElementById('editCustomerAadhaar').value.trim(),
@@ -2114,7 +2111,6 @@ async function loadCustomersPage() {
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
-                            <th>Phone</th>
                             <th style="text-align:center;">Accounts</th>
                             <th>Balance</th>
                             <th>Status</th>
@@ -2130,7 +2126,6 @@ async function loadCustomersPage() {
                                     <div style="font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@${escHtml(c.username || c.id)}</div>
                                 </td>
                                 <td style="padding:12px 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(c.email || '—')}">${escHtml(c.email || '—')}</td>
-                                <td style="padding:12px 8px;white-space:nowrap;">${escHtml(c.phone || '—')}</td>
                                 <td style="text-align:center;padding:12px 8px;">
                                     <span class="status-badge" style="background:rgba(128,0,0,0.05);color:var(--primary-color);border:1px solid rgba(128,0,0,0.1);">${c.account_count || 0}</span>
                                 </td>
@@ -2383,9 +2378,12 @@ async function viewUserActivity(userId, userName) {
                     <i class="fas fa-credit-card" style="margin-right:5px;"></i>Cards (${cards.length})
                 </h4>
                 ${cards.length ? cards.map(c => `
-                <div style="padding:10px 14px;border-radius:8px;margin-bottom:8px;background:var(--bg-light);border:1px solid var(--border-color);">
-                    <div style="font-weight:600;font-size:13px;">${escHtml(c.card_type)} <span style="float:right;font-size:11px;padding:2px 8px;border-radius:10px;background:${c.status === 'active' ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)'};color:${c.status === 'active' ? '#10b981' : '#ef4444'}">${escHtml(c.status)}</span></div>
+                <div style="padding:10px 14px;border-radius:8px;margin-bottom:8px;background:var(--bg-light);border:1px solid var(--border-color);position:relative;">
+                    <div style="font-weight:600;font-size:13px;">${escHtml(c.card_type)} <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${c.status === 'active' ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)'};color:${c.status === 'active' ? '#10b981' : '#ef4444'}">${escHtml(c.status)}</span></div>
                     <div style="font-family:monospace;font-size:12px;color:var(--text-secondary);">****${escHtml(String(c.card_number || '0000').slice(-4))} &nbsp;|&nbsp; Exp: ${escHtml(c.expiry_date || '—')}</div>
+                    <button onclick="event.stopPropagation(); toggleStaffCardStatus(${c.id}, '${c.status}', '${userId}', '${escHtml(userName).replace(/'/g, "\\'")}')" style="position:absolute;top:10px;right:10px;background:${c.status === 'active' ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)'};color:${c.status === 'active' ? '#ef4444' : '#10b981'};border:1px solid ${c.status === 'active' ? '#fca5a5' : '#6ee7b7'};border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;backdrop-filter:none;">
+                        <i class="fas ${c.status === 'active' ? 'fa-ban' : 'fa-unlock'}"></i> ${c.status === 'active' ? 'Block' : 'Unblock'}
+                    </button>
                 </div>`).join('') : '<p style="font-size:13px;color:var(--text-secondary);">No cards.</p>'}
             </div>
             <div>
@@ -2560,6 +2558,27 @@ async function viewUserActivity(userId, userName) {
         if (details) details.innerHTML = '<p style="color:#ef4444;padding:20px;">Error loading user details. Please try again.</p>';
     }
 }
+
+window.toggleStaffCardStatus = async function(cardId, currentStatus, userId, userName) {
+    const action = currentStatus === 'active' ? 'block' : 'unblock';
+    if (!confirm(`Are you sure you want to ${action} this card?`)) return;
+    try {
+        const res = await fetch(`${API}/staff/cards/${cardId}/${action}`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(data.message || `Card ${action}ed successfully`, 'success');
+            // Refresh user activity modal
+            viewUserActivity(userId, userName);
+        } else {
+            showToast(data.error || `Failed to ${action} card`, 'error');
+        }
+    } catch (e) {
+        showToast('Network error', 'error');
+    }
+};
 
 // Load Approvals Page
 async function loadApprovalsPage() {
@@ -2753,6 +2772,10 @@ async function loadAgriAccountsPage() {
                                         ${r.agri_proof ? `
                                             <button class="action-btn-circle" style="width:28px;height:28px;font-size:12px;background:rgba(16,185,129,0.1);color:#10b981;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.agri_proof)}', 'Agri Proof - ${escHtml(r.user_name)}')">
                                                 <i class="fas ${r.agri_proof.startsWith('data:application/pdf') ? 'fa-file-pdf' : 'fa-leaf'}"></i>
+                                            </button>` : ''}
+                                        ${r.account_type === 'Agriculture' ? `
+                                            <button class="action-btn-circle" style="width:28px;height:28px;font-size:12px;background:rgba(59,130,246,0.1);color:#3b82f6;" onclick="event.stopPropagation(); triggerAgriProofUpload(${r.user_id})" title="Update Land Document">
+                                                <i class="fas fa-upload"></i>
                                             </button>` : ''}
                                     </div>
                                 </td>
@@ -5322,5 +5345,202 @@ async function deleteLocation(id) {
         }
     } catch (err) {
         showToast('Network error', 'error');
+    }
+}
+
+/* ════════════════════════════════════════════════════════════
+   LIVE CHAT — Staff Side (Encrypted Support Sessions)
+   ════════════════════════════════════════════════════════════ */
+let _staffChatSessionId = null;
+let _staffChatPollTimer = null;
+let _staffChatPendingImage = null;
+
+async function loadLiveChatSessions() {
+    try {
+        const r = await fetch(`${API}/staff/livechat/sessions`, { credentials: 'include' });
+        const d = await r.json();
+        if (!d.success) return;
+        
+        const el = document.getElementById('liveChatSessionsList');
+        if (!el) return;
+        
+        if (!d.sessions.length) {
+            el.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-secondary);">
+                <i class="fas fa-comments" style="font-size:2.5rem; opacity:0.3; margin-bottom:12px; display:block;"></i>
+                <p>No active live chat sessions</p>
+            </div>`;
+            return;
+        }
+        
+        el.innerHTML = d.sessions.map(s => `
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border:1px solid var(--border); border-radius:12px; margin-bottom:10px; background:${s.status === 'waiting' ? 'rgba(239,68,68,0.04)' : 'rgba(16,185,129,0.04)'}; cursor:pointer;" onclick="openStaffLiveChat(${s.id})">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:40px; height:40px; border-radius:50%; background:${s.status === 'waiting' ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'linear-gradient(135deg,#10b981,#059669)'}; display:flex; align-items:center; justify-content:center;">
+                        <i class="fas fa-${s.status === 'waiting' ? 'bell' : 'headset'}" style="color:white; font-size:14px;"></i>
+                    </div>
+                    <div>
+                        <p style="margin:0; font-weight:600; font-size:14px;">${escHtml(s.user_name)}</p>
+                        <p style="margin:2px 0 0; font-size:12px; color:var(--text-secondary);">${escHtml(s.user_email)} · ${s.message_count} messages</p>
+                    </div>
+                </div>
+                <div>
+                    <span style="padding:4px 12px; border-radius:20px; font-size:11px; font-weight:600; background:${s.status === 'waiting' ? '#fef2f2' : '#f0fdf4'}; color:${s.status === 'waiting' ? '#ef4444' : '#22c55e'};">
+                        ${s.status === 'waiting' ? '⚡ Waiting' : '● Active'}
+                    </span>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        console.error('Load live chat sessions error:', e);
+    }
+}
+
+async function openStaffLiveChat(sid) {
+    _staffChatSessionId = sid;
+    
+    // First join if waiting
+    try {
+        await fetch(`${API}/staff/livechat/${sid}/join`, { method: 'POST', credentials: 'include' });
+    } catch (e) { /* may already be joined */ }
+    
+    // Show the chat modal
+    const modal = document.getElementById('staffLiveChatModal');
+    if (modal) modal.style.display = 'flex';
+    
+    await loadStaffChatMessages();
+    startStaffChatPolling();
+}
+
+function closeStaffLiveChatModal() {
+    const modal = document.getElementById('staffLiveChatModal');
+    if (modal) modal.style.display = 'none';
+    stopStaffChatPolling();
+    _staffChatSessionId = null;
+    loadLiveChatSessions();
+}
+
+function startStaffChatPolling() {
+    stopStaffChatPolling();
+    _staffChatPollTimer = setInterval(loadStaffChatMessages, 3000);
+}
+
+function stopStaffChatPolling() {
+    if (_staffChatPollTimer) { clearInterval(_staffChatPollTimer); _staffChatPollTimer = null; }
+}
+
+async function loadStaffChatMessages() {
+    if (!_staffChatSessionId) return;
+    try {
+        const r = await fetch(`${API}/staff/livechat/${_staffChatSessionId}/messages`, { credentials: 'include' });
+        const d = await r.json();
+        if (!d.success) return;
+        
+        const headerEl = document.getElementById('staffChatUserName');
+        if (headerEl) headerEl.textContent = d.session.user_name || 'Customer';
+        
+        const statusEl = document.getElementById('staffChatSessionStatus');
+        if (statusEl) statusEl.textContent = d.session.status === 'active' ? '● Active' : d.session.status;
+        
+        const container = document.getElementById('staffChatMessagesArea');
+        if (!container) return;
+        
+        container.innerHTML = d.messages.map(m => {
+            const isStaff = m.sender_type === 'staff';
+            const isSystem = m.sender_type === 'system';
+            const isImage = m.message_type === 'image';
+            const time = new Date(m.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            
+            if (isSystem) {
+                return `<div style="text-align:center; padding:6px 0;">
+                    <span style="background:rgba(99,102,241,0.1); color:#6366f1; padding:6px 16px; border-radius:20px; font-size:12px; font-weight:500;">
+                        <i class="fas fa-shield-alt" style="margin-right:4px;"></i>${escHtml(m.message)}
+                    </span>
+                </div>`;
+            }
+            
+            const msgContent = isImage 
+                ? `<img src="${m.message}" style="max-width:240px; border-radius:10px; cursor:pointer;" onclick="window.open(this.src)">`
+                : `<span>${escHtml(m.message)}</span>`;
+            
+            const align = isStaff ? 'flex-end' : 'flex-start';
+            const bg = isStaff ? 'linear-gradient(135deg, #800000, #4a0000)' : 'white';
+            const color = isStaff ? 'white' : '#1e293b';
+            const border = isStaff ? 'none' : '1px solid #e2e8f0';
+            const radius = isStaff ? '18px 18px 4px 18px' : '18px 18px 18px 4px';
+            const label = isStaff ? '' : `<span style="font-size:10px; color:#94a3b8; margin-bottom:2px;">${escHtml(d.session.user_name)}</span>`;
+            
+            return `<div style="display:flex; flex-direction:column; align-items:${align};">
+                ${label}
+                <div style="max-width:75%; background:${bg}; color:${color}; border:${border}; padding:10px 16px; border-radius:${radius}; font-size:14px; line-height:1.5; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                    ${msgContent}
+                </div>
+                <span style="font-size:10px; color:#94a3b8; margin-top:4px; padding:0 4px;">${time}</span>
+            </div>`;
+        }).join('');
+        
+        container.scrollTop = container.scrollHeight;
+    } catch (e) { /* silent */ }
+}
+
+async function sendStaffChatMsg() {
+    if (!_staffChatSessionId) return;
+    
+    if (_staffChatPendingImage) {
+        await sendStaffChatPayload(_staffChatPendingImage, 'image');
+        cancelStaffChatImage();
+        return;
+    }
+    
+    const input = document.getElementById('staffChatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    
+    await sendStaffChatPayload(msg, 'text');
+}
+
+async function sendStaffChatPayload(message, type) {
+    try {
+        const r = await fetch(`${API}/staff/livechat/${_staffChatSessionId}/send`, {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, type })
+        });
+        const d = await r.json();
+        if (!d.success) showToast(d.error || 'Send failed', 'error');
+        await loadStaffChatMessages();
+    } catch (e) {
+        showToast('Network error', 'error');
+    }
+}
+
+function handleStaffChatImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        _staffChatPendingImage = e.target.result;
+        document.getElementById('staffChatPreviewImg').src = _staffChatPendingImage;
+        document.getElementById('staffChatImagePreview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+function cancelStaffChatImage() {
+    _staffChatPendingImage = null;
+    document.getElementById('staffChatImagePreview').style.display = 'none';
+    document.getElementById('staffChatImageInput').value = '';
+}
+
+async function closeStaffLiveChat() {
+    if (!_staffChatSessionId) return;
+    if (!confirm('Close this chat session?')) return;
+    try {
+        await fetch(`${API}/staff/livechat/${_staffChatSessionId}/close`, { method: 'POST', credentials: 'include' });
+        showToast('Chat session closed', 'success');
+        closeStaffLiveChatModal();
+    } catch (e) {
+        showToast('Error closing chat', 'error');
     }
 }

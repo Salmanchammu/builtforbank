@@ -987,7 +987,6 @@ window.showEditCustomerModal = function () {
     document.getElementById('editCustomerId').value = c.id;
     document.getElementById('editCustomerName').value = c.name || '';
     document.getElementById('editCustomerEmail').value = c.email || '';
-    document.getElementById('editCustomerPhone').value = c.phone || '';
     document.getElementById('editCustomerAddress').value = c.address || '';
     document.getElementById('editCustomerDob').value = c.date_of_birth || '';
     document.getElementById('editCustomerAadhaar').value = c.aadhaar_number || '';
@@ -1005,7 +1004,6 @@ window.submitEditCustomer = async function (event) {
     const payload = {
         name: document.getElementById('editCustomerName').value.trim(),
         email: document.getElementById('editCustomerEmail').value.trim(),
-        phone: document.getElementById('editCustomerPhone').value.trim(),
         address: document.getElementById('editCustomerAddress').value.trim(),
         date_of_birth: document.getElementById('editCustomerDob').value,
         aadhaar_number: document.getElementById('editCustomerAadhaar').value.trim(),
@@ -1365,9 +1363,12 @@ async function viewUserActivity(userId, userName) {
                     <i class="fas fa-credit-card" style="margin-right:5px;"></i>Cards (${cards.length})
                 </h4>
                 ${cards.length ? cards.map(c => `
-                <div style="padding:10px 14px;border-radius:8px;margin-bottom:8px;background:var(--bg-light);border:1px solid var(--border-color);">
-                    <div style="font-weight:600;font-size:13px;">${escHtml(c.card_type)} <span style="float:right;font-size:11px;padding:2px 8px;border-radius:10px;background:${c.status === 'active' ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)'};color:${c.status === 'active' ? '#10b981' : '#ef4444'}">${escHtml(c.status)}</span></div>
+                <div style="padding:10px 14px;border-radius:8px;margin-bottom:8px;background:var(--bg-light);border:1px solid var(--border-color);position:relative;">
+                    <div style="font-weight:600;font-size:13px;">${escHtml(c.card_type)} <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${c.status === 'active' ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.15)'};color:${c.status === 'active' ? '#10b981' : '#ef4444'}">${escHtml(c.status)}</span></div>
                     <div style="font-family:monospace;font-size:12px;color:var(--text-secondary);">****${escHtml(String(c.card_number || '0000').slice(-4))} &nbsp;|&nbsp; Exp: ${escHtml(c.expiry_date || '—')}</div>
+                    <button onclick="event.stopPropagation(); toggleStaffCardStatus(${c.id}, '${c.status}', '${userId}', '${escHtml(userName).replace(/'/g, "\\'")}')" style="position:absolute;top:10px;right:10px;background:${c.status === 'active' ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)'};color:${c.status === 'active' ? '#ef4444' : '#10b981'};border:1px solid ${c.status === 'active' ? '#fca5a5' : '#6ee7b7'};border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;backdrop-filter:none;">
+                        <i class="fas ${c.status === 'active' ? 'fa-ban' : 'fa-unlock'}"></i> ${c.status === 'active' ? 'Block' : 'Unblock'}
+                    </button>
                 </div>`).join('') : '<p style="font-size:13px;color:var(--text-secondary);">No cards.</p>'}
             </div>
             <div>
@@ -1512,6 +1513,27 @@ async function viewUserActivity(userId, userName) {
         if (details) details.innerHTML = '<p style="color:#ef4444;padding:20px;">Error loading user details. Please try again.</p>';
     }
 }
+
+window.toggleStaffCardStatus = async function(cardId, currentStatus, userId, userName) {
+    const action = currentStatus === 'active' ? 'block' : 'unblock';
+    if (!confirm(`Are you sure you want to ${action} this card?`)) return;
+    try {
+        const res = await fetch(`${API}/staff/cards/${cardId}/${action}`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(data.message || `Card ${action}ed successfully`, 'success');
+            // Refresh user activity modal
+            viewUserActivity(userId, userName);
+        } else {
+            showToast(data.error || `Failed to ${action} card`, 'error');
+        }
+    } catch (e) {
+        showToast('Network error', 'error');
+    }
+};
 
 // Load Staff Page
 async function loadStaffPage() {
@@ -2269,7 +2291,6 @@ async function submitAddStaff(event) {
     const payload = {
         name: document.getElementById('staffName').value.trim(),
         email: document.getElementById('staffEmail').value.trim(),
-        phone: document.getElementById('staffPhone').value.trim(),
         department: document.getElementById('staffDepartment').value,
         position: document.getElementById('staffPosition').value,
         password: document.getElementById('staffPassword').value
@@ -3596,6 +3617,10 @@ async function loadAgriApprovalsPage() {
                                             <button class="action-btn-circle" style="width:28px;height:28px;font-size:12px;background:rgba(16,185,129,0.1);color:#10b981;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.agri_proof)}', 'Agri Proof - ${escHtml(r.user_name)}')">
                                                 <i class="fas ${r.agri_proof.startsWith('data:application/pdf') ? 'fa-file-pdf' : 'fa-leaf'}"></i>
                                             </button>` : ''}
+                                        ${r.account_type === 'Agriculture' ? `
+                                            <button class="action-btn-circle" style="width:28px;height:28px;font-size:12px;background:rgba(59,130,246,0.1);color:#3b82f6;" onclick="event.stopPropagation(); triggerAgriProofUpload(${r.user_id})" title="Update Land Document">
+                                                <i class="fas fa-upload"></i>
+                                            </button>` : ''}
                                     </div>
                                 </td>
                                 <td>
@@ -4714,4 +4739,54 @@ async function deleteLocation(id) {
     } catch (err) {
         showToast('Network error', 'error');
     }
+}
+
+// Function to handle Agri Proof document upload
+function triggerAgriProofUpload(userId) {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*,application/pdf';
+    fileInput.style.display = 'none';
+    
+    fileInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('File size must be less than 5MB', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const base64Data = event.target.result;
+            
+            try {
+                const res = await fetch(`/staff/customers/${userId}/agri-proof`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('staffToken') || localStorage.getItem('adminToken')}`
+                    },
+                    body: JSON.stringify({ agri_proof: base64Data })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Land document updated successfully', 'success');
+                    if (window.loadAgriApprovals) loadAgriApprovals();
+                    if (window.loadPendingApplications) loadPendingApplications();
+                } else {
+                    showToast(data.error || 'Update failed', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('An error occurred during upload', 'error');
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+    
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    document.body.removeChild(fileInput);
 }
