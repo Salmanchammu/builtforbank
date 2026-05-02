@@ -488,10 +488,10 @@
             <!-- Cards Page -->
             <div id="cards" class="page-content">
                 <!-- Card Application Options -->
-                <div class="dashboard-grid grid-2" style="margin-bottom: 24px;">
+                <div class="dashboard-grid grid-2" id="cardApplicationOptions" style="margin-bottom: 24px;">
 
                     <!-- Debit Card -->
-                    <button onclick="applyForCard('debit')"
+                    <button id="applyDebitBtn" onclick="applyForCard('debit')"
                         style="background:linear-gradient(145deg,#800000,#4d0000);border:none;border-radius:20px;padding:30px 24px;cursor:pointer;display:flex;flex-direction:row;align-items:center;gap:20px;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 6px 20px rgba(128,0,0,0.25);color:white;text-align:left;position:relative;overflow:hidden;"
                         onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 15px 35px rgba(128,0,0,0.4)';"
                         onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 6px 20px rgba(128,0,0,0.25)';">
@@ -520,7 +520,7 @@
                     </button>
 
                     <!-- Credit Card -->
-                    <button onclick="applyForCard('credit')"
+                    <button id="applyCreditBtn" onclick="applyForCard('credit')"
                         style="background:linear-gradient(145deg,#660000,#330000);border:none;border-radius:20px;padding:30px 24px;cursor:pointer;display:flex;flex-direction:row;align-items:center;gap:20px;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);box-shadow:0 6px 20px rgba(102,0,0,0.25);color:white;text-align:left;position:relative;overflow:hidden;"
                         onmouseover="this.style.transform='translateY(-6px)';this.style.boxShadow='0 15px 35px rgba(102,0,0,0.4)';"
                         onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 6px 20px rgba(102,0,0,0.25)';">

@@ -1115,6 +1115,22 @@ function renderCardsPage() { renderCards(); renderCardRequestsList(); }
 
 function renderCards() {
     const el = $id('cardsList'); if (!el) return;
+    
+    // Hide application buttons if the user already has the respective card
+    const hasDebit = state.cards && state.cards.some(c => !c.card_type || String(c.card_type).toLowerCase() !== 'credit');
+    const hasCredit = state.cards && state.cards.some(c => c.card_type && String(c.card_type).toLowerCase() === 'credit');
+    
+    const applyDebitBtn = $id('applyDebitBtn');
+    const applyCreditBtn = $id('applyCreditBtn');
+    
+    if (applyDebitBtn) applyDebitBtn.style.display = hasDebit ? 'none' : 'flex';
+    if (applyCreditBtn) applyCreditBtn.style.display = hasCredit ? 'none' : 'flex';
+    
+    const cardOptionsBox = $id('cardApplicationOptions');
+    if (cardOptionsBox && hasDebit && hasCredit) {
+        cardOptionsBox.style.display = 'none';
+    }
+
     if (!state.cards.length) {
         if (state.cardRequests && state.cardRequests.length > 0 && state.cardRequests.some(r => r.status === 'pending' || r.status === 'approved')) {
             el.innerHTML = ''; return;
