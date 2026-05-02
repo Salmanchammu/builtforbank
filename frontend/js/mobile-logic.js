@@ -1577,21 +1577,16 @@ function renderDashboard(data) {
             return type.includes('credit') || (r.requested_credit_limit != null && r.requested_credit_limit > 0);
         };
 
+        // Only hide truly terminal statuses — keep 'approved' and 'processing' visible
+        const isTerminal = (s) => ['rejected', 'declined', 'expired', 'cancelled', 'canceled', 'closed', 'completed', 'issued'].includes(String(s || '').toLowerCase());
+
         if (lowerTab === 'credit') {
             displayCards = (data.cards || []).filter(c => c.card_type && String(c.card_type).toLowerCase() === 'credit');
-            displayRequests = allRequests.filter(r => {
-                const status = String(r.status || '').toLowerCase();
-                const isCompleted = ['rejected', 'declined', 'expired', 'cancelled', 'canceled', 'closed', 'approved', 'completed', 'issued'].includes(status);
-                return isCredit(r) && !isCompleted;
-            });
+            displayRequests = allRequests.filter(r => isCredit(r) && !isTerminal(r.status));
         } else {
             // Debit / Savings tab
             displayCards = (data.cards || []).filter(c => !c.card_type || String(c.card_type).toLowerCase() !== 'credit');
-            displayRequests = allRequests.filter(r => {
-                const status = String(r.status || '').toLowerCase();
-                const isCompleted = ['rejected', 'declined', 'expired', 'cancelled', 'canceled', 'closed', 'approved', 'completed', 'issued'].includes(status);
-                return !isCredit(r) && !isCompleted;
-            });
+            displayRequests = allRequests.filter(r => !isCredit(r) && !isTerminal(r.status));
         }
 
         console.log('Filtered Results:', { cards: displayCards.length, requests: displayRequests.length });
@@ -1628,13 +1623,23 @@ function renderDashboard(data) {
         } else if (displayRequests.length > 0) {
             const req = displayRequests[0];
             const typeLabel = (req.card_type || 'Classic') + ' Card';
+            const reqStatus = String(req.status || 'pending').toLowerCase();
+            const isApproved = reqStatus === 'approved';
+            const statusIcon = isApproved ? 'fa-check-circle' : 'fa-hourglass-half';
+            const statusTitle = isApproved ? 'Card Approved ✅' : 'Application In Progress';
+            const statusDesc = isApproved 
+                ? `Your <strong>${escHtml(typeLabel)}</strong> has been approved! It is being issued and will appear here shortly.`
+                : `Your <strong>${escHtml(typeLabel)}</strong> application is being processed by our system. We will notify you once it is dispatched.`;
+            const statusBg = isApproved ? '#f0fdf4' : '#fffafb';
+            const statusBorder = isApproved ? '#059669' : '#800000';
+            const statusIconBg = isApproved ? '#059669' : '#800000';
             cardContainer.innerHTML = `
-                <div class="placeholder-card" style="border: 1.5px solid #800000; background: #fffafb; box-shadow: 0 10px 30px rgba(128,0,0,0.08);">
-                    <div class="placeholder-icon pulse-maroon" style="background: #800000; color: #fff;">
-                        <i class="fas fa-hourglass-half"></i>
+                <div class="placeholder-card" style="border: 1.5px solid ${statusBorder}; background: ${statusBg}; box-shadow: 0 10px 30px rgba(128,0,0,0.08);">
+                    <div class="placeholder-icon pulse-maroon" style="background: ${statusIconBg}; color: #fff;">
+                        <i class="fas ${statusIcon}"></i>
                     </div>
-                    <div class="placeholder-title" style="color: #800000; font-weight: 800;">Application In Progress</div>
-                    <p class="placeholder-desc">Your <strong>${escHtml(typeLabel)}</strong> application is being processed by our system. We will notify you once it is dispatched.</p>
+                    <div class="placeholder-title" style="color: ${statusBorder}; font-weight: 800;">${statusTitle}</div>
+                    <p class="placeholder-desc">${statusDesc}</p>
                 </div>
             `;
         } else {
@@ -2496,86 +2501,7 @@ async function applyForCreditCard() {
     };
 }
 
-async function applyForMobileCard() {
-    if (!window._primaryAccount) {
-        const errorHTML = `
-        <div id="_dcErrorModal" class="modal-overlay" style="display:flex;">
-            <div class="modal-content" style="text-align:center;padding:28px 24px;border-radius:20px;">
-                <div style="font-size:36px;margin-bottom:14px;">🏦</div>
-                <h3 style="margin:0 0 8px;font-size:17px;font-weight:800;color:#111;">No Bank Account</h3>
-                <p style="margin:0 0 20px;font-size:13px;color:#6b7280;">Please open a bank account first before applying for a debit card.</p>
-                <button onclick="document.getElementById('_dcErrorModal').remove()" style="padding:11px 28px;border-radius:30px;border:none;background:#800000;color:#fff;font-weight:700;font-size:13px;cursor:pointer;">OK</button>
-            </div>
-        </div>`;
-        document.body.insertAdjacentHTML('beforeend', errorHTML);
-        return;
-    }
-
-    const modalHTML = `
-    <div id="_dcApplyModal" class="modal-overlay" style="display:flex;">
-        <div class="modal-content" style="text-align:center;padding:30px 24px;border-radius:20px;">
-            <div style="width:52px;height:52px;border-radius:50%;background:#fcf8f8;color:#800000;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;">
-                <i class="fas fa-wallet"></i>
-            </div>
-            <h3 style="margin:0 0 8px;font-size:18px;font-weight:800;color:#111827;">Get Free Debit Card?</h3>
-            <p style="margin:0 0 22px;font-size:13px;color:#6b7280;">Apply for a new contactless <strong>RuPay Debit Card</strong> linked to your account. No issuance fees.</p>
-            <div style="display:flex;gap:10px;">
-                <button id="_dcCancel" style="flex:1;padding:11px;border-radius:30px;border:1.5px solid #e5e7eb;background:#fff;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;">Cancel</button>
-                <button id="_dcOk" style="flex:1;padding:11px;border-radius:30px;border:none;background:#800000;font-size:13px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(128,0,0,0.25);">Apply Now</button>
-            </div>
-        </div>
-    </div>`;
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    const modalDc = document.getElementById('_dcApplyModal');
-    document.getElementById('_dcCancel').onclick = () => modalDc.remove();
-    modalDc.addEventListener('click', e => { if (e.target === modalDc) modalDc.remove(); });
-    let isSubmitting_dc = false;
-    document.getElementById('_dcOk').onclick = async () => {
-        if (isSubmitting_dc) return;
-        isSubmitting_dc = true;
-
-        const btn = document.getElementById('_dcOk');
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying...';
-            btn.style.opacity = '0.7';
-        }
-
-        if (!window._localPendingRequests) window._localPendingRequests = [];
-        window._localPendingRequests.push({ card_type: 'debit', status: 'pending', timestamp: Date.now() });
-        modalDc.remove();
-        if (!window._dashboardData) window._dashboardData = { cards: [], card_requests: [] };
-        renderDashboard(window._dashboardData);
-
-        try {
-            const r = await fetch(API + '/user/cards/request', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({
-                    account_id: window._primaryAccount.id,
-                    card_type: 'Debit',
-                    requested_credit_limit: 0
-                })
-            });
-            const d = await r.json();
-            if (r.ok) {
-                showMobileToast('Debit Card application submitted! ✅', 'success');
-                setTimeout(() => loadDashboardData(), 1500);
-            } else {
-                window._localPendingRequests = window._localPendingRequests.filter(x => x.card_type !== 'debit');
-                renderDashboard(window._dashboardData);
-                showMobileToast(d.error || 'Failed to apply for debit card', 'error');
-            }
-        } catch (e) {
-            window._localPendingRequests = window._localPendingRequests.filter(x => x.card_type !== 'debit');
-            renderDashboard(window._dashboardData);
-            showMobileToast('Server connection error. Try again later.', 'error');
-        } finally {
-            isSubmitting_dc = false;
-        }
-    };
-}
+// Duplicate applyForMobileCard removed — single definition at line ~2334 handles both dashboard and cards tab
 
 /* ── UPI Logic ── */
 async function checkUpiStatus() {
