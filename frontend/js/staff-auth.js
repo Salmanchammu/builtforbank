@@ -132,7 +132,6 @@ async function staffLogin(e) {
         return;
     }
 
-    // Try backend first
     try {
         const response = await fetch(API + '/auth/login', {
             method: 'POST',
@@ -150,18 +149,27 @@ async function staffLogin(e) {
 
         const data = await response.json();
 
-        if (response.ok) {
-            localStorage.setItem('staff', JSON.stringify(data.user));
-            if (data.user.profile_image) {
-                // Ensure consistency if needed, though JSON.stringify(data.user) already includes it
+        // Handle 2FA flow
+        if (response.ok && data.requires_2fa) {
+            document.getElementById('otpUsername').value = data.username;
+            document.getElementById('otpRole').value = data.role;
+            document.getElementById('staffForm').style.display = 'none';
+            document.getElementById('adminForm').style.display = 'none';
+            document.getElementById('staffOtpSection').style.display = 'block';
+            document.getElementById('staffEmailOtp').value = '';
+            document.getElementById('staffEmailOtp').focus();
+            if (data.dev_otp) {
+                document.getElementById('staffEmailOtp').value = data.dev_otp;
+                showToast('OTP Auto-filled. Verifying...', 'success');
+                setTimeout(() => verifyStaffLogin(), 500);
+            } else {
+                showToast('Verification code sent to your registered email.', 'info');
             }
-            localStorage.setItem('token', data.token || 'real-staff-token');
-            showToast('Login successful!', 'success');
+            return;
+        }
 
-            setTimeout(() => {
-                const detector = window.SmartBankDeviceDetector;
-                window.location.href = detector ? detector.getDashboardUrl('staff') : 'staffdash.html';
-            }, 500);
+        if (response.ok && data.success) {
+            _finalizeStaffLogin(data);
             return;
         } else {
             showToast(data.error || 'Invalid credentials', 'error');
@@ -184,7 +192,6 @@ async function adminLogin(e) {
         return;
     }
 
-    // Try backend first
     try {
         const response = await fetch(API + '/auth/login', {
             method: 'POST',
@@ -202,15 +209,27 @@ async function adminLogin(e) {
 
         const data = await response.json();
 
-        if (response.ok) {
-            localStorage.setItem('admin', JSON.stringify(data.user));
-            localStorage.setItem('token', data.token || 'real-admin-token');
-            showToast('Login successful!', 'success');
+        // Handle 2FA flow
+        if (response.ok && data.requires_2fa) {
+            document.getElementById('otpUsername').value = data.username;
+            document.getElementById('otpRole').value = data.role;
+            document.getElementById('staffForm').style.display = 'none';
+            document.getElementById('adminForm').style.display = 'none';
+            document.getElementById('staffOtpSection').style.display = 'block';
+            document.getElementById('staffEmailOtp').value = '';
+            document.getElementById('staffEmailOtp').focus();
+            if (data.dev_otp) {
+                document.getElementById('staffEmailOtp').value = data.dev_otp;
+                showToast('OTP Auto-filled. Verifying...', 'success');
+                setTimeout(() => verifyStaffLogin(), 500);
+            } else {
+                showToast('Verification code sent to your registered email.', 'info');
+            }
+            return;
+        }
 
-            setTimeout(() => {
-                const detector = window.SmartBankDeviceDetector;
-                window.location.href = detector ? detector.getDashboardUrl('admin') : 'admindash.html';
-            }, 500);
+        if (response.ok && data.success) {
+            _finalizeStaffLogin(data);
             return;
         } else {
             showToast(data.error || 'Invalid credentials', 'error');
@@ -220,6 +239,74 @@ async function adminLogin(e) {
         console.error('Login error:', error);
         showToast('Connection to server failed. Ensure backend is running.', 'error');
     }
+}
+
+// Verify 2FA OTP for Staff/Admin
+async function verifyStaffLogin(e) {
+    if (e) e.preventDefault();
+    const username = document.getElementById('otpUsername').value;
+    const role = document.getElementById('otpRole').value;
+    const email_otp = document.getElementById('staffEmailOtp').value.trim();
+
+    if (email_otp.length !== 6) {
+        showToast('Please enter the 6-digit verification code', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('staffVerifyBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(API + '/auth/verify-login', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, role, email_otp })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            document.getElementById('staffOtpSection').style.display = 'none';
+            _finalizeStaffLogin(data);
+        } else {
+            showToast(data.error || 'Verification failed.', 'error');
+        }
+    } catch (error) {
+        console.error('Verify error:', error);
+        showToast('Connection to server failed.', 'error');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+// Finalize login after successful auth (direct or 2FA)
+function _finalizeStaffLogin(data) {
+    localStorage.removeItem('user');
+    localStorage.removeItem('staff');
+    localStorage.removeItem('admin');
+    localStorage.removeItem('token');
+
+    const role = data.user.role;
+    if (role === 'admin') {
+        localStorage.setItem('admin', JSON.stringify(data.user));
+    } else {
+        localStorage.setItem('staff', JSON.stringify(data.user));
+    }
+    if (data.token) localStorage.setItem('token', data.token);
+    showToast('Login successful!', 'success');
+
+    setTimeout(() => {
+        const detector = window.SmartBankDeviceDetector;
+        if (role === 'admin') {
+            window.location.href = detector ? detector.getDashboardUrl('admin') : 'admindash.html';
+        } else {
+            window.location.href = detector ? detector.getDashboardUrl('staff') : 'staffdash.html';
+        }
+    }, 500);
 }
 
 // ─── Face Login (delegates to unified FaceAuthManager) ───────────────────────
