@@ -1378,7 +1378,7 @@ async function loadProfilePage() {
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                <div style="display: grid; grid-template-columns: 1fr; gap: 24px; max-width: 600px;">
                     <!-- Account Info Card -->
                     <div class="card" style="padding: 20px; background: var(--bg-light); margin: 0;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
@@ -1405,54 +1405,6 @@ async function loadProfilePage() {
                             </div>
                         </div>
                     </div>
-
-                    <!-- KYC Status Card -->
-                    <div class="card" style="padding: 20px; background: var(--bg-light); margin: 0; border: 2px solid ${staff.aadhaar_number && staff.pan_number ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)'};">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
-                            <h4 style="margin:0; font-weight: 800; color: #1e293b;"><i class="fas fa-shield-check" style="margin-right: 8px; color: ${staff.aadhaar_number && staff.pan_number ? '#10b981' : '#f59e0b'};"></i>Self KYC Verification</h4>
-                            <span class="status-badge ${staff.aadhaar_number && staff.pan_number ? 'success' : 'warning'}" style="font-size: 11px;">
-                                ${staff.aadhaar_number && staff.pan_number ? 'VERIFIED' : 'PENDING'}
-                            </span>
-                        </div>
-                        <div style="display:grid; grid-template-columns: 1fr; gap: 16px;">
-                            <div>
-                                <small style="color:var(--text-secondary); display:block; font-weight: 700; text-transform: uppercase; font-size: 10px; margin-bottom: 4px;">Aadhaar Number</small>
-                                <strong style="font-size: 15px; font-family: monospace;">${escHtml(staff.aadhaar_number || 'Not Linked')}</strong>
-                            </div>
-                            <div>
-                                <small style="color:var(--text-secondary); display:block; font-weight: 700; text-transform: uppercase; font-size: 10px; margin-bottom: 4px;">Permanent Account Number (PAN)</small>
-                                <strong style="font-size: 15px; font-family: monospace; text-transform: uppercase;">${escHtml(staff.pan_number || 'Not Linked')}</strong>
-                            </div>
-                            <button onclick="showKycUpdateForm()" class="btn btn-primary" style="margin-top: 8px; width: 100%; border-radius: 10px; padding: 12px; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                <i class="fas fa-pencil-alt"></i> Update KYC Documents
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- KYC Update Modal -->
-            <div id="kycUpdateModal" class="modal" style="z-index: 10001;">
-                <div class="modal-content" style="max-width: 450px; border-radius: 20px; overflow: hidden; padding: 0;">
-                    <div style="background: linear-gradient(135deg, var(--primary-color), #a52a2a); padding: 24px; color: white;">
-                        <h3 style="margin: 0; display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 800;">
-                            <i class="fas fa-user-shield"></i> Update Personal KYC
-                        </h3>
-                    </div>
-                    <form onsubmit="submitKycUpdate(event)" style="padding: 24px; background: white;">
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Aadhaar Number (12 Digits)</label>
-                            <input type="text" id="staffAadhaarInput" value="${escHtml(staff.aadhaar_number || '')}" placeholder="1234 5678 9012" maxlength="12" required class="form-control" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; outline: none;">
-                        </div>
-                        <div class="form-group" style="margin-bottom: 24px;">
-                            <label style="font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">PAN Number</label>
-                            <input type="text" id="staffPanInput" value="${escHtml(staff.pan_number || '')}" placeholder="ABCDE1234F" maxlength="10" required class="form-control" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; outline: none; text-transform: uppercase;">
-                        </div>
-                        <div style="display: flex; gap: 12px;">
-                            <button type="button" onclick="closeModal('kycUpdateModal')" class="btn btn-secondary" style="flex: 1; padding: 14px; border-radius: 12px; font-weight: 700;">Cancel</button>
-                            <button type="submit" id="saveKycBtn" class="btn btn-primary" style="flex: 2; padding: 14px; border-radius: 12px; font-weight: 700; background: var(--primary-color);">Save Changes</button>
-                        </div>
-                    </form>
                 </div>
             </div>
         `;
