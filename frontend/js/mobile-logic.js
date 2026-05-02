@@ -66,8 +66,29 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Initialize card tab
+// Global UI State
+window._dashboardData = null;
+window._accounts = [];
+window._primaryAccount = null;
+window._notifications = [];
+window._localPendingRequests = [];
 window.currentCardTab = 'savings';
+window.currentMobileMktTab = 'listings';
+
+function escHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text).replace(/[&<>"']/g, function(m) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[m];
+    });
+}
+
+// Utility to switch active UI tabs
 
 /* ── Authentication ── */
 async function checkAuth() {
