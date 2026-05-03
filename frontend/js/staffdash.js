@@ -1403,8 +1403,6 @@ async function loadProfilePage() {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         `;
