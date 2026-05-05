@@ -4691,29 +4691,10 @@ function initUserLocator() {
     try {
         _locatorMap = new maplibregl.Map({
             container: 'userLocatorMap',
-            style: {
-                version: 8,
-                sources: {
-                    'esri-world': {
-                        type: 'raster',
-                        tiles: [
-                            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}'
-                        ],
-                        tileSize: 256,
-                        attribution: '© Esri'
-                    }
-                },
-                layers: [{
-                    id: 'esri-world-layer',
-                    type: 'raster',
-                    source: 'esri-world',
-                    minzoom: 0,
-                    maxzoom: 18
-                }]
-            },
-            center: [78.9629, 20.5937], // India center
-            zoom: 4.5,
-            pitch: 45,
+            style: 'https://tiles.openfreemap.org/styles/liberty',
+            center: [79.0882, 21.1458], // Central India/Nagpur
+            zoom: 12,
+            pitch: 50,
             bearing: -15,
             maxZoom: 18,
             minZoom: 2,
@@ -4721,7 +4702,7 @@ function initUserLocator() {
         });
 
         // Navigation controls
-        _locatorMap.addControl(new maplibregl.NavigationControl({ showCompass: true, showZoom: true }), 'top-right');
+        _locatorMap.addControl(new maplibregl.NavigationControl({ showCompass: true, showZoom: true, visualizePitch: true }), 'top-right');
         _locatorMap.addControl(new maplibregl.FullscreenControl(), 'top-right');
 
         // Geolocation control
@@ -4734,6 +4715,36 @@ function initUserLocator() {
 
         _locatorMap.on('load', () => {
             _locatorInitialized = true;
+            
+            // Add 3D Buildings
+            try {
+                const layers = _locatorMap.getStyle().layers;
+                let labelLayerId;
+                for (let i = 0; i < layers.length; i++) {
+                    if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+                        labelLayerId = layers[i].id;
+                        break;
+                    }
+                }
+
+                _locatorMap.addLayer({
+                    'id': '3d-buildings',
+                    'source': 'openmaptiles',
+                    'source-layer': 'building',
+                    'filter': ['==', 'extrude', 'true'],
+                    'type': 'fill-extrusion',
+                    'minzoom': 15,
+                    'paint': {
+                        'fill-extrusion-color': '#aaa',
+                        'fill-extrusion-height': ['coalesce', ['get', 'render_height'], ['get', 'height'], 10],
+                        'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], ['get', 'min_height'], 0],
+                        'fill-extrusion-opacity': 0.6
+                    }
+                }, labelLayerId);
+            } catch(e) {
+                console.error('Failed to add 3D buildings:', e);
+            }
+            
             fetchLocations();
         });
 

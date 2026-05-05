@@ -4378,19 +4378,21 @@ async function initMobileLocator(forceRefresh = false) {
 
                 mobileLocatorMapInstance.addLayer({
                     'id': '3d-buildings',
-                    'source': 'composite',
+                    'source': 'openmaptiles',
                     'source-layer': 'building',
                     'filter': ['==', 'extrude', 'true'],
                     'type': 'fill-extrusion',
                     'minzoom': 15,
                     'paint': {
                         'fill-extrusion-color': '#aaa',
-                        'fill-extrusion-height': ['get', 'height'],
-                        'fill-extrusion-base': ['get', 'min_height'],
+                        'fill-extrusion-height': ['coalesce', ['get', 'render_height'], ['get', 'height'], 10],
+                        'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], ['get', 'min_height'], 0],
                         'fill-extrusion-opacity': 0.6
                     }
                 }, labelLayerId);
-            } catch(e) {}
+            } catch(e) {
+                console.error('Failed to add 3D buildings:', e);
+            }
 
             // Populate Markers
             if (Array.isArray(locationsResult) && locationsResult.length > 0) {
