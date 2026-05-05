@@ -301,9 +301,15 @@ class FaceAuthManager {
     async detectHumanFace() {
         this.consecutiveDetections = 0;
         const startTime = Date.now();
-        const timeoutMs = 20000;
+        // Login mode: 10s timeout, others: 20s
+        const isLoginMode = (this.currentMode === 'login');
+        const timeoutMs = isLoginMode ? 10000 : 20000;
+        // Login skips blink for speed (~3s); register/KYC/attendance require blink for security
+        const requireBlink = !isLoginMode;
+        // Smaller input for login speed, larger for registration accuracy
+        const inputSize = isLoginMode ? 160 : 224;
 
-        this.updateStatus('scanning', 'Face Detection Active', 'Looking for a human face...');
+        this.updateStatus('scanning', 'Face Detection Active', isLoginMode ? 'Quick scan in progress...' : 'Looking for a human face...');
         this.updateProgress(0);
 
         return new Promise(resolve => {
@@ -322,21 +328,21 @@ class FaceAuthManager {
                 try {
                     const detection = await faceapi
                         .detectSingleFace(this.video, new faceapi.TinyFaceDetectorOptions({
-                            inputSize: 224, // Optimized for reliability (was 160)
+                            inputSize: inputSize,
                             scoreThreshold: 0.4
                         }))
                         .withFaceLandmarks()
                         .withFaceDescriptor();
 
                     if (detection && this.isRealHumanFace(detection)) {
-                        if (!this.blinkState.hasBlinked) {
+                        if (requireBlink && !this.blinkState.hasBlinked) {
                             this.updateStatus('scanning', 'Liveness Check', 'Please blink to verify you are human (Security feature)');
                             this.consecutiveDetections = 0;
                         } else {
                             this.consecutiveDetections++;
                             this.updateStatus('human',
                                 `Verifying... ${this.consecutiveDetections}/${this.REQUIRED_CONSECUTIVE}`,
-                                'Human face verified. Hold still.');
+                                isLoginMode ? 'Authenticating...' : 'Human face verified. Hold still.');
                             if (this.consecutiveDetections >= this.REQUIRED_CONSECUTIVE) {
                                 this.updateProgress(100);
                                 resolve(detection);
@@ -354,8 +360,8 @@ class FaceAuthManager {
                 } catch (e) {
                     console.error('Detection error:', e);
                 }
-                if (window.requestAnimationFrame) requestAnimationFrame(loop);
-                else setTimeout(loop, 200);
+                // Throttle detection: 250ms intervals to save CPU (especially on mobile)
+                setTimeout(loop, 250);
             };
             loop();
         });
@@ -396,6 +402,7 @@ class FaceAuthManager {
     async registerFace(descriptor) {
         try {
             this.updateStatus('loading', 'Saving...', 'Registering face authentication');
+            console.log('[FaceAuth] Sending face descriptor to database (' + descriptor.length + ' dimensions)');
             const response = await fetch(API + '/face/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -404,13 +411,16 @@ class FaceAuthManager {
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Registration failed');
+            console.log('[FaceAuth] ✓ Face descriptor saved to database successfully');
             this.updateStatus('success', 'Registered!', 'Face authentication is now active');
             setTimeout(() => {
                 this.closeModal();
-                if (typeof showToast === 'function') showToast('Face authentication registered successfully!', 'success');
+                if (typeof showMobileToast === 'function') showMobileToast('Face authentication registered successfully!', 'success');
+                else if (typeof showToast === 'function') showToast('Face authentication registered successfully!', 'success');
                 if (typeof loadFaceAuthStatus === 'function') loadFaceAuthStatus();
-            }, 2000);
+            }, 1500);
         } catch (error) {
+            console.error('[FaceAuth] ✗ Failed to save face to database:', error);
             this.updateStatus('error', 'Failed', error.message);
             setTimeout(() => this.closeModal(), 3000);
         }
@@ -436,6 +446,7 @@ class FaceAuthManager {
             const endpoint = role === 'admin' ? '/admin/face-login' : 
                              (role === 'user' || role === 'agri_buyer') ? '/auth/face-login' : 
                              '/staff/face-login';
+            console.log(`[FaceAuth] Verifying face against database (role=${role}, endpoint=${endpoint})`);
             const response = await fetch(`${API}${endpoint}`, {
                 method: 'POST', credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -443,6 +454,7 @@ class FaceAuthManager {
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Verification failed');
+            console.log('[FaceAuth] ✓ Face matched in database! User:', data.name);
             this.updateStatus('success', 'Authenticated!', 'Redirecting to your dashboard...');
             sessionStorage.setItem('userRole', data.role);
             sessionStorage.setItem('userName', data.name);
@@ -452,8 +464,22 @@ class FaceAuthManager {
             } else if (data.role === 'admin' && data.admin) {
                 localStorage.setItem('admin', JSON.stringify(data.admin));
                 sessionStorage.setItem('userId', data.admin.id);
-            } else if (data.user) {
+            } else if (data.role === 'user' && data.user) {
+                // Cache user info for mobile welcome-back hydration
                 localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('bank_mobile_user_info', JSON.stringify({
+                    username: data.user.username, name: data.user.name,
+                    id: data.user.id, role: 'user'
+                }));
+                if (data.user.email || data.user.profile_image) {
+                    localStorage.setItem('bank_mobile_user_cache', JSON.stringify({
+                        profile_image_url: data.user.profile_image ? `${API}/user/profile-image/${data.user.profile_image}` : null,
+                        name: data.user.name, email: data.user.email,
+                        username: data.user.username
+                    }));
+                }
+            } else if (data.buyer) {
+                localStorage.setItem('buyer', JSON.stringify(data.buyer));
             }
             setTimeout(() => {
                 this.closeModal();
@@ -469,8 +495,9 @@ class FaceAuthManager {
                     };
                     window.location.href = dashMap[data.role] || 'userdash.html';
                 }
-            }, 1000);
+            }, 800);
         } catch (error) {
+            console.error('[FaceAuth] ✗ Face login failed:', error.message);
             this.updateStatus('error', 'Auth Failed', error.message);
             setTimeout(() => this.closeModal(), 3000);
         }
