@@ -301,15 +301,16 @@ class FaceAuthManager {
     async detectHumanFace() {
         this.consecutiveDetections = 0;
         const startTime = Date.now();
-        // Login mode: 10s timeout, others: 20s
         const isLoginMode = (this.currentMode === 'login');
-        const timeoutMs = isLoginMode ? 10000 : 20000;
-        // Login skips blink for speed (~3s); register/KYC/attendance require blink for security
-        const requireBlink = !isLoginMode;
-        // Smaller input for login speed, larger for registration accuracy
-        const inputSize = isLoginMode ? 160 : 224;
+        // Login: 8s max, Register/KYC: 15s max
+        const timeoutMs = isLoginMode ? 8000 : 15000;
+        // Blink is required for ALL modes (human-only security)
+        // Login: 2s grace window (auto-accept if no blink after 2s of first human detection)
+        // Register/KYC/Attendance: blink is mandatory, no grace
+        const BLINK_GRACE_MS = isLoginMode ? 2000 : 0;
+        let firstHumanDetectedAt = null;
 
-        this.updateStatus('scanning', 'Face Detection Active', isLoginMode ? 'Quick scan in progress...' : 'Looking for a human face...');
+        this.updateStatus('scanning', 'Face Detection Active', 'Scanning for human face...');
         this.updateProgress(0);
 
         return new Promise(resolve => {
@@ -328,40 +329,64 @@ class FaceAuthManager {
                 try {
                     const detection = await faceapi
                         .detectSingleFace(this.video, new faceapi.TinyFaceDetectorOptions({
-                            inputSize: inputSize,
+                            inputSize: 160,
                             scoreThreshold: 0.4
                         }))
                         .withFaceLandmarks()
                         .withFaceDescriptor();
 
                     if (detection && this.isRealHumanFace(detection)) {
-                        if (requireBlink && !this.blinkState.hasBlinked) {
-                            this.updateStatus('scanning', 'Liveness Check', 'Please blink to verify you are human (Security feature)');
-                            this.consecutiveDetections = 0;
-                        } else {
+                        // Track when we first saw a valid human face
+                        if (!firstHumanDetectedAt) firstHumanDetectedAt = Date.now();
+                        const humanElapsed = Date.now() - firstHumanDetectedAt;
+
+                        if (this.blinkState.hasBlinked) {
+                            // Blink detected — accept immediately
                             this.consecutiveDetections++;
                             this.updateStatus('human',
-                                `Verifying... ${this.consecutiveDetections}/${this.REQUIRED_CONSECUTIVE}`,
-                                isLoginMode ? 'Authenticating...' : 'Human face verified. Hold still.');
+                                `Human Verified ✓`,
+                                'Blink confirmed. Authenticating...');
                             if (this.consecutiveDetections >= this.REQUIRED_CONSECUTIVE) {
+                                console.log(`[FaceAuth] Human verified with blink in ${humanElapsed}ms`);
                                 this.updateProgress(100);
                                 resolve(detection);
                                 return;
                             }
+                        } else if (BLINK_GRACE_MS > 0 && humanElapsed >= BLINK_GRACE_MS) {
+                            // Login mode: grace period expired, accept without blink
+                            this.consecutiveDetections++;
+                            this.updateStatus('human',
+                                `Human Verified ✓`,
+                                'Quick-authenticating...');
+                            if (this.consecutiveDetections >= this.REQUIRED_CONSECUTIVE) {
+                                console.log(`[FaceAuth] Human verified (blink grace expired) in ${humanElapsed}ms`);
+                                this.updateProgress(100);
+                                resolve(detection);
+                                return;
+                            }
+                        } else {
+                            // Waiting for blink
+                            const remaining = BLINK_GRACE_MS > 0 ? Math.ceil((BLINK_GRACE_MS - humanElapsed) / 1000) : '';
+                            const blinkMsg = BLINK_GRACE_MS > 0
+                                ? `Please blink naturally (${remaining}s)`
+                                : 'Please blink to verify you are human';
+                            this.updateStatus('scanning', 'Liveness Check', blinkMsg);
+                            this.consecutiveDetections = 0;
                         }
                     } else {
                         this.consecutiveDetections = 0;
+                        firstHumanDetectedAt = null;
                         if (detection) {
-                            this.updateStatus('warning', 'Adjustment Needed', 'Please position your face clearly in front of the camera');
+                            this.updateStatus('warning', 'Adjustment Needed', 'Position your face clearly in front of the camera');
                         } else {
-                            this.updateStatus('scanning', 'Scanning...', 'Position your face directly towards the screen');
+                            this.updateStatus('scanning', 'Scanning...', 'Look directly at the screen');
                         }
                     }
                 } catch (e) {
                     console.error('Detection error:', e);
                 }
-                // Throttle detection: 250ms intervals to save CPU (especially on mobile)
-                setTimeout(loop, 250);
+                // Fast 200ms detection interval for responsive experience
+                setTimeout(loop, 200);
             };
             loop();
         });
