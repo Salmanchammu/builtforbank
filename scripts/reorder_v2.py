@@ -1,8 +1,8 @@
 import re
 import os
 
-base_dir = r"c:\Users\salma\Downloads\smart-bank-v2-FIXED\smartbank_v2"
-coding_md_path = os.path.join(base_dir, "coding_chapter6.md")
+base_dir = r"c:\Users\salma\Downloads\smart-bank-v2-FIXED\smartbank by"
+coding_md_path = os.path.join(base_dir, "docs", "chapters", "coding_chapter6.md")
 report_md_path = os.path.join(base_dir, "docs", "SmartBank_Project_Report.md")
 frontend_js_dir = os.path.join(base_dir, "frontend", "js")
 

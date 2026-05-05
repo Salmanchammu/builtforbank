@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viva CSS Color Trick</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: white;
+        }
+        h1 { color: #0f172a; font-size: 2.2rem; border-bottom: 3px solid #e2e8f0; padding-bottom: 15px; }
+        h2 { color: #800000; font-size: 1.5rem; margin-top: 30px; }
+        p { font-size: 1.1rem; margin-bottom: 15px; }
+        ol { margin-bottom: 20px; }
+        li { font-size: 1.1rem; margin-bottom: 8px; }
+        .code-block {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 15px 0;
+            font-size: 1rem;
+        }
+        .highlight { color: #38bdf8; font-weight: bold; }
+        .quote {
+            background-color: #f0fdf4;
+            border-left: 5px solid #22c55e;
+            padding: 15px;
+            font-style: italic;
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+        .pro-tip {
+            background-color: #fffbeb;
+            border: 1px solid #fde047;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>How to Instantly Change UI Colors in the Viva</h1>
+    <p>If the lecturer asks you to change the color of the buttons or the overall theme during your presentation, DO NOT hunt through thousands of lines of CSS to change individual buttons. Use this exact trick to demonstrate your knowledge of modern CSS architecture.</p>
+
+    <h2>Method 1: The VS Code Approach</h2>
+    <ol>
+        <li>Open your main CSS file: <code>frontend/css/modern-dashboard-fixed-v2.css</code>.</li>
+        <li>Scroll to the very top (around Line 7). You will see the <code>:root</code> block.</li>
+        <li>This block acts as a global "Control Panel" for all colors in your app. Find Line 35:</li>
+    </ol>
+    
+    <div class="code-block">
+:root {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight">--primary-blue: #3b82f6;</span><br>
+}
+    </div>
+
+    <ol start="4">
+        <li>Change the hex code to whatever the lecturer wants (e.g., <code>#10b981</code> for green).</li>
+        <li>Save the file and refresh the browser. <b>All primary buttons, active navigation items, borders, and hover effects will instantly update to the new color!</b></li>
+    </ol>
+
+    <h2>What to say to the Lecturer:</h2>
+    <div class="quote">
+        "Instead of hardcoding colors on every individual button, I engineered a centralized Design System using CSS `:root` Variables (Custom Properties). By changing the variable here at the top of the file, the browser automatically cascades that change down to every single button, icon, and border in the application. This strictly follows the DRY (Don't Repeat Yourself) principle and makes the application incredibly easy to theme."
+    </div>
+
+    <h2>Method 2: The "Live Browser" Approach (Highly Impressive)</h2>
+    <p>If you don't want to open VS Code at all, you can change it live right in front of them!</p>
+    <ol>
+        <li><b>Right-click</b> anywhere on the dashboard background and select <b>"Inspect"</b> (or press <code>Ctrl+Shift+I</code>).</li>
+        <li>In the Elements panel, click on the top <code>&lt;html&gt;</code> tag.</li>
+        <li>Look at the <b>Styles</b> box on the right side. You will see your <code>:root { ... }</code> variables listed with little colored squares next to them.</li>
+        <li>Click the colored square next to <code>--primary-blue</code>. A color picker tool will pop up!</li>
+        <li>Drag the color picker to the new color. The entire website's buttons will change colors <b>live in real-time</b> as you drag your mouse!</li>
+    </ol>
+    
+    <div class="pro-tip">
+        <b>Why this works:</b> This proves to the examiner that you deeply understand how the CSS DOM operates in real-time within the browser engine, and that your codebase is perfectly modular.
+    </div>
+
+</body>
+</html>

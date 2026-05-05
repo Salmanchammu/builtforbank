@@ -30,10 +30,11 @@ def chat_suggestions():
     # Provide helpful suggestions for the user
     suggestions = [
         {'text': 'Check Balance', 'action': 'balance'},
-        {'text': 'Recent Transactions', 'action': 'transactions'},
-        {'text': 'Transfer Money', 'action': 'transfer'},
-        {'text': 'Apply for Loan', 'action': 'loan'},
-        {'text': 'Card Services', 'action': 'card'}
+        {'text': 'Transactions', 'action': 'transactions'},
+        {'text': 'Transfer', 'action': 'transfer'},
+        {'text': 'Loans', 'action': 'loan'},
+        {'text': 'Cards', 'action': 'card'},
+        {'text': 'Support', 'action': 'help'}
     ]
     return jsonify({
         'success': True,

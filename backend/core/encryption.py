@@ -17,7 +17,7 @@ def _get_fernet():
     """Lazily initializes the Fernet cipher using a key derived from SECRET_KEY."""
     global _fernet_instance
     if _fernet_instance is None:
-        secret = os.environ.get('SECRET_KEY', 'smartbank-default-secret-key-2026')
+        secret = os.environ.get('SECRET_KEY', 'default_dev_key_change_in_production_99881122')
         # Derive a 32-byte key from the secret using SHA-256, then base64-encode for Fernet
         key_bytes = hashlib.sha256(secret.encode('utf-8')).digest()
         fernet_key = base64.urlsafe_b64encode(key_bytes)

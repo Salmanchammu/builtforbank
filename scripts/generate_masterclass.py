@@ -1,0 +1,300 @@
+import os
+
+def generate_masterclass():
+    html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank Masterclass - Viva Guide</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #f8fafc;
+        }
+        .page {
+            background: white;
+            padding: 60px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+        h1 { color: #0f172a; font-size: 2.5rem; text-align: center; border-bottom: 3px solid #e2e8f0; padding-bottom: 20px; }
+        h2 { color: #800000; font-size: 1.8rem; margin-top: 40px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        h3 { color: #334155; font-size: 1.4rem; margin-top: 30px; }
+        p { font-size: 1.1rem; margin-bottom: 15px; }
+        ul { margin-bottom: 20px; }
+        li { font-size: 1.1rem; margin-bottom: 8px; }
+        .code-block {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+        .highlight { color: #38bdf8; font-weight: bold; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .concept-box {
+            background-color: #f0fdf4;
+            border-left: 5px solid #22c55e;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .concept-title { font-weight: bold; color: #166534; font-size: 1.2rem; margin-bottom: 10px; }
+        .viva-tip {
+            background-color: #fffbeb;
+            border: 1px solid #fde047;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .page { box-shadow: none; padding: 0; margin: 0; }
+            h2 { page-break-before: always; }
+            .code-block { page-break-inside: avoid; border: 1px solid #ccc; background: #f8f9fa; color: #000; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page">
+        <h1>SmartBank: The Ultimate Viva Masterclass</h1>
+        <p style="text-align: center; font-size: 1.2rem; color: #64748b;">A complete, deep-dive explanation of your architecture, code, and fundamentals.</p>
+        
+        <h2>Chapter 1: The Big Picture (Architecture)</h2>
+        <p>Before diving into code, you must be able to explain <b>how</b> your project works from a bird's-eye view. SmartBank follows a classic <b>Client-Server Architecture</b>.</p>
+        
+        <div class="concept-box">
+            <div class="concept-title">The Three Pillars of SmartBank</div>
+            <ul>
+                <li><b>The Frontend (Client):</b> Written in pure HTML, CSS, and JavaScript. This runs directly inside the user's browser (Chrome/Edge). Its only job is to display UI and send requests to the backend.</li>
+                <li><b>The Backend (Server):</b> Written in Python using the Flask framework. This runs on the server (e.g., Render). It receives requests from the frontend, enforces security rules, and talks to the database.</li>
+                <li><b>The Database:</b> SQLite (for local) or PostgreSQL (for production). It permanently stores users, accounts, and transactions on the server's hard drive.</li>
+            </ul>
+        </div>
+
+        <h3>How they talk (The API)</h3>
+        <p>Your frontend and backend talk to each other using an <b>API (Application Programming Interface)</b> via the HTTP protocol.</p>
+        <ul>
+            <li>Frontend asks: <i>"Hey Backend, here is a username and password. Are they correct?"</i> (This is an HTTP POST request to `/api/auth/login`).</li>
+            <li>Backend checks the Database.</li>
+            <li>Backend replies: <i>"Yes, here is a success message and a session cookie."</i> (This is an HTTP JSON Response).</li>
+        </ul>
+        <div class="viva-tip"><b>Viva Tip:</b> If the examiner asks "Why use Flask and not Django?", reply: "Flask is a micro-framework. It gave me the absolute control to build exactly what I wanted from scratch without unnecessary bloat, allowing me to fully understand the flow of data."</div>
+    </div>
+
+    <div class="page">
+        <h2>Chapter 2: The Backend & Database (Python + SQL)</h2>
+        <p>Let's look at how the Python code actually works.</p>
+
+        <h3>1. The Entry Point: main.py</h3>
+        <p>This file is the beating heart of your server.</p>
+        <div class="code-block">
+from flask import Flask, request, jsonify<br>
+from blueprints.auth_routes import auth_bp<br>
+<br>
+<span class="comment"># 1. We create the Flask application object</span><br>
+app = Flask(__name__)<br>
+<br>
+<span class="comment"># 2. We set a secret key for security (cookies/sessions)</span><br>
+app.secret_key = 'super_secret_key'<br>
+<br>
+<span class="comment"># 3. We register Blueprints (Modules)</span><br>
+app.register_blueprint(auth_bp, url_prefix='/api/auth')<br>
+<br>
+<span class="comment"># 4. We start the server</span><br>
+if __name__ == '__main__':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;app.run(debug=True, port=5000)
+        </div>
+        <p><b>What is a Blueprint?</b> Imagine writing 10,000 lines of code in `main.py`. It would be a nightmare. Flask Blueprints allow you to split your app into separate files (auth, users, staff, transactions) and snap them together like Lego blocks in `main.py`.</p>
+
+        <h3>2. Handling a Request (auth_routes.py)</h3>
+        <p>Here is what happens when a user tries to log in.</p>
+        <div class="code-block">
+<span class="highlight">@auth_bp.route</span>('/login', methods=['POST'])<br>
+def login():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># 1. Get the JSON data sent by the Frontend</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;data = request.json<br>
+&nbsp;&nbsp;&nbsp;&nbsp;username = data.get('username')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;password = data.get('password')<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># 2. Connect to the Database</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;db = get_db()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;cursor = db.cursor()<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># 3. Execute an SQL Query to find the user</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;cursor.execute("SELECT * FROM users WHERE username = ?", (username,))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user = cursor.fetchone()<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># 4. Check if user exists and password matches</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;if user and check_password_hash(user['password'], password):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;session['user_id'] = user['id'] <span class="comment"># Create a login session</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"success": True, "message": "Logged in!"})<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return jsonify({"error": "Invalid credentials"}), 401
+        </div>
+
+        <div class="concept-box">
+            <div class="concept-title">Key Python Concepts Used Here:</div>
+            <ul>
+                <li><b>Decorators (`@auth_bp.route`):</b> This tells Flask, "Whenever a user visits `/login` via a POST request, please run the `login()` function directly below this."</li>
+                <li><b>Dictionaries:</b> `data` is a Python Dictionary. We use `.get('username')` to safely extract values without crashing if the key doesn't exist.</li>
+                <li><b>Tuples in SQL:</b> Notice the `(username,)`? We pass SQL variables as Tuples. This prevents <b>SQL Injection</b> attacks (where hackers try to delete your database via the login box).</li>
+                <li><b>Hashing:</b> We never save plain text passwords in the database. We hash them. `check_password_hash` compares the hash to what the user typed.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="page">
+        <h2>Chapter 3: The Database (SQL & Transactions)</h2>
+        <p>The database is structured using Relational Tables. The most important concept here is <b>ACID Properties</b>.</p>
+        
+        <h3>The Money Transfer Example</h3>
+        <p>If User A sends ₹500 to User B, two things must happen in the database:</p>
+        <ol>
+            <li>Deduct ₹500 from Account A.</li>
+            <li>Add ₹500 to Account B.</li>
+        </ol>
+        <p>What if the server crashes exactly between Step 1 and Step 2? The money vanishes! To prevent this, we use <b>Database Transactions (Commit and Rollback)</b>.</p>
+        
+        <div class="code-block">
+try:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Deduct from sender</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;cursor.execute("UPDATE accounts SET balance = balance - 500 WHERE id = 1")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Add to receiver</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;cursor.execute("UPDATE accounts SET balance = balance + 500 WHERE id = 2")<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># If both succeed, COMMIT (save) permanently</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;db.commit()<br>
+except Exception as e:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># If ANY error happens, ROLLBACK (cancel everything)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;db.rollback()
+        </div>
+        <p>This guarantees <b>Atomicity</b> (the 'A' in ACID)—meaning the transaction is 'all or nothing'.</p>
+
+        <h3>Primary vs Foreign Keys</h3>
+        <p>In `schema.sql`, the `users` table has an `id` column. That is the <b>Primary Key</b> (unique identifier for the user). The `transactions` table has a `user_id` column. That is the <b>Foreign Key</b> (it points back to the user's Primary Key so we know who made the transaction).</p>
+    </div>
+
+    <div class="page">
+        <h2>Chapter 4: The Frontend (HTML, CSS, JS)</h2>
+        <p>Now let's look at the browser side. How does the frontend actually talk to that Python code?</p>
+
+        <h3>1. The JavaScript (Fetch API & Async/Await)</h3>
+        <p>In `user-auth.js`, we have functions that trigger when the user clicks "Login".</p>
+        <div class="code-block">
+<span class="highlight">async</span> function handleLogin(event) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;event.preventDefault(); <span class="comment">// Stop the page from reloading</span><br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 1. Grab what the user typed in the HTML boxes</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;const username = document.getElementById('loginUsername').value;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const password = document.getElementById('loginPassword').value;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 2. Send the data to the Python Backend</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const response = <span class="highlight">await</span> fetch('/api/auth/login', {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method: 'POST',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;headers: { 'Content-Type': 'application/json' },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;body: JSON.stringify({ username: username, password: password })<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 3. Wait for Python to reply</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const data = <span class="highlight">await</span> response.json();<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (data.success) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;window.location.href = 'userdash.html'; <span class="comment">// Redirect!</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alert(data.error);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;} catch (error) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.error("Network failed", error);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}
+        </div>
+
+        <div class="concept-box">
+            <div class="concept-title">Why Async/Await?</div>
+            <p>JavaScript runs on a single thread. If you send a request over the internet to a server, it takes a few milliseconds. If JS waits blindly, the entire browser freezes (you couldn't even click other buttons). <b>async/await</b> tells JS: "Send the request, go handle other things on the website, and come exactly back to this line of code when the server replies."</p>
+        </div>
+
+        <h3>2. DOM Manipulation</h3>
+        <p>The <b>Document Object Model (DOM)</b> is how JS interacts with HTML. When you write `document.getElementById('balanceDisplay').innerHTML = "₹500";`, you are directly modifying the HTML tree in real-time, causing the screen to instantly update without reloading the page. This is what makes SmartBank feel like an "app" rather than an old website.</p>
+    </div>
+
+    <div class="page">
+        <h2>Chapter 5: HTML & CSS Deep Dive</h2>
+        
+        <h3>HTML: Semantic Tags</h3>
+        <p>In `staffdash.html`, you didn't just use `&lt;div&gt;` for everything. You used `&lt;header&gt;`, `&lt;nav&gt;`, `&lt;main&gt;`, and `&lt;aside&gt;`.</p>
+        <ul>
+            <li><b>Why?</b> This is called <b>Semantic HTML</b>. It tells the browser exactly what the content is. Screen readers for blind users rely on this to navigate the page correctly. Search engines (Google) use this to understand the webpage structure.</li>
+        </ul>
+
+        <h3>CSS: The Box Model</h3>
+        <p>Every single element on your website is a rectangular box. The Box Model consists of:</p>
+        <ul>
+            <li><b>Content:</b> The actual text or image.</li>
+            <li><b>Padding:</b> The invisible space <i>inside</i> the box (between the text and the border).</li>
+            <li><b>Border:</b> The line around the box.</li>
+            <li><b>Margin:</b> The invisible space <i>outside</i> the box (pushing other boxes away).</li>
+        </ul>
+
+        <h3>CSS: Flexbox vs Grid</h3>
+        <p>You used both heavily in `modern-dashboard.css`.</p>
+        <ul>
+            <li><b>Flexbox (`display: flex`):</b> Used for 1-Dimensional layouts. Like the Top Navigation bar. You want items lined up in a row, evenly spaced (`justify-content: space-between`), and vertically centered (`align-items: center`).</li>
+            <li><b>CSS Grid (`display: grid`):</b> Used for 2-Dimensional layouts. Like the Dashboard Cards. You want a grid that is 2 columns wide on desktops, but automatically shrinks to 1 column on mobile phones (`grid-template-columns: 1fr 1fr`).</li>
+        </ul>
+
+        <div class="viva-tip"><b>Viva Tip:</b> When asked how your site is Mobile Responsive, say: "I used CSS Media Queries (`@media (max-width: 768px)`) to detect small screens and automatically transform the CSS Grid from multiple columns into a single vertical column for easy scrolling."</div>
+    </div>
+
+    <div class="page">
+        <h2>Final Chapter: How to Speak Like a Senior Developer in the Viva</h2>
+        <p>Examiners look for confidence and specific vocabulary. Use these phrases:</p>
+        
+        <ul>
+            <li><b>Instead of saying:</b> "I made a python file to handle logins."</li>
+            <li><b>Say:</b> "I implemented an authentication API endpoint in Flask using Blueprints for modularity."</li>
+        </ul>
+
+        <ul>
+            <li><b>Instead of saying:</b> "JS changes the text on the screen."</li>
+            <li><b>Say:</b> "The frontend JavaScript asynchronously fetches JSON data from the backend and dynamically updates the DOM."</li>
+        </ul>
+
+        <ul>
+            <li><b>Instead of saying:</b> "I saved passwords in the database."</li>
+            <li><b>Say:</b> "Passwords are securely hashed using cryptographic salts before being persisted to the SQL database, ensuring zero-knowledge security."</li>
+        </ul>
+
+        <ul>
+            <li><b>Instead of saying:</b> "The design changes on phones."</li>
+            <li><b>Say:</b> "I implemented a fully responsive, mobile-first UI architecture using CSS Flexbox, Grid, and Media Queries."</li>
+        </ul>
+        
+        <p style="text-align: center; margin-top: 50px; color: #800000; font-weight: bold; font-size: 1.5rem;">Good luck! You built an incredible system. Just breathe, and explain it like you built it.</p>
+    </div>
+
+</body>
+</html>
+"""
+    
+    with open("SmartBank_Masterclass_Viva_Guide.html", "w", encoding="utf-8") as f:
+        f.write(html_content)
+    
+    print("Successfully generated SmartBank_Masterclass_Viva_Guide.html")
+
+if __name__ == '__main__':
+    generate_masterclass()

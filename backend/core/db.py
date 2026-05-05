@@ -583,14 +583,47 @@ def migrate_db():
             except Exception as e:
                 logger.error(f"Failed to add {col} to {table}: {e}")
 
-    # 3. Seed system_finances if empty
+    # 3. Seed system_finances
     try:
-        count = db.execute("SELECT COUNT(*) FROM system_finances").fetchone()[0]
-        if count == 0:
+        fund_exists = db.execute("SELECT 1 FROM system_finances WHERE fund_name = 'Loan Liquidity Fund'").fetchone()
+        if not fund_exists:
             logger.info("Seeding system_finances with default Loan Liquidity Fund")
             db.execute("INSERT INTO system_finances (fund_name, balance) VALUES (?, ?)", ("Loan Liquidity Fund", 1000000.00))
-            db.commit()
+            
+        main_bank_exists = db.execute("SELECT 1 FROM system_finances WHERE fund_name = 'System Liquidity'").fetchone()
+        if not main_bank_exists:
+            logger.info("Seeding system_finances with System Liquidity")
+            db.execute("INSERT INTO system_finances (fund_name, balance) VALUES (?, ?)", ("System Liquidity", 50000000.00))
+            
+        db.commit()
     except Exception as e:
         logger.error(f"Failed to seed system_finances: {e}")
+
+    # 4. Seed bank_locations with 10 Indian branches if empty
+    try:
+        loc_count = db.execute("SELECT COUNT(*) FROM bank_locations").fetchone()[0]
+        if loc_count == 0:
+            logger.info("Seeding bank_locations with 10 Indian branches")
+            branches = [
+                ("SmartBank HQ - Mumbai", "branch", "Bandra Kurla Complex, Bandra East", "Mumbai", 19.0596, 72.8656),
+                ("SmartBank - Delhi", "branch", "Connaught Place, Central Delhi", "New Delhi", 28.6315, 77.2167),
+                ("SmartBank - Bangalore", "branch", "MG Road, Bangalore CBD", "Bangalore", 12.9752, 77.6066),
+                ("SmartBank - Chennai", "branch", "Anna Salai, T. Nagar", "Chennai", 13.0418, 80.2341),
+                ("SmartBank - Hyderabad", "branch", "HITEC City, Madhapur", "Hyderabad", 17.4435, 78.3772),
+                ("SmartBank - Kolkata", "branch", "Park Street, Central Kolkata", "Kolkata", 22.5513, 88.3517),
+                ("SmartBank - Pune", "branch", "FC Road, Shivajinagar", "Pune", 18.5288, 73.8463),
+                ("SmartBank - Ahmedabad", "branch", "CG Road, Navrangpura", "Ahmedabad", 23.0300, 72.5670),
+                ("SmartBank - Jaipur", "branch", "MI Road, C-Scheme", "Jaipur", 26.9124, 75.7873),
+                ("SmartBank - Kochi", "branch", "MG Road, Ernakulam", "Kochi", 9.9816, 76.2999),
+            ]
+            for name, btype, address, city, lat, lng in branches:
+                db.execute(
+                    "INSERT INTO bank_locations (name, type, address, city, lat, lng, status) VALUES (?, ?, ?, ?, ?, ?, 'active')",
+                    (name, btype, address, city, lat, lng)
+                )
+            db.commit()
+            logger.info("Seeded 10 SmartBank branches across India")
+    except Exception as e:
+        logger.error(f"Failed to seed bank_locations: {e}")
 
     logger.info("Database migrations complete.")

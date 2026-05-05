@@ -344,6 +344,7 @@ function updateDashboardStats(stats, loanStats = null) {
     const statActiveStaff = document.getElementById('statActiveStaff');
     const statTotalDeposits = document.getElementById('statTotalDeposits');
     const statTodayTransactions = document.getElementById('statTodayTransactions');
+    const statMainBankLiquidity = document.getElementById('statMainBankLiquidity');
 
     // Trend Elements
     const statUsersTrend = document.getElementById('statUsersTrend');
@@ -354,6 +355,7 @@ function updateDashboardStats(stats, loanStats = null) {
     if (statTotalUsers) statTotalUsers.textContent = stats.total_users || stats.totalUsers || 0;
     if (statActiveStaff) statActiveStaff.textContent = stats.active_staff || stats.activeStaff || 0;
     if (statTotalDeposits) statTotalDeposits.textContent = `₹${(stats.total_deposits || stats.totalDeposits || 0).toLocaleString('en-IN')}`;
+    if (statMainBankLiquidity) statMainBankLiquidity.textContent = `₹${(stats.mainBankLiquidity || 0).toLocaleString('en-IN')}`;
     if (statTodayTransactions) statTodayTransactions.textContent = stats.todaysTransactions || stats.todayTransactions || 0;
 
     // Formatting for Fund balance (10L style)

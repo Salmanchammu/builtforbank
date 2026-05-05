@@ -15,6 +15,33 @@ from core.constants import PROFILE_PICS_FOLDER, allowed_file
 user_bp = Blueprint('user', __name__)
 logger = logging.getLogger('smart_bank.user')
 
+# Rate limiting for checkout endpoints (prevents card enumeration & OTP brute-force)
+_checkout_attempts = {}
+MAX_CHECKOUT_ATTEMPTS = 5
+CHECKOUT_LOCKOUT_MINUTES = 15
+
+def _check_checkout_rate(ip):
+    """Returns True if IP is rate-limited."""
+    from datetime import timedelta
+    if ip in _checkout_attempts:
+        attempts, first_attempt = _checkout_attempts[ip]
+        if datetime.now() - first_attempt > timedelta(minutes=CHECKOUT_LOCKOUT_MINUTES):
+            del _checkout_attempts[ip]
+            return False
+        return attempts >= MAX_CHECKOUT_ATTEMPTS
+    return False
+
+def _record_checkout_attempt(ip):
+    from datetime import timedelta
+    if ip in _checkout_attempts:
+        attempts, first_attempt = _checkout_attempts[ip]
+        if datetime.now() - first_attempt > timedelta(minutes=CHECKOUT_LOCKOUT_MINUTES):
+            _checkout_attempts[ip] = (1, datetime.now())
+        else:
+            _checkout_attempts[ip] = (attempts + 1, first_attempt)
+    else:
+        _checkout_attempts[ip] = (1, datetime.now())
+
 import threading
 from config.sms_config import send_sms
 
@@ -74,10 +101,11 @@ def get_user_dashboard():
             total_balance = 0.0
         
         user_dict = dict(user)
-        # Ensure password hash is never sent to frontend
-        user_dict.pop('password', None)
-        user_dict.pop('upi_pin', None)
-        user_dict.pop('mobile_passcode', None)
+        # Security: Strip ALL sensitive fields before sending to frontend
+        sensitive_fields = ['password', 'upi_pin', 'mobile_passcode', 'otp', 'phone_otp', 
+                           'otp_expiry', 'face_descriptor', 'reset_token', 'reset_token_expiry']
+        for field in sensitive_fields:
+            user_dict.pop(field, None)
         
         profile_img = user_dict.get('profile_image')
         l_login = user_dict.get('last_login')
@@ -97,7 +125,7 @@ def get_user_dashboard():
         })
     except Exception as e:
         logger.error(f"FATAL Dashboard Error: {e}", exc_info=True)
-        return jsonify({'error': 'Internal Server Error', 'details': str(e)}), 500
+        return jsonify({'error': 'Internal Server Error'}), 500
 
 @user_bp.route('/transactions', methods=['GET'])
 @login_required
@@ -199,6 +227,13 @@ def update_user_profile():
 @user_bp.route('/checkout/send-otp', methods=['POST'])
 def checkout_send_otp():
     """Step 1: Validate card details + PIN, then send OTP to card owner's email."""
+    # Rate limiting
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if client_ip and ',' in client_ip:
+        client_ip = client_ip.split(',')[0].strip()
+    if _check_checkout_rate(client_ip):
+        return jsonify({'error': 'Too many payment attempts. Please try again later.'}), 429
+    
     db = get_db()
     data = request.json
 
@@ -224,6 +259,7 @@ def checkout_send_otp():
         card = db.execute('SELECT * FROM cards WHERE card_number = ? AND expiry_date LIKE ? AND cvv = ?',
                          (card_number, expiry_date_like, str(cvv))).fetchone()
         if not card:
+            _record_checkout_attempt(client_ip)
             return jsonify({'error': 'Invalid card details'}), 400
         if card['status'] != 'active':
             return jsonify({'error': 'Card is blocked or inactive'}), 400
@@ -308,6 +344,7 @@ def checkout_verify_otp():
         # Verify OTP
         user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
         if not user or str(user['otp']) != otp:
+            _record_checkout_attempt(request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip() if request.headers.get('X-Forwarded-For') else request.remote_addr)
             return jsonify({'error': 'Invalid OTP'}), 400
 
         try:
@@ -356,6 +393,9 @@ def checkout_verify_otp():
             INSERT INTO transactions (account_id, type, amount, description, mode, status)
             VALUES (?, 'debit', ?, ?, 'Card', 'completed')
         ''', (card['account_id'], amount, f"POS/Online: {merchant}"))
+
+        # Deduct from System Liquidity (money leaves the bank)
+        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "System Liquidity"', (amount,))
 
         db.execute('INSERT INTO user_activity_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
                   (card['user_id'], 'Card Payment (OTP Verified)', f'Paid {amount} INR to {merchant} via Card **{card_number[-4:]}', request.remote_addr))
@@ -604,6 +644,9 @@ def upi_pay():
                 db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (dest_bal_after, dest['id']))
                 db.execute('INSERT INTO transactions (account_id, type, amount, description, reference_number, balance_after, mode) VALUES (?, "credit", ?, ?, ?, ?, "UPI")',
                           (dest['id'], inr_amount, f"UPI from {user['name']}", f"{ref}CR", dest_bal_after, "UPI"))
+        else:
+            # External UPI Payment: Deduct from System Liquidity
+            db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "System Liquidity"', (inr_amount,))
         
         db.commit()
         return jsonify({'success': True, 'message': 'Payment successful', 'reference': ref})

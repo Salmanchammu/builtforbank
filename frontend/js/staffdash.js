@@ -384,6 +384,7 @@ function updateDashboardStats(stats) {
     const statAccounts = document.getElementById('statAccounts');
     const statLoans = document.getElementById('statLoans');
     const statBalance = document.getElementById('statBalance');
+    const statMainBankLiquidity = document.getElementById('statMainBankLiquidity');
 
     const statCustomersTrend = document.getElementById('statCustomersTrend');
     const statAccountsTrend = document.getElementById('statAccountsTrend');
@@ -395,6 +396,7 @@ function updateDashboardStats(stats) {
     if (statAccounts) statAccounts.textContent = stats.total_accounts || 0;
     if (statLoans) statLoans.textContent = stats.pending_loans || 0;
     if (statBalance) statBalance.textContent = `₹${(stats.total_balance || 0).toLocaleString('en-IN')}`;
+    if (statMainBankLiquidity) statMainBankLiquidity.textContent = `₹${(stats.main_bank_liquidity || 0).toLocaleString('en-IN')}`;
 
     // Update Trends
     if (statCustomersTrend) {

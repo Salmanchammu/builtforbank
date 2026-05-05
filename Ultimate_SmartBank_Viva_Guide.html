@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank Full Viva Masterclass</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: #f8fafc;
+        }
+        .chapter {
+            background: white;
+            padding: 60px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+        h1 { color: #0f172a; font-size: 2.5rem; text-align: center; border-bottom: 3px solid #e2e8f0; padding-bottom: 20px; }
+        h2 { color: #800000; font-size: 1.8rem; margin-top: 40px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        h3 { color: #334155; font-size: 1.4rem; margin-top: 30px; }
+        p { font-size: 1.1rem; margin-bottom: 15px; }
+        ul, ol { margin-bottom: 20px; }
+        li { font-size: 1.1rem; margin-bottom: 8px; }
+        .code-block {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-size: 0.95rem;
+            white-space: pre-wrap; 
+            word-wrap: break-word;
+        }
+        .highlight { color: #38bdf8; font-weight: bold; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .concept-box {
+            background-color: #f0fdf4;
+            border-left: 5px solid #22c55e;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .viva-tip {
+            background-color: #fffbeb;
+            border: 1px solid #fde047;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        .page-break { page-break-after: always; }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .chapter { box-shadow: none; padding: 0; margin: 0; }
+            
+            /* Prevent slicing issues */
+            h1, h2, h3 { page-break-after: avoid; page-break-inside: avoid; }
+            p, li { page-break-inside: avoid; orphans: 3; widows: 3; }
+            .code-block { page-break-inside: avoid; border: 1px solid #ccc; background: #f8f9fa; color: #000; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chapter">
+        <h1>SmartBank: The Definitive Viva Guide</h1>
+        <p style="text-align: center; font-size: 1.2rem; color: #64748b;">An exhaustive, conversational guide to Web Architecture, Database Integrity, and Full-Stack Implementation.</p>
+    </div>
+    <div class="chapter">
+    <h1>Chapter 1: The Foundations of the Web (HTML & CSS)</h1>
+    
+    <h2>1.1 Introduction to the Web: Clients and Servers</h2>
+    <p>Before we look at a single line of code, you must understand how the internet actually works. When you open a browser like Google Chrome or Microsoft Edge, your computer acts as a <strong>Client</strong>. When you type in a URL (like <code>www.smartbank.com</code>), your browser doesn't magically know what to display. Instead, it sends an <strong>HTTP Request</strong> over the internet.</p>
+    
+    <p>This request travels through miles of fiber optic cables until it reaches another computer, usually sitting in a massive, air-conditioned warehouse. This computer is called a <strong>Server</strong>. Why? Because its only job in life is to <em>serve</em> data to clients. In the SmartBank project, your Python code (using Flask) is the Server, and the browser running your HTML/JS is the Client.</p>
+    
+    <p>The Server receives the request, processes it, and sends back an <strong>HTTP Response</strong>. This response contains three main ingredients: HTML (the structure), CSS (the paint), and JavaScript (the muscle). Let's dive into the first two.</p>
+
+    <h2>1.2 HTML: The Skeleton of the Web</h2>
+    <p>HTML stands for <strong>HyperText Markup Language</strong>. Notice that it is <em>not</em> a programming language. You cannot write logic in HTML. You cannot say, "If the user is logged in, show this button." HTML is purely a markup language used to define the structure of a document.</p>
+    
+    <h3>Tags and Elements</h3>
+    <p>HTML is written using <strong>tags</strong>. Think of tags like containers. You open a container, put something inside, and then close it.</p>
+    <div class="code-block">
+&lt;h1&gt;Welcome to SmartBank&lt;/h1&gt;<br>
+&lt;p&gt;Your money is safe with us.&lt;/p&gt;
+    </div>
+    <p>In the example above, <code>&lt;h1&gt;</code> is the opening tag, and <code>&lt;/h1&gt;</code> is the closing tag. Everything together (the tags and the text inside) is called an <strong>HTML Element</strong>.</p>
+
+    <h3>The DOM (Document Object Model)</h3>
+    <p>This is a crucial concept for your viva. When the browser downloads your HTML file, it doesn't just read it like a book. It converts it into a giant family tree called the <strong>Document Object Model (DOM)</strong>. </p>
+    <p>Imagine a real tree. The root is the <code>&lt;html&gt;</code> tag. The branches are the <code>&lt;head&gt;</code> and <code>&lt;body&gt;</code> tags. The leaves are the text inside your paragraphs. We care about the DOM because later, we use JavaScript to climb this tree and change the leaves without reloading the page!</p>
+
+    <h3>Semantic HTML</h3>
+    <p>In the old days, developers used <code>&lt;div&gt;</code> tags for absolutely everything. A header was a div, a footer was a div, a sidebar was a div. This is terrible for two reasons:</p>
+    <ol>
+        <li><strong>Accessibility:</strong> Blind users use "Screen Readers" to browse the web. If everything is a <code>&lt;div&gt;</code>, the screen reader doesn't know where the main content starts and where the navigation menu ends.</li>
+        <li><strong>SEO (Search Engine Optimization):</strong> Google's robots scan websites to understand them. They look for meaning.</li>
+    </ol>
+    <p>In SmartBank, we use <strong>Semantic HTML</strong>. Instead of <code>&lt;div id="nav"&gt;</code>, we use the actual <code>&lt;nav&gt;</code> tag. We use <code>&lt;header&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;section&gt;</code>, and <code>&lt;footer&gt;</code>. This gives our HTML structural meaning.</p>
+
+    <h2>1.3 CSS: The Paint and the Layout</h2>
+    <p>CSS stands for <strong>Cascading Style Sheets</strong>. If HTML is the skeleton, CSS is the skin, clothes, and makeup. Without CSS, every website would look like a boring Word document from 1995.</p>
+
+    <h3>Selectors and Specificity</h3>
+    <p>To style an HTML element, you have to "select" it. There are three main ways to do this:</p>
+    <ul>
+        <li><strong>Tag Selector:</strong> <code>p { color: red; }</code>. This selects <em>every single paragraph</em> on the page. It's very broad.</li>
+        <li><strong>Class Selector:</strong> <code>.btn { color: blue; }</code>. Notice the dot (<code>.</code>). A class is a reusable label you can stick on multiple elements. You might have 20 buttons on your page, and they all use the <code>class="btn"</code>.</li>
+        <li><strong>ID Selector:</strong> <code>#header { background: black; }</code>. Notice the hashtag (<code>#</code>). An ID is a unique serial number. You can only use it <strong>once</strong> per page.</li>
+    </ul>
+    <p>If you give an element both a class that says "be blue" and an ID that says "be red", the ID wins. This is called <strong>Specificity</strong>. IDs are more specific than classes, so they override them.</p>
+
+    <h3>The Box Model</h3>
+    <p>If you learn nothing else about CSS, learn this: <strong>Every single element on a webpage is a rectangular box.</strong> Even if a button looks round because you gave it curved corners, the browser calculates it as a box. This is the Box Model.</p>
+    <p>The Box Model consists of four layers, starting from the inside out:</p>
+    <ol>
+        <li><strong>Content:</strong> The actual text or image (e.g., the word "Submit").</li>
+        <li><strong>Padding:</strong> The invisible cushioning <em>inside</em> the box. If you add padding, the distance between the text and the border increases.</li>
+        <li><strong>Border:</strong> The visible line that wraps around the padding.</li>
+        <li><strong>Margin:</strong> The invisible forcefield <em>outside</em> the box. If you add margin, it pushes other boxes away from this one.</li>
+    </ol>
+
+    <h3>Flexbox vs. CSS Grid</h3>
+    <p>In SmartBank, you used modern CSS layout tools to position things on the screen.</p>
+    <p><strong>Flexbox (display: flex):</strong> Imagine you have 5 buttons and you want them to sit in a perfectly straight line, evenly spaced out. Flexbox is designed for 1-Dimensional layouts (either a row OR a column). It makes elements "flexible" so they stretch or shrink to fill the available space.</p>
+    <p><strong>CSS Grid (display: grid):</strong> Imagine a chessboard. You have both rows AND columns. Grid is designed for 2-Dimensional layouts. In your SmartBank dashboard, you have a grid of cards (Total Balance, Active Loans, etc.). Grid allows you to define exactly how many columns you want (e.g., <code>grid-template-columns: 1fr 1fr 1fr</code> creates 3 equal columns).</p>
+
+    <h3>Responsive Design and Media Queries</h3>
+    <p>How does SmartBank look good on both a massive 32-inch monitor and a tiny 5-inch iPhone? Through <strong>Media Queries</strong>.</p>
+    <div class="code-block">
+@media (max-width: 768px) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.dashboard-grid {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;grid-template-columns: 1fr;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}
+    </div>
+    <p>This code tells the browser: "If the screen width ever drops below 768 pixels, change the dashboard grid to have only 1 column." This forces the cards to stack vertically on top of each other, making them easy to scroll through on a phone.</p>
+</div>
+
+<div class='page-break'></div>
+<div class="chapter">
+    <h1>Chapter 2: JavaScript (The Muscle and Behavior)</h1>
+    
+    <h2>2.1 What is JavaScript?</h2>
+    <p>If HTML is the skeleton and CSS is the paint, JavaScript (JS) is the muscle. It is the programming language of the browser. Without JS, a webpage is just a static poster. You can look at it, but it doesn't do anything. With JS, you can click buttons, animate charts, and send money across the internet without ever refreshing the page.</p>
+    <p>JavaScript runs <strong>client-side</strong>. This means the code is executed directly by the user's computer (inside Chrome, Safari, etc.), utilizing their CPU and RAM, rather than the server's resources.</p>
+
+    <h2>2.2 Variables: The Memory Boxes</h2>
+    <p>A variable is simply a named box in the computer's memory where you can store data. Over the years, JavaScript has changed how we create these boxes. You must know the difference for your viva.</p>
+    <ul>
+        <li><strong><code>var</code> (The Old Way):</strong> Before 2015, this was the only way to declare variables. The problem with <code>var</code> is that it "leaks". If you create a <code>var</code> inside an <code>if</code> statement, it can accidentally be accessed outside that <code>if</code> statement, causing massive, confusing bugs. Professional developers avoid <code>var</code> today.</li>
+        <li><strong><code>let</code> (The Flexible Way):</strong> Introduced to fix <code>var</code>. A <code>let</code> variable is <em>block-scoped</em>. This means it only exists inside the curly braces <code>{}</code> where it was created. You can change (reassign) the value of a <code>let</code> variable at any time.</li>
+        <li><strong><code>const</code> (The Strict Way):</strong> Short for constant. Like <code>let</code>, it is block-scoped. However, once you assign a value to a <code>const</code>, you can <strong>never</strong> reassign it. You should use <code>const</code> by default for everything, only switching to <code>let</code> if you know the value needs to change later (like a counter).</li>
+    </ul>
+
+    <h2>2.3 Data Types and Structures</h2>
+    <p>JavaScript needs to know what kind of data it's holding in those variables.</p>
+    <ul>
+        <li><strong>Strings:</strong> Text. Wrapped in quotes. <code>"SmartBank"</code></li>
+        <li><strong>Numbers:</strong> Integers and decimals. <code>42</code> or <code>3.14</code></li>
+        <li><strong>Booleans:</strong> True or False. Used for logic checks. <code>isLoggedIn = true</code></li>
+        <li><strong>Arrays:</strong> A list of items, ordered by an index starting at 0. <code>const users = ["Salman", "Admin"]</code>. To get "Salman", you ask for <code>users[0]</code>.</li>
+        <li><strong>Objects:</strong> The most important structure in JS. An object is a collection of Key-Value pairs, wrapped in curly braces. Sound familiar? It looks exactly like a Python Dictionary! <br><code>const user = { name: "Salman", role: "Admin" };</code></li>
+    </ul>
+
+    <h2>2.4 Functions and Scope</h2>
+    <p>A function is a reusable block of code designed to perform a single task. You write it once, and you can "call" it as many times as you want.</p>
+    <div class="code-block">
+function calculateInterest(principal, rate) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return principal * rate;<br>
+}
+    </div>
+    <p><strong>Scope</strong> refers to where a variable is visible. If you create a variable <em>inside</em> a function, it is trapped in that function. The rest of your code has no idea it exists. This is called Local Scope, and it prevents variables from colliding with each other.</p>
+
+    <h2>2.5 The DOM and Event Listeners</h2>
+    <p>We mentioned the DOM (Document Object Model) in Chapter 1. It is the tree structure of your HTML. JavaScript's superpower is its ability to manipulate this tree in real-time.</p>
+    <h3>Selecting Elements</h3>
+    <p>To change an HTML element, JS must first find it. We use methods like:</p>
+    <ul>
+        <li><code>document.getElementById('balanceDisplay')</code>: Finds the one specific element with that ID.</li>
+        <li><code>document.querySelector('.card')</code>: Finds the first element that has the class "card".</li>
+    </ul>
+    <h3>Changing Elements</h3>
+    <p>Once you grab an element, you can modify it using <code>.innerHTML</code> or <code>.textContent</code>. For example, if you fetch a user's balance from the server, you can instantly display it by writing: <br><code>document.getElementById('balance').textContent = '₹5,000';</code></p>
+    
+    <h3>Event Listeners</h3>
+    <p>A webpage is useless if it doesn't respond to the user. We use Event Listeners to "listen" for user actions (clicks, typing, scrolling).</p>
+    <div class="code-block">
+const button = document.getElementById('submitBtn');<br>
+button.addEventListener('click', function() {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;alert('Money transferred successfully!');<br>
+});
+    </div>
+
+    <h2>2.6 Asynchronous JavaScript (Crucial for Viva)</h2>
+    <p>This is arguably the most important JavaScript concept you need to know for a full-stack project like SmartBank.</p>
+    <p>JavaScript is <strong>Single-Threaded</strong>. Think of a restaurant with only one waiter. That waiter has to take orders, bring food, and collect bills. If the waiter goes to the kitchen to wait for a steak to cook, no other tables get served. The entire restaurant freezes.</p>
+    <p>In code, if JavaScript asks the Python server for a list of 10,000 transactions, it takes time over the internet. If JS simply waited, the browser would completely freeze. The user couldn't scroll, couldn't click, couldn't do anything.</p>
+    
+    <h3>Promises and Async/Await</h3>
+    <p>To solve this, JS uses <strong>Asynchronous</strong> code. We use a feature called a Promise. A Promise is exactly what it sounds like: JS says, "I promise to go get this data, but I'll let you know when I'm done."</p>
+    <p>In modern code, we write this using the <code>async</code> and <code>await</code> keywords.</p>
+    <div class="code-block">
+<span class="highlight">async</span> function getUserData() {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;console.log("Fetching data...");<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const response = <span class="highlight">await</span> fetch('/api/user/profile');<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const data = <span class="highlight">await</span> response.json();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;console.log("Data received!", data);<br>
+}
+    </div>
+    <p>When JS hits the <code>await</code> keyword, it effectively tells the browser: "Send this network request, but don't freeze. Go ahead and let the user keep clicking and scrolling. Whenever the server finally replies, come exactly back to this line of code and continue." This creates a smooth, lag-free user experience.</p>
+
+    <h3>JSON (JavaScript Object Notation)</h3>
+    <p>You'll notice <code>response.json()</code> in the code above. JSON is the universal language of the internet. Python and JavaScript are completely different languages. They cannot read each other's code. But they both understand text.</p>
+    <p>JSON takes a JavaScript Object or a Python Dictionary and converts it into pure, plain text. The Python server sends this text over the internet. When it arrives in the browser, JS parses the text back into a usable JavaScript Object.</p>
+</div>
+
+<div class='page-break'></div>
+<div class="chapter">
+    <h1>Chapter 3: Python (The Brain of the Backend)</h1>
+    
+    <h2>3.1 Why Python?</h2>
+    <p>Python is known for its incredibly clean and readable syntax. Unlike languages like Java or C++ that require massive amounts of "boilerplate" code just to print a simple word, Python gets straight to the point. In SmartBank, Python is the engine of your backend. It handles security, calculates balances, and securely stores data in the SQL database.</p>
+    
+    <h2>3.2 Core Data Structures</h2>
+    <p>This is a guaranteed viva question. You must know the difference between the four main data structures in Python: Lists, Tuples, Dictionaries, and Sets.</p>
+    
+    <h3>Mutability (The Most Important Concept)</h3>
+    <p><strong>Mutable</strong> means the data <em>can</em> be changed after it is created in memory. If you add an item to a list, it stays in the exact same memory location, it just gets bigger.</p>
+    <p><strong>Immutable</strong> means the data <em>cannot</em> be changed. If you try to change a string in Python, the computer actually destroys the original string in memory and creates a brand new one. Strings, numbers, and Tuples are immutable.</p>
+
+    <h3>1. Lists <code>[]</code></h3>
+    <p>Lists are ordered, mutable, and allow duplicate values. Think of a shopping list. You can add items, remove items, and the order in which you wrote them down is preserved.</p>
+    <div class="code-block">
+accounts = ["Savings", "Current", "Loan"]<br>
+accounts.append("Credit") <span class="comment"># This works perfectly because lists are Mutable.</span>
+    </div>
+
+    <h3>2. Tuples <code>()</code></h3>
+    <p>Tuples are ordered and allow duplicates, but they are <strong>Immutable</strong>. Once you create a tuple, you can never add or remove items from it.</p>
+    <ul>
+        <li><strong>Why use them?</strong> Because they can't change, Python can process them much faster than lists. They also use less memory. You use tuples for data that should never be altered, like geographic coordinates (latitude, longitude) or RGB color codes.</li>
+    </ul>
+
+    <h3>3. Dictionaries <code>{}</code></h3>
+    <p>Dictionaries are unordered collections of Key-Value pairs. They are mutable. Think of an actual dictionary: you look up a word (the Key) to find the definition (the Value).</p>
+    <p>Dictionaries use <strong>Hash Tables</strong> under the hood. This means looking up a value takes almost zero time, even if the dictionary contains a million items. This is why we use dictionaries constantly in backend development.</p>
+    <div class="code-block">
+user = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"id": 101,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"name": "Salman",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"balance": 50000<br>
+}<br>
+print(user["name"]) <span class="comment"># Instantly prints "Salman"</span>
+    </div>
+    <div class="viva-tip"><b>Viva Tip:</b> An examiner might ask, "Can a list be a key in a dictionary?" The answer is NO. Dictionary keys must be <b>Immutable</b> (like strings or tuples) so that their internal hash value never changes.</div>
+
+    <h3>4. Sets <code>{}</code></h3>
+    <p>Sets are unordered, mutable, but they <strong>do not allow duplicates</strong>. If you have a list of a thousand transaction IDs and you want to instantly remove all the duplicates, you simply convert the list into a Set.</p>
+
+    <h2>3.3 Memory Management and Garbage Collection</h2>
+    <p>In languages like C, developers have to manually allocate and free memory from the computer's RAM. If they forget, it causes a "memory leak" and the computer eventually crashes. Python handles this automatically.</p>
+    <p>Python uses <strong>Reference Counting</strong>. Imagine a Python object in memory is a balloon. Every variable that points to that object is a string holding the balloon. If three variables point to it, the reference count is 3. If you delete those variables, the strings are let go. When the reference count drops to 0, Python instantly pops the balloon (frees the memory).</p>
+    <p>Python also runs a background <strong>Garbage Collector</strong>. Sometimes, Object A points to Object B, and Object B points to Object A, creating an isolated circle. Even if your main program isn't using them, their reference count isn't zero. The Garbage Collector's job is to detect these isolated circles and destroy them.</p>
+
+    <h2>3.4 Object-Oriented Programming (OOP)</h2>
+    <p>OOP is a way of organizing code so that it maps to real-world concepts. Instead of writing random functions, you create "Classes" and "Objects".</p>
+    <ul>
+        <li><strong>Class:</strong> The blueprint. Imagine architectural blueprints for a house. You can't live in a blueprint. It just defines what the house should look like (doors, windows, paint color).</li>
+        <li><strong>Object (Instance):</strong> The actual house built from the blueprint. You can build 100 different houses from the same blueprint. In code, <code>user1</code> and <code>user2</code> are two different objects created from the <code>User</code> class.</li>
+    </ul>
+
+    <h3>The <code>__init__</code> Method and <code>self</code></h3>
+    <p>In Python, the <code>__init__</code> method is the <strong>constructor</strong>. It is a special function that runs automatically the moment you create an object. It "initializes" the object's properties.</p>
+    <p>The <code>self</code> keyword is highly confusing to beginners. It simply refers to the specific object being created. If you have a blueprint instruction that says "paint the door red", you need to know <em>which</em> house's door to paint. <code>self.door = "red"</code> means "paint <em>my</em> door red".</p>
+    <div class="code-block">
+class BankAccount:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def __init__(self, owner, balance):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.owner = owner<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.balance = balance<br>
+<br>
+account1 = BankAccount("Salman", 1000) <span class="comment"># __init__ runs automatically here!</span>
+    </div>
+
+    <h2>3.5 Decorators (The '@' Symbol)</h2>
+    <p>Since your project uses Flask, you use Decorators constantly (like <code>@app.route</code>). An examiner will definitely ask about this.</p>
+    <p>In Python, functions are "first-class citizens." This means a function is treated just like any other variable. You can pass a function into another function as an argument.</p>
+    <p>A Decorator is simply a function that takes another function, wraps it in some extra code, and returns the modified function. It allows you to "decorate" or modify a function without changing its internal code.</p>
+    <p><strong>Example:</strong> In SmartBank, you might have a function called <code>view_dashboard()</code>. But you don't want anyone to see it unless they are logged in. You could write a massive if-statement inside the function. Or, you could write a decorator called <code>@login_required</code>. You place the decorator directly above the function. Before Python executes the dashboard logic, it runs the decorator's security check first.</p>
+
+    <h2>3.6 Error Handling (Try / Except)</h2>
+    <p>When bad things happen in code (like trying to divide by zero, or a database connection dying), Python throws an "Exception" and completely crashes the program. In a web server, a crash means the website goes offline for everyone.</p>
+    <p>To prevent this, we use Error Handling.</p>
+    <ul>
+        <li><strong>try:</strong> Python attempts to run this block of code.</li>
+        <li><strong>except:</strong> If an error occurs inside the <code>try</code> block, Python immediately jumps here. Instead of crashing, you can log the error and return a safe message to the user.</li>
+        <li><strong>finally:</strong> This code runs <em>no matter what</em>. Even if an error happens, even if the function returns early. In backend development, this is absolutely crucial for databases. If your database query crashes, the <code>finally</code> block ensures that the database connection is safely closed, preventing server resource leaks.</li>
+    </ul>
+</div>
+
+<div class='page-break'></div>
+<div class="chapter">
+    <h1>Chapter 4: Databases and the Flask Framework</h1>
+    
+    <h2>4.1 What is a Database?</h2>
+    <p>If variables in JavaScript and Python act as memory boxes, why do we need a database? Because variables exist in RAM (Random Access Memory). When the server restarts or loses power, RAM is wiped clean. A database is a specialized software that saves data persistently to a hard drive so it survives reboots. For a banking app, losing data is not an option.</p>
+
+    <h2>4.2 Relational (SQL) vs. Non-Relational (NoSQL)</h2>
+    <p>There are two major families of databases in modern web development.</p>
+    <ul>
+        <li><strong>NoSQL (e.g., MongoDB):</strong> Data is stored as flexible, JSON-like documents. You might have one document for a user that contains their name, age, and a nested list of their transactions. It's highly flexible and great for unstructured data or rapidly changing prototypes.</li>
+        <li><strong>Relational SQL (e.g., SQLite, PostgreSQL):</strong> Data is stored in strict, rigid tables with rows and columns. SmartBank uses a Relational Database. Why? Because banking data is highly structured and interconnected. A User has an Account. An Account has Transactions. SQL is built specifically to handle these relationships safely and efficiently.</li>
+    </ul>
+
+    <h2>4.3 The Anatomy of SQL Tables (Primary and Foreign Keys)</h2>
+    <p>In your `schema.sql` file, you define tables. Think of a table like an Excel spreadsheet. Every column has a specific data type (e.g., INTEGER, TEXT).</p>
+    
+    <h3>The Primary Key</h3>
+    <p>Every single row in a table must have a unique identifier. This is the <strong>Primary Key</strong>. In your `users` table, the `id` column is the Primary Key. Even if two users are named "Salman", their IDs will be `1` and `2`. The database guarantees that no two rows will ever have the same Primary Key.</p>
+
+    <h3>The Foreign Key</h3>
+    <p>This is how relationships are formed. Suppose you have a `transactions` table. If you want to record that Salman deposited ₹500, you don't write "Salman" in the transactions table. You write `1` (Salman's Primary Key ID) in a column called `user_id`. In this context, `user_id` is a <strong>Foreign Key</strong> because it points to the Primary Key of a foreign table. This links the two tables together.</p>
+
+    <h2>4.4 SQL Commands (CRUD)</h2>
+    <p>You interact with the database using SQL (Structured Query Language). Most operations fall under the acronym <strong>CRUD</strong>:</p>
+    <ul>
+        <li><strong>C</strong>reate: <code>INSERT INTO users (name, role) VALUES ('Salman', 'Admin')</code></li>
+        <li><strong>R</strong>ead: <code>SELECT * FROM users WHERE id = 1</code></li>
+        <li><strong>U</strong>pdate: <code>UPDATE accounts SET balance = 5000 WHERE id = 1</code></li>
+        <li><strong>D</strong>elete: <code>DELETE FROM transactions WHERE status = 'failed'</code></li>
+    </ul>
+
+    <h2>4.5 ACID Properties (Crucial for Viva!)</h2>
+    <p>For a banking application, the database must be ACID compliant. This guarantees that your money is safe even during server crashes.</p>
+    <ul>
+        <li><strong>Atomicity:</strong> "All or Nothing." If you transfer ₹500 to a friend, the database must deduct ₹500 from you AND add ₹500 to your friend. If the server crashes in the exact millisecond between those two actions, Atomicity guarantees the database will automatically cancel the entire transaction. The money doesn't disappear.</li>
+        <li><strong>Consistency:</strong> The database rules are strictly enforced. If a column is defined as an INTEGER, trying to save the word "Hello" will be rejected instantly.</li>
+        <li><strong>Isolation:</strong> If two people try to transfer money at the exact same microsecond, Isolation ensures they are processed sequentially, so the math doesn't overlap and calculate the balance incorrectly.</li>
+        <li><strong>Durability:</strong> Once the database says "Transaction Successful", the data is permanently written to the hard drive. If someone kicks the server's power plug out a millisecond later, the data is still there when the server reboots.</li>
+    </ul>
+
+    <h2>4.6 The Flask Web Framework</h2>
+    <p>Now that we have HTML/JS on the frontend and a Database on the backend, how do they talk? Enter <strong>Flask</strong>.</p>
+    <p>Flask is a web framework written in Python. A framework is simply a large collection of pre-written code that handles the boring, repetitive parts of web development (like processing HTTP headers and managing URLs), so you can focus on writing your actual app logic.</p>
+
+    <h3>WSGI (Web Server Gateway Interface)</h3>
+    <p>Python does not inherently know how to speak the language of the internet (HTTP). Web servers like Apache or Nginx speak HTTP, but they don't understand Python code. WSGI is the universal translator sitting in the middle. Flask uses Werkzeug, a WSGI utility library, to translate web requests into Python objects that your code can understand.</p>
+
+    <h3>Micro-Framework vs. Batteries Included</h3>
+    <p>You will likely be asked, "Why Flask and not Django?"</p>
+    <p>Django is a "batteries included" framework. It comes with its own massive ORM (database system), an admin panel, and an authentication system pre-installed. You just configure it. <br>
+    Flask is a "micro-framework". It gives you the absolute bare minimum required to get a server running. Everything else—database connections, login logic—you have to write yourself. You chose Flask because it gave you absolute architectural freedom and allowed you to learn exactly how full-stack systems work from the ground up, rather than relying on automated magic.</p>
+
+    <h3>Routing</h3>
+    <p>Routing is how Flask knows which Python function to run when a user visits a specific URL.</p>
+    <div class="code-block">
+@app.route('/dashboard', methods=['GET'])<br>
+def show_dashboard():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return render_template('dashboard.html')
+    </div>
+    <p>When the client's browser requests the URL <code>/dashboard</code>, Flask matches that URL to this specific decorator and executes the <code>show_dashboard()</code> function. The function then reads the HTML file from the hard drive and sends it back to the browser over the internet.</p>
+
+</div>
+
+<div class='page-break'></div>
+<div class="chapter">
+    <h1>Chapter 5: SmartBank Code Walkthrough (Line-by-Line)</h1>
+    <p>In your viva, the examiner won't just ask about theories. They will point to a file in your project and say, "Explain what this does." This chapter breaks down your actual code.</p>
+
+    <h2>5.1 The Entry Point: backend/main.py</h2>
+    <p>This is the file you run (<code>python main.py</code>) to start your entire server. It orchestrates everything.</p>
+    
+    <div class="code-block">
+from flask import Flask, request, jsonify<br>
+from flask_cors import CORS<br>
+from blueprints.auth_routes import auth_bp<br>
+<br>
+app = Flask(__name__)<br>
+CORS(app)<br>
+app.secret_key = 'super_secret_key'<br>
+<br>
+app.register_blueprint(auth_bp, url_prefix='/api/auth')<br>
+<br>
+if __name__ == '__main__':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;app.run(debug=True, port=5000)
+    </div>
+
+    <h3>Line-by-Line Explanation:</h3>
+    <ul>
+        <li><code>from flask import Flask</code>: We import the main Flask class from the library we installed via pip.</li>
+        <li><code>from flask_cors import CORS</code>: <strong>CORS (Cross-Origin Resource Sharing)</strong> is a massive security feature. By default, browsers block a frontend running on <code>localhost:3000</code> from talking to a backend on <code>localhost:5000</code> to prevent hackers from stealing data. We import CORS to explicitly tell the browser, "It's okay, I own both of these, let them talk."</li>
+        <li><code>app = Flask(__name__)</code>: We create an instance (an Object) of the Flask class. This <code>app</code> variable <em>is</em> your web server.</li>
+        <li><code>CORS(app)</code>: We apply the CORS rules to our server.</li>
+        <li><code>app.secret_key = '...'</code>: Flask uses this cryptographic key to sign session cookies. If a user tries to forge a cookie to pretend they are the admin, Flask checks the signature against this key and rejects it.</li>
+        <li><code>app.register_blueprint(auth_bp, url_prefix='/api/auth')</code>: Instead of writing 10,000 lines of code in <code>main.py</code>, we split our app into modules (Blueprints). Here, we import the Authentication module and tell Flask: "Any time a user requests a URL starting with <code>/api/auth</code>, send them to this blueprint."</li>
+        <li><code>if __name__ == '__main__':</code>: This ensures the server only starts if we run <code>main.py</code> directly, not if we just import it into another script.</li>
+        <li><code>app.run(debug=True, port=5000)</code>: This starts the server on port 5000. <code>debug=True</code> means if our code crashes, it prints a helpful error message to the browser instead of a generic 500 Error. It also automatically restarts the server if we save changes to the code.</li>
+    </ul>
+
+    <h2>5.2 The Frontend Communication: user-auth.js</h2>
+    <p>Now, let's look at what happens in the browser when the user clicks the "Login" button. We use Vanilla JavaScript.</p>
+
+    <div class="code-block">
+async function handleLogin(event) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;event.preventDefault();<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const username = document.getElementById('loginUsername').value;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const password = document.getElementById('loginPassword').value;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const response = await fetch('/api/auth/login', {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method: 'POST',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;headers: { 'Content-Type': 'application/json' },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;body: JSON.stringify({ username: username, password: password })<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const data = await response.json();<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (data.success) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;window.location.href = 'userdash.html';<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alert(data.error);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;} catch (error) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.error("Network failed", error);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}
+    </div>
+
+    <h3>Line-by-Line Explanation:</h3>
+    <ul>
+        <li><code>async function</code>: We declare the function as asynchronous because it will be making a network request over the internet, and we don't want to freeze the browser while waiting.</li>
+        <li><code>event.preventDefault()</code>: By default, when you click a submit button inside an HTML form, the browser tries to refresh the entire page. We cancel this default behavior so we can handle the submission smoothly with JavaScript instead.</li>
+        <li><code>document.getElementById(...).value</code>: We use the DOM to grab the HTML input boxes by their unique IDs and extract the text the user typed inside them.</li>
+        <li><code>try { ... } catch (error) { ... }</code>: We wrap our network code in a try/except block. If the user loses their WiFi connection exactly when they click login, the <code>fetch</code> will fail. Instead of crashing the script, the <code>catch</code> block gracefully logs the network error.</li>
+        <li><code>await fetch('/api/auth/login')</code>: The <strong>Fetch API</strong> is built into modern browsers. It is how JS sends HTTP requests. We <code>await</code> it, meaning JS pauses execution on this specific line until the Python server replies, but allows the rest of the browser to keep running.</li>
+        <li><code>method: 'POST'</code>: We are sending data (username/password) to the server to create a session, so we use the HTTP POST method.</li>
+        <li><code>headers: { 'Content-Type': 'application/json' }</code>: We explicitly tell the Python server, "Hey, the data I'm sending you is formatted as JSON."</li>
+        <li><code>body: JSON.stringify(...)</code>: We take our JavaScript Object containing the username and password and convert it into a pure text JSON string so it can travel across the internet.</li>
+        <li><code>const data = await response.json()</code>: The Python server replies with a JSON string. We use <code>.json()</code> to parse that string back into a usable JavaScript Object.</li>
+        <li><code>if (data.success)</code>: If Python replied with <code>{"success": true}</code>, we use <code>window.location.href</code> to redirect the browser to the dashboard page.</li>
+    </ul>
+
+    <h2>5.3 The Database Logic: core/db.py</h2>
+    <p>Finally, how does Python actually execute queries?</p>
+
+    <div class="code-block">
+import sqlite3<br>
+from flask import g<br>
+<br>
+def get_db():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if 'db' not in g:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;g.db = sqlite3.connect('database/smartbank.db')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;g.db.row_factory = sqlite3.Row<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return g.db<br>
+<br>
+def close_db(e=None):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;db = g.pop('db', None)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if db is not None:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;db.close()
+    </div>
+
+    <h3>Line-by-Line Explanation:</h3>
+    <ul>
+        <li><code>import sqlite3</code>: We import the built-in library that allows Python to talk to SQLite databases.</li>
+        <li><code>from flask import g</code>: In Flask, <code>g</code> stands for <strong>Global Context</strong>. It is a special object that exists only for the duration of a single HTTP request. It's used to store temporary data that multiple functions might need while processing that one specific request.</li>
+        <li><code>if 'db' not in g:</code>: We check if a database connection has already been opened for this user's request. Why? Because opening a database connection is slow and resource-heavy. We don't want to open 5 connections if we run 5 queries in a single request. This is called the <strong>Singleton Pattern</strong>.</li>
+        <li><code>g.db = sqlite3.connect(...)</code>: We open the connection to the database file on the hard drive and store the connection object in the <code>g</code> context.</li>
+        <li><code>g.db.row_factory = sqlite3.Row</code>: By default, SQLite returns rows as raw Tuples <code>(1, "Salman", 500)</code>. By setting this row factory, SQLite returns rows that act like Dictionaries <code>{"id": 1, "name": "Salman", "balance": 500}</code>. This makes the code vastly more readable because we can access columns by name instead of index numbers.</li>
+        <li><code>def close_db(e=None):</code>: This function is triggered by Flask the exact millisecond an HTTP request finishes and the response is sent to the user.</li>
+        <li><code>db = g.pop('db', None)</code>: We safely extract the database connection from the global context.</li>
+        <li><code>db.close()</code>: We explicitly close the connection. This is absolutely critical. If you don't close connections, the database eventually locks up and the entire server crashes.</li>
+    </ul>
+
+    <h2>Conclusion</h2>
+    <p>You have now explored the absolute depths of full-stack engineering. You understand how networks communicate, how databases maintain integrity, and how the frontend and backend negotiate via APIs. Be proud of the system you've built. In your viva, speak slowly, use analogies, and demonstrate that you don't just know what the code does, but <em>why</em> it was written that way.</p>
+</div>
+
+<div class='page-break'></div>
+
+</body>
+</html>

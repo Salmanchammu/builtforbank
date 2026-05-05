@@ -1651,26 +1651,6 @@ The admin dashboard is the biggest file in the whole project at around 2436 line
 
 ---
 
-## 6.13 Frontend File Map Summary
-
-| File | Lines | Size | Purpose |
-|------|-------|------|---------|
-| `index.html` | 143 | 5.7KB | Landing page with hero & features |
-| `user.html` | 165 | 7.3KB | User login + Face Auth |
-| `signup.html` | 196 | 8.9KB | User registration + OTP modal |
-| `forgot-password.html` | 325 | 13.4KB | Password/Username recovery |
-| `reset-password.html` | 772 | 27.6KB | Token-verified password reset |
-| `staff.html` | 233 | 10.7KB | Staff & Admin dual login |
-| `mobile-auth.html` | 297 | 14.9KB | Mobile PWA login |
-| `mobile-signup.html` | 156 | 11.5KB | Mobile registration + OTP |
-| `agri-buyer-login.html` | 424 | 19.1KB | Agriculture buyer portal login |
-| `userdash.html` | 1886 | 122.8KB | User dashboard SPA |
-| `staffdash.html` | 2369 | 158.0KB | Staff operations dashboard |
-| `admindash.html` | 2436 | 163.3KB | Admin system dashboard |
-| `mobile-dash.html` | 1124 | 79.1KB | Mobile banking dashboard |
-
----
-
 ## 6.14 Frontend — Face Authentication (`face-auth-fixed.js`)
 
 ### 6.14.1 How the Blink Detection Works (Eye Aspect Ratio)

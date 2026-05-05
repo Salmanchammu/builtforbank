@@ -1,0 +1,76 @@
+<div class="chapter">
+    <h1>Chapter 2: JavaScript (The Muscle and Behavior)</h1>
+    
+    <h2>2.1 What is JavaScript?</h2>
+    <p>If HTML is the skeleton and CSS is the paint, JavaScript (JS) is the muscle. It is the programming language of the browser. Without JS, a webpage is just a static poster. You can look at it, but it doesn't do anything. With JS, you can click buttons, animate charts, and send money across the internet without ever refreshing the page.</p>
+    <p>JavaScript runs <strong>client-side</strong>. This means the code is executed directly by the user's computer (inside Chrome, Safari, etc.), utilizing their CPU and RAM, rather than the server's resources.</p>
+
+    <h2>2.2 Variables: The Memory Boxes</h2>
+    <p>A variable is simply a named box in the computer's memory where you can store data. Over the years, JavaScript has changed how we create these boxes. You must know the difference for your viva.</p>
+    <ul>
+        <li><strong><code>var</code> (The Old Way):</strong> Before 2015, this was the only way to declare variables. The problem with <code>var</code> is that it "leaks". If you create a <code>var</code> inside an <code>if</code> statement, it can accidentally be accessed outside that <code>if</code> statement, causing massive, confusing bugs. Professional developers avoid <code>var</code> today.</li>
+        <li><strong><code>let</code> (The Flexible Way):</strong> Introduced to fix <code>var</code>. A <code>let</code> variable is <em>block-scoped</em>. This means it only exists inside the curly braces <code>{}</code> where it was created. You can change (reassign) the value of a <code>let</code> variable at any time.</li>
+        <li><strong><code>const</code> (The Strict Way):</strong> Short for constant. Like <code>let</code>, it is block-scoped. However, once you assign a value to a <code>const</code>, you can <strong>never</strong> reassign it. You should use <code>const</code> by default for everything, only switching to <code>let</code> if you know the value needs to change later (like a counter).</li>
+    </ul>
+
+    <h2>2.3 Data Types and Structures</h2>
+    <p>JavaScript needs to know what kind of data it's holding in those variables.</p>
+    <ul>
+        <li><strong>Strings:</strong> Text. Wrapped in quotes. <code>"SmartBank"</code></li>
+        <li><strong>Numbers:</strong> Integers and decimals. <code>42</code> or <code>3.14</code></li>
+        <li><strong>Booleans:</strong> True or False. Used for logic checks. <code>isLoggedIn = true</code></li>
+        <li><strong>Arrays:</strong> A list of items, ordered by an index starting at 0. <code>const users = ["Salman", "Admin"]</code>. To get "Salman", you ask for <code>users[0]</code>.</li>
+        <li><strong>Objects:</strong> The most important structure in JS. An object is a collection of Key-Value pairs, wrapped in curly braces. Sound familiar? It looks exactly like a Python Dictionary! <br><code>const user = { name: "Salman", role: "Admin" };</code></li>
+    </ul>
+
+    <h2>2.4 Functions and Scope</h2>
+    <p>A function is a reusable block of code designed to perform a single task. You write it once, and you can "call" it as many times as you want.</p>
+    <div class="code-block">
+function calculateInterest(principal, rate) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return principal * rate;<br>
+}
+    </div>
+    <p><strong>Scope</strong> refers to where a variable is visible. If you create a variable <em>inside</em> a function, it is trapped in that function. The rest of your code has no idea it exists. This is called Local Scope, and it prevents variables from colliding with each other.</p>
+
+    <h2>2.5 The DOM and Event Listeners</h2>
+    <p>We mentioned the DOM (Document Object Model) in Chapter 1. It is the tree structure of your HTML. JavaScript's superpower is its ability to manipulate this tree in real-time.</p>
+    <h3>Selecting Elements</h3>
+    <p>To change an HTML element, JS must first find it. We use methods like:</p>
+    <ul>
+        <li><code>document.getElementById('balanceDisplay')</code>: Finds the one specific element with that ID.</li>
+        <li><code>document.querySelector('.card')</code>: Finds the first element that has the class "card".</li>
+    </ul>
+    <h3>Changing Elements</h3>
+    <p>Once you grab an element, you can modify it using <code>.innerHTML</code> or <code>.textContent</code>. For example, if you fetch a user's balance from the server, you can instantly display it by writing: <br><code>document.getElementById('balance').textContent = '₹5,000';</code></p>
+    
+    <h3>Event Listeners</h3>
+    <p>A webpage is useless if it doesn't respond to the user. We use Event Listeners to "listen" for user actions (clicks, typing, scrolling).</p>
+    <div class="code-block">
+const button = document.getElementById('submitBtn');<br>
+button.addEventListener('click', function() {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;alert('Money transferred successfully!');<br>
+});
+    </div>
+
+    <h2>2.6 Asynchronous JavaScript (Crucial for Viva)</h2>
+    <p>This is arguably the most important JavaScript concept you need to know for a full-stack project like SmartBank.</p>
+    <p>JavaScript is <strong>Single-Threaded</strong>. Think of a restaurant with only one waiter. That waiter has to take orders, bring food, and collect bills. If the waiter goes to the kitchen to wait for a steak to cook, no other tables get served. The entire restaurant freezes.</p>
+    <p>In code, if JavaScript asks the Python server for a list of 10,000 transactions, it takes time over the internet. If JS simply waited, the browser would completely freeze. The user couldn't scroll, couldn't click, couldn't do anything.</p>
+    
+    <h3>Promises and Async/Await</h3>
+    <p>To solve this, JS uses <strong>Asynchronous</strong> code. We use a feature called a Promise. A Promise is exactly what it sounds like: JS says, "I promise to go get this data, but I'll let you know when I'm done."</p>
+    <p>In modern code, we write this using the <code>async</code> and <code>await</code> keywords.</p>
+    <div class="code-block">
+<span class="highlight">async</span> function getUserData() {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;console.log("Fetching data...");<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const response = <span class="highlight">await</span> fetch('/api/user/profile');<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const data = <span class="highlight">await</span> response.json();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;console.log("Data received!", data);<br>
+}
+    </div>
+    <p>When JS hits the <code>await</code> keyword, it effectively tells the browser: "Send this network request, but don't freeze. Go ahead and let the user keep clicking and scrolling. Whenever the server finally replies, come exactly back to this line of code and continue." This creates a smooth, lag-free user experience.</p>
+
+    <h3>JSON (JavaScript Object Notation)</h3>
+    <p>You'll notice <code>response.json()</code> in the code above. JSON is the universal language of the internet. Python and JavaScript are completely different languages. They cannot read each other's code. But they both understand text.</p>
+    <p>JSON takes a JavaScript Object or a Python Dictionary and converts it into pure, plain text. The Python server sends this text over the internet. When it arrives in the browser, JS parses the text back into a usable JavaScript Object.</p>
+</div>

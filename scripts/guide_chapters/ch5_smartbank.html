@@ -1,0 +1,112 @@
+<div class="chapter">
+    <h1>Chapter 5: SmartBank Code Walkthrough (Line-by-Line)</h1>
+    <p>In your viva, the examiner won't just ask about theories. They will point to a file in your project and say, "Explain what this does." This chapter breaks down your actual code.</p>
+
+    <h2>5.1 The Entry Point: backend/main.py</h2>
+    <p>This is the file you run (<code>python main.py</code>) to start your entire server. It orchestrates everything.</p>
+    
+    <div class="code-block">
+from flask import Flask, request, jsonify<br>
+from flask_cors import CORS<br>
+from blueprints.auth_routes import auth_bp<br>
+<br>
+app = Flask(__name__)<br>
+CORS(app)<br>
+app.secret_key = 'super_secret_key'<br>
+<br>
+app.register_blueprint(auth_bp, url_prefix='/api/auth')<br>
+<br>
+if __name__ == '__main__':<br>
+&nbsp;&nbsp;&nbsp;&nbsp;app.run(debug=True, port=5000)
+    </div>
+
+    <h3>Line-by-Line Explanation:</h3>
+    <ul>
+        <li><code>from flask import Flask</code>: We import the main Flask class from the library we installed via pip.</li>
+        <li><code>from flask_cors import CORS</code>: <strong>CORS (Cross-Origin Resource Sharing)</strong> is a massive security feature. By default, browsers block a frontend running on <code>localhost:3000</code> from talking to a backend on <code>localhost:5000</code> to prevent hackers from stealing data. We import CORS to explicitly tell the browser, "It's okay, I own both of these, let them talk."</li>
+        <li><code>app = Flask(__name__)</code>: We create an instance (an Object) of the Flask class. This <code>app</code> variable <em>is</em> your web server.</li>
+        <li><code>CORS(app)</code>: We apply the CORS rules to our server.</li>
+        <li><code>app.secret_key = '...'</code>: Flask uses this cryptographic key to sign session cookies. If a user tries to forge a cookie to pretend they are the admin, Flask checks the signature against this key and rejects it.</li>
+        <li><code>app.register_blueprint(auth_bp, url_prefix='/api/auth')</code>: Instead of writing 10,000 lines of code in <code>main.py</code>, we split our app into modules (Blueprints). Here, we import the Authentication module and tell Flask: "Any time a user requests a URL starting with <code>/api/auth</code>, send them to this blueprint."</li>
+        <li><code>if __name__ == '__main__':</code>: This ensures the server only starts if we run <code>main.py</code> directly, not if we just import it into another script.</li>
+        <li><code>app.run(debug=True, port=5000)</code>: This starts the server on port 5000. <code>debug=True</code> means if our code crashes, it prints a helpful error message to the browser instead of a generic 500 Error. It also automatically restarts the server if we save changes to the code.</li>
+    </ul>
+
+    <h2>5.2 The Frontend Communication: user-auth.js</h2>
+    <p>Now, let's look at what happens in the browser when the user clicks the "Login" button. We use Vanilla JavaScript.</p>
+
+    <div class="code-block">
+async function handleLogin(event) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;event.preventDefault();<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const username = document.getElementById('loginUsername').value;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const password = document.getElementById('loginPassword').value;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const response = await fetch('/api/auth/login', {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method: 'POST',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;headers: { 'Content-Type': 'application/json' },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;body: JSON.stringify({ username: username, password: password })<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const data = await response.json();<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (data.success) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;window.location.href = 'userdash.html';<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alert(data.error);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;} catch (error) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.error("Network failed", error);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}
+    </div>
+
+    <h3>Line-by-Line Explanation:</h3>
+    <ul>
+        <li><code>async function</code>: We declare the function as asynchronous because it will be making a network request over the internet, and we don't want to freeze the browser while waiting.</li>
+        <li><code>event.preventDefault()</code>: By default, when you click a submit button inside an HTML form, the browser tries to refresh the entire page. We cancel this default behavior so we can handle the submission smoothly with JavaScript instead.</li>
+        <li><code>document.getElementById(...).value</code>: We use the DOM to grab the HTML input boxes by their unique IDs and extract the text the user typed inside them.</li>
+        <li><code>try { ... } catch (error) { ... }</code>: We wrap our network code in a try/except block. If the user loses their WiFi connection exactly when they click login, the <code>fetch</code> will fail. Instead of crashing the script, the <code>catch</code> block gracefully logs the network error.</li>
+        <li><code>await fetch('/api/auth/login')</code>: The <strong>Fetch API</strong> is built into modern browsers. It is how JS sends HTTP requests. We <code>await</code> it, meaning JS pauses execution on this specific line until the Python server replies, but allows the rest of the browser to keep running.</li>
+        <li><code>method: 'POST'</code>: We are sending data (username/password) to the server to create a session, so we use the HTTP POST method.</li>
+        <li><code>headers: { 'Content-Type': 'application/json' }</code>: We explicitly tell the Python server, "Hey, the data I'm sending you is formatted as JSON."</li>
+        <li><code>body: JSON.stringify(...)</code>: We take our JavaScript Object containing the username and password and convert it into a pure text JSON string so it can travel across the internet.</li>
+        <li><code>const data = await response.json()</code>: The Python server replies with a JSON string. We use <code>.json()</code> to parse that string back into a usable JavaScript Object.</li>
+        <li><code>if (data.success)</code>: If Python replied with <code>{"success": true}</code>, we use <code>window.location.href</code> to redirect the browser to the dashboard page.</li>
+    </ul>
+
+    <h2>5.3 The Database Logic: core/db.py</h2>
+    <p>Finally, how does Python actually execute queries?</p>
+
+    <div class="code-block">
+import sqlite3<br>
+from flask import g<br>
+<br>
+def get_db():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if 'db' not in g:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;g.db = sqlite3.connect('database/smartbank.db')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;g.db.row_factory = sqlite3.Row<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return g.db<br>
+<br>
+def close_db(e=None):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;db = g.pop('db', None)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if db is not None:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;db.close()
+    </div>
+
+    <h3>Line-by-Line Explanation:</h3>
+    <ul>
+        <li><code>import sqlite3</code>: We import the built-in library that allows Python to talk to SQLite databases.</li>
+        <li><code>from flask import g</code>: In Flask, <code>g</code> stands for <strong>Global Context</strong>. It is a special object that exists only for the duration of a single HTTP request. It's used to store temporary data that multiple functions might need while processing that one specific request.</li>
+        <li><code>if 'db' not in g:</code>: We check if a database connection has already been opened for this user's request. Why? Because opening a database connection is slow and resource-heavy. We don't want to open 5 connections if we run 5 queries in a single request. This is called the <strong>Singleton Pattern</strong>.</li>
+        <li><code>g.db = sqlite3.connect(...)</code>: We open the connection to the database file on the hard drive and store the connection object in the <code>g</code> context.</li>
+        <li><code>g.db.row_factory = sqlite3.Row</code>: By default, SQLite returns rows as raw Tuples <code>(1, "Salman", 500)</code>. By setting this row factory, SQLite returns rows that act like Dictionaries <code>{"id": 1, "name": "Salman", "balance": 500}</code>. This makes the code vastly more readable because we can access columns by name instead of index numbers.</li>
+        <li><code>def close_db(e=None):</code>: This function is triggered by Flask the exact millisecond an HTTP request finishes and the response is sent to the user.</li>
+        <li><code>db = g.pop('db', None)</code>: We safely extract the database connection from the global context.</li>
+        <li><code>db.close()</code>: We explicitly close the connection. This is absolutely critical. If you don't close connections, the database eventually locks up and the entire server crashes.</li>
+    </ul>
+
+    <h2>Conclusion</h2>
+    <p>You have now explored the absolute depths of full-stack engineering. You understand how networks communicate, how databases maintain integrity, and how the frontend and backend negotiate via APIs. Be proud of the system you've built. In your viva, speak slowly, use analogies, and demonstrate that you don't just know what the code does, but <em>why</em> it was written that way.</p>
+</div>

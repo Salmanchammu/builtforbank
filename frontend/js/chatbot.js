@@ -1,6 +1,7 @@
 /**
  * AI Chatbot Widget for Smart Bank
  * Provides real-time AI assistance to users
+ * v2.0 — Enhanced with rich UI, emoji formatting, and full mobile/desktop support
  */
 
 class SmartBankChatbot {
@@ -13,6 +14,7 @@ class SmartBankChatbot {
         this.isSupportActive = false;
         this.activeTicketId = null;
         this.pollingInterval = null;
+        this.greetingSent = false;
 
         this.init();
     }
@@ -27,7 +29,7 @@ class SmartBankChatbot {
         const widget = document.createElement('div');
         widget.className = 'chat-widget';
         widget.innerHTML = `
-            <button class="chat-button" id="chatToggleBtn">
+            <button class="chat-button" id="chatToggleBtn" aria-label="Open AI Chat">
                 <i class="fas fa-robot"></i>
             </button>
             
@@ -39,14 +41,14 @@ class SmartBankChatbot {
                         </div>
                         <div class="chat-header-info">
                             <h4>Smart Bank AI</h4>
-                            <p>Premium Digital Assistant</p>
+                            <p>Online • Ready to help</p>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 12px; align-items: center;">
+                    <div style="display: flex; gap: 8px; align-items: center;">
                         <button class="chat-close-btn" id="chatClearBtn" title="Clear Chat">
                             <i class="fas fa-trash-alt"></i>
                         </button>
-                        <button class="chat-close-btn" id="chatCloseBtn">
+                        <button class="chat-close-btn" id="chatCloseBtn" title="Close">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -54,17 +56,17 @@ class SmartBankChatbot {
                 
                 <div class="chat-messages" id="chatMessages">
                     <div class="welcome-message">
-                        <i class="fas fa-robot" style="font-size: 40px; color: var(--maroon-deep); margin-bottom: 20px; display: block;"></i>
-                        <h3 style="color: var(--maroon-deep); margin-bottom: 8px;">Smart Bank AI</h3>
-                        <p style="color: #666; font-size: 13px;">Your personal finance companion. Ask me anything!</p>
+                        <i class="fas fa-robot"></i>
+                        <h3>Smart Bank AI</h3>
+                        <p>Your personal finance companion.<br>Ask me about balances, transfers, loans, cards, and more!</p>
                     </div>
                 </div>
                 
                 <div class="chat-quick-actions" id="chatQuickActions"></div>
                 
                 <div class="chat-input-area">
-                    <input type="text" class="chat-input" id="chatInput" placeholder="How can I help you?" autocomplete="off">
-                    <button class="chat-send-btn" id="chatSendBtn">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything..." autocomplete="off">
+                    <button class="chat-send-btn" id="chatSendBtn" aria-label="Send Message">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
@@ -243,10 +245,18 @@ class SmartBankChatbot {
             toggleBtn.classList.add('active');
             toggleBtn.innerHTML = '<i class="fas fa-times"></i>';
 
+            // Send greeting on first open
+            if (!this.greetingSent && this.messages.length === 0) {
+                this.greetingSent = true;
+                setTimeout(() => {
+                    this.addBotMessage("👋 Hi there! I'm your Smart Bank AI assistant.\n\nI can help you with:\n• 💰 Account balances\n• 📋 Transaction history\n• 💸 Money transfers\n• 🏦 Loans & investments\n• 💳 Card services\n• 🎧 Live support\n\nHow can I help you today?");
+                }, 400);
+            }
+
             // Focus input
             setTimeout(() => {
                 document.getElementById('chatInput').focus();
-            }, 100);
+            }, 150);
 
             // If in support mode, refreshing messages upon opening
             if (this.isSupportActive && this.activeTicketId) {
@@ -266,7 +276,7 @@ class SmartBankChatbot {
 
         chatWindow.classList.remove('active');
         toggleBtn.classList.remove('active');
-        toggleBtn.innerHTML = '<i class="fas fa-comments"></i>';
+        toggleBtn.innerHTML = '<i class="fas fa-robot"></i>';
     }
 
     async sendMessage() {
@@ -312,6 +322,11 @@ class SmartBankChatbot {
             });
 
             const data = await response.json();
+            
+            // Simulate natural typing delay based on response length
+            const delay = Math.min(600 + (data.response || '').length * 8, 2000);
+            await new Promise(r => setTimeout(r, delay));
+            
             this.hideTypingIndicator();
 
             if (data.success !== false) {
@@ -323,8 +338,10 @@ class SmartBankChatbot {
 
         } catch (error) {
             console.error('Chat error:', error);
+            // Still show a delay before error for realism
+            await new Promise(r => setTimeout(r, 800));
             this.hideTypingIndicator();
-            this.addBotMessage("Sorry, I'm having connection issues. Please try again later.");
+            this.addBotMessage("⚠️ Sorry, I'm having connection issues. Please check your internet connection and try again.");
         }
     }
 
@@ -409,7 +426,16 @@ class SmartBankChatbot {
                 this.renderQuickActions(data.suggestions);
             }
         } catch (error) {
-            console.error('Error loading quick actions:', error);
+            // Render default suggestions if API fails
+            console.log('Using fallback quick actions');
+            this.renderQuickActions([
+                { text: '💰 Balance', action: 'balance' },
+                { text: '📋 Transactions', action: 'transactions' },
+                { text: '💸 Transfer', action: 'transfer' },
+                { text: '🏦 Loans', action: 'loan' },
+                { text: '💳 Cards', action: 'card' },
+                { text: '🎧 Support', action: 'help' }
+            ]);
         }
     }
 
@@ -417,10 +443,22 @@ class SmartBankChatbot {
         const container = document.getElementById('chatQuickActions');
         container.innerHTML = '';
 
+        // Add emoji prefixes if not already present
+        const emojiMap = {
+            'balance': '💰',
+            'transactions': '📋',
+            'transfer': '💸',
+            'loan': '🏦',
+            'card': '💳',
+            'help': '🎧'
+        };
+
         suggestions.forEach(suggestion => {
             const btn = document.createElement('button');
             btn.className = 'chat-quick-action-btn';
-            btn.textContent = suggestion.text;
+            const emoji = emojiMap[suggestion.action] || '';
+            const text = suggestion.text.startsWith(emoji) ? suggestion.text : `${emoji} ${suggestion.text}`.trim();
+            btn.textContent = text;
             btn.onclick = () => this.handleQuickAction(suggestion);
             container.appendChild(btn);
         });
@@ -429,12 +467,12 @@ class SmartBankChatbot {
     handleQuickAction(suggestion) {
         const input = document.getElementById('chatInput');
         const actionMessages = {
-            'balance': 'Account Balance',
-            'transactions': 'Recent Transactions',
-            'transfer': 'Transfer Money',
-            'loan': 'Loan Information',
-            'card': 'Card Information',
-            'help': 'Customer Support'
+            'balance': 'What is my account balance?',
+            'transactions': 'Show my recent transactions',
+            'transfer': 'I want to transfer money',
+            'loan': 'Tell me about loan options',
+            'card': 'Show card services',
+            'help': 'I need customer support'
         };
         const message = actionMessages[suggestion.action] || suggestion.text;
         input.value = message;
@@ -460,31 +498,31 @@ class SmartBankChatbot {
                 setTimeout(() => {
                     this.closeChat();
                     navigate('dashboard');
-                }, 2000);
+                }, 2500);
             },
             'transaction_history': () => {
                 setTimeout(() => {
                     this.closeChat();
                     navigate('transactions', 'history');
-                }, 2000);
+                }, 2500);
             },
             'transfer_money': () => {
                 setTimeout(() => {
                     this.closeChat();
                     navigate('transfer');
-                }, 2000);
+                }, 2500);
             },
             'loan_inquiry': () => {
                 setTimeout(() => {
                     this.closeChat();
                     navigate('loans', 'dashboard'); // Mobile loans info is on Home/Dashboard
-                }, 2000);
+                }, 2500);
             },
             'card_inquiry': () => {
                 setTimeout(() => {
                     this.closeChat();
                     navigate('cards', 'profile'); // Mobile cards info is in Profile
-                }, 2000);
+                }, 2500);
             },
             'support_request': () => {
                 this.startSupportChat();
@@ -497,8 +535,20 @@ class SmartBankChatbot {
     }
 
     formatMessage(message) {
-        // Format message with line breaks and basic formatting
-        return this.escapeHtml(message).replace(/\n/g, '<br>');
+        if (!message) return '';
+        
+        let formatted = this.escapeHtml(message);
+        
+        // Convert line breaks
+        formatted = formatted.replace(/\n/g, '<br>');
+        
+        // Bold text between ** markers
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+        // Bullet points: lines starting with •
+        formatted = formatted.replace(/(^|<br>)• /g, '$1<span style="color:var(--maroon-deep);margin-right:4px;">•</span> ');
+        
+        return formatted;
     }
 
     escapeHtml(text) {
@@ -511,7 +561,7 @@ class SmartBankChatbot {
         const messagesContainer = document.getElementById('chatMessages');
         setTimeout(() => {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }, 100);
+        }, 60);
     }
 
     async startSupportChat() {
@@ -541,15 +591,15 @@ class SmartBankChatbot {
                 document.querySelector('.chat-avatar').innerHTML = '<i class="fas fa-headset"></i>';
                 document.getElementById('chatInput').placeholder = 'Message staff...';
                 
-                this.addBotMessage("Connecting you to our support staff... One moment please.");
+                this.addBotMessage("🎧 Connecting you to our support staff...\nA team member will respond shortly. You can describe your issue in detail here.");
                 this.loadSupportMessages();
                 this.startPolling();
             } else {
-                this.addBotMessage("Support staff are currently offline. Please try again during business hours.");
+                this.addBotMessage("😔 Support staff are currently offline. Please try again during business hours (9 AM — 6 PM).\n\nAlternatively, you can submit a support ticket from the More → Contact Support section.");
             }
         } catch (error) {
             this.hideTypingIndicator();
-            this.addBotMessage("I couldn't reach our support team right now. Please try again later.");
+            this.addBotMessage("⚠️ I couldn't reach our support team right now. Please try again later or submit a ticket from the Support section.");
         }
     }
 
@@ -582,7 +632,7 @@ class SmartBankChatbot {
                 
                 const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 messageDiv.innerHTML = `
-                    <div class="message-bubble" style="${!isUser ? 'background: #fdf2f2; color: #800000; border: 1px solid #fee2e2;' : ''}">
+                    <div class="message-bubble">
                         ${this.formatMessage(msg.message)}
                         <span class="message-time">${time}</span>
                     </div>
@@ -604,10 +654,11 @@ class SmartBankChatbot {
 
     clearHistory() {
         if (this.isSupportActive) {
-            this.addBotMessage("Session history cannot be cleared while chatting with staff.");
+            this.addBotMessage("⚠️ Session history cannot be cleared while chatting with staff.");
             return;
         }
         this.messages = [];
+        this.greetingSent = false;
         const messagesContainer = document.getElementById('chatMessages');
         messagesContainer.innerHTML = `
             <div class="welcome-message">
@@ -624,6 +675,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Wait a bit for the page to fully load
     setTimeout(() => {
         window.smartBankChatbot = new SmartBankChatbot();
-        console.log('Smart Bank AI Chatbot initialized');
+        console.log('Smart Bank AI Chatbot v2.0 initialized');
     }, 1000);
 });

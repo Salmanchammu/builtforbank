@@ -101,7 +101,7 @@ def signup():
         # OTP sent via email only — not exposed in server logs
         logger.info(f"User signup: {username} — verification email sent to {email}")
         
-        return jsonify({'success': True, 'message': 'Account created! Please check your email for the verification code.', 'username': username, 'dev_otp': otp}), 201
+        return jsonify({'success': True, 'message': 'Account created! Please check your email for the verification code.', 'username': username}), 201
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
@@ -160,7 +160,7 @@ def resend_otp():
         # OTP sent via email only
         logger.info(f"Resend OTP for user: {username} — email sent to {user['email']}")
 
-        return jsonify({'success': True, 'message': 'New verification code sent to your email', 'dev_otp': otp}), 200
+        return jsonify({'success': True, 'message': 'New verification code sent to your email'}), 200
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
@@ -243,7 +243,7 @@ def login():
                 # OTP is sent via email only — not exposed in server logs for security
                 logger.info(f"2FA login initiated for {actual_username} (email sent to {email})")
 
-                return jsonify({'success': True, 'requires_2fa': True, 'username': actual_username, 'role': role, 'dev_otp': otp})
+                return jsonify({'success': True, 'requires_2fa': True, 'username': actual_username, 'role': role})
             except Exception as e:
                 db.rollback()
                 logger.error(f"Failed to generate 2FA for {actual_username}: {e}")
@@ -459,6 +459,13 @@ def buyer_login():
     if not buyer_id or not password:
         return jsonify({'error': 'Missing credentials'}), 400
         
+    # Security: Brute-force protection
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if client_ip and ',' in client_ip:
+        client_ip = client_ip.split(',')[0].strip()
+    if check_brute_force(client_ip):
+        return jsonify({'error': 'Too many failed attempts. Please try again in 15 minutes.'}), 429
+        
     db = get_db()
     buyer = db.execute('SELECT * FROM agri_buyers WHERE (buyer_id = ? OR email = ?) AND status = "active"', (buyer_id, buyer_id)).fetchone()
     
@@ -467,9 +474,11 @@ def buyer_login():
         pending = db.execute('SELECT id FROM agri_buyers WHERE (buyer_id = ? OR email = ?) AND status = "pending"', (buyer_id, buyer_id)).fetchone()
         if pending:
             return jsonify({'error': 'Buyer account is pending approval'}), 403
+        record_failed_attempt(client_ip)
         return jsonify({'error': 'Invalid buyer credentials'}), 401
         
     if check_password_hash(buyer['password'], password):
+        clear_failed_attempts(client_ip)
         session.clear()
         session.permanent = True
         session['user_id'] = buyer['id']
@@ -492,6 +501,7 @@ def buyer_login():
             }
         })
         
+    record_failed_attempt(client_ip)
     return jsonify({'error': 'Invalid credentials'}), 401
 
 @auth_bp.route('/forgot-username', methods=['POST'])

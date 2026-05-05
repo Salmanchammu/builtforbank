@@ -71,12 +71,15 @@ def dashboard():
     now = datetime.now()
     this_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
     
+    main_bank_fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "System Liquidity"').fetchone()
+    
     total_customers = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
     stats = {
         'total_customers': total_customers,
         'pending_loans': db.execute('SELECT COUNT(*) FROM service_applications WHERE status = "pending"').fetchone()[0],
         'total_balance': db.execute('SELECT SUM(balance) FROM accounts WHERE status = "active"').fetchone()[0] or 0,
-        'total_accounts': db.execute('SELECT COUNT(*) FROM accounts WHERE status = "active"').fetchone()[0]
+        'total_accounts': db.execute('SELECT COUNT(*) FROM accounts WHERE status = "active"').fetchone()[0],
+        'main_bank_liquidity': float(main_bank_fund['balance']) if main_bank_fund else 50000000.00
     }
     
     recent_customers = [dict(c) for c in db.execute('SELECT id, name, username, email FROM users ORDER BY created_at DESC LIMIT 5').fetchall()]
@@ -180,7 +183,9 @@ def lookup():
     db = get_db()
     if l_type == 'account':
         account = db.execute('SELECT a.*, u.name as user_name FROM accounts a JOIN users u ON a.user_id = u.id WHERE a.account_number = ? OR a.id = ?', (query, query)).fetchone()
-        return jsonify({'success': True, 'data': dict(account)}) if account else jsonify({'success': False, 'error': 'Not found'}), 404
+        if not account:
+            return jsonify({'success': False, 'error': 'Not found'}), 404
+        return jsonify({'success': True, 'data': dict(account)})
     users = db.execute('SELECT id, name, username, email, phone, status FROM users WHERE name LIKE ? OR username LIKE ? OR phone LIKE ? LIMIT 10', (f"%{query}%", f"%{query}%", f"%{query}%")).fetchall()
     return jsonify({'success': True, 'data': [dict(u) for u in users]})
 
@@ -291,8 +296,8 @@ def update_service_application(app_id):
                         target_account_id = fallback_acc['id']
 
                 # Generate Card Details
-                c_num = f"4{''.join([str(random.randint(0, 9)) for _ in range(15)])}" # Mock Visa
-                cvv = str(random.randint(100, 999))
+                c_num = f"4{''.join([str(secrets.randbelow(10)) for _ in range(15)])}" # Mock Visa
+                cvv = str(100 + secrets.randbelow(900))
                 expiry = (datetime.now() + timedelta(days=365*5)).strftime("%Y-%m-%d") # 5 years
                 
                 card_type = card_req['card_type'] if card_req else (app_data['product_name'] or 'Classic')
@@ -408,6 +413,7 @@ def add_transaction():
         if not account: return jsonify({'error': 'Account not found'}), 404
         new_bal = account['balance'] + amount
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (new_bal, account['id']))
+        db.execute('UPDATE system_finances SET balance = balance + ? WHERE fund_name = "System Liquidity"', (amount,))
         db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, mode) VALUES (?, "credit", ?, ?, "completed", "Staff Deposit", "CASH")', (account['id'], amount, new_bal))
         db.commit()
         return jsonify({'success': True})
@@ -427,6 +433,7 @@ def withdraw_transaction():
         if account['balance'] < amount: return jsonify({'error': 'Insufficient balance'}), 400
         new_bal = account['balance'] - amount
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (new_bal, account['id']))
+        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "System Liquidity"', (amount,))
         db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, mode) VALUES (?, "debit", ?, ?, "completed", "Staff Withdrawal", "CASH")', (account['id'], amount, new_bal))
         db.commit()
         return jsonify({'success': True})
@@ -478,13 +485,28 @@ def get_user_activity(user_id):
     agri_loans = db.execute('SELECT * FROM agriculture_loans WHERE user_id = ?', (user_id,)).fetchall()
     kyc_request = db.execute('SELECT * FROM account_requests WHERE user_id = ? ORDER BY request_date DESC LIMIT 1', (user_id,)).fetchone()
     
+    # Security: Strip sensitive fields before sending to staff
+    user_dict = dict(user)
+    sensitive_fields = ['password', 'upi_pin', 'mobile_passcode', 'otp', 'phone_otp',
+                       'otp_expiry', 'face_descriptor', 'reset_token', 'reset_token_expiry']
+    for field in sensitive_fields:
+        user_dict.pop(field, None)
+    
+    # Strip sensitive card data (CVV, pin_hash)
+    safe_cards = []
+    for c in cards:
+        cd = dict(c)
+        cd.pop('cvv', None)
+        cd.pop('pin_hash', None)
+        safe_cards.append(cd)
+    
     return jsonify({
-        'user': dict(user), 
+        'user': user_dict, 
         'kyc_request': dict(kyc_request) if kyc_request else None,
         'accounts': [dict(a) for a in accounts], 
         'transactions': [dict(t) for t in transactions], 
         'activity_logs': [dict(act) for act in activity],
-        'cards': [dict(c) for c in cards],
+        'cards': safe_cards,
         'loans': [dict(l) for l in loans],
         'agriculture_loans': [dict(al) for al in agri_loans]
     })

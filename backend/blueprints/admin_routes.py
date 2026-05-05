@@ -10,7 +10,7 @@ import csv
 from core.db import get_db
 from core.auth import login_required, role_required, log_audit, compare_face_descriptors, trigger_geo_lookup
 from core.email_utils import send_email_async
-from core.utils import validate_email
+from core.utils import validate_email, validate_password
 from core.constants import PROFILE_PICS_FOLDER, allowed_file
 
 admin_bp = Blueprint('admin', __name__)
@@ -27,11 +27,16 @@ def admin_dashboard():
     active_staff = db.execute('SELECT COUNT(*) FROM staff WHERE status = "active"').fetchone()[0]
     liquidity_fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "Loan Liquidity Fund"').fetchone()
     liquidity_balance = float(liquidity_fund['balance']) if liquidity_fund else 1000000.00
+    
+    main_bank_fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "System Liquidity"').fetchone()
+    main_bank_liquidity = float(main_bank_fund['balance']) if main_bank_fund else 50000000.00
+    
     today_trans = db.execute('SELECT COUNT(*) FROM transactions WHERE date(transaction_date) = date("now")').fetchone()[0]
     
     stats = {
         'totalUsers': total_users,
         'loanLiquidity': liquidity_balance,
+        'mainBankLiquidity': main_bank_liquidity,
         'activeStaff': active_staff,
         'totalDeposits': total_deposits,
         'todaysTransactions': today_trans
@@ -148,7 +153,7 @@ def create_user():
         return jsonify({'error': str(e)}), 500
 
 @admin_bp.route('/user/<int:user_id>', methods=['DELETE'])
-@role_required(['admin', 'staff'])
+@role_required('admin')
 def delete_user(user_id):
     db = get_db()
     try:
@@ -344,7 +349,7 @@ def pay_salary():
     try:
         staff = db.execute('SELECT * FROM staff WHERE id = ?', (staff_id,)).fetchone()
         if not staff: return jsonify({'error': 'Staff not found'}), 404
-        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "Loan Liquidity Fund"', (amount,))
+        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "Operating Fund"', (amount,))
         db.commit()
         log_audit(session.get('admin_id'), 'admin', 'salary_paid', f"Paid ₹{amount} to {staff['name']}")
         return jsonify({'success': True, 'message': f'Salary of ₹{amount} paid to {staff["name"]}'})

@@ -46,6 +46,9 @@ def billpay():
     new_balance = account['balance'] - amount
     db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (new_balance, account['id']))
     
+    # Deduct from System Liquidity (money leaves the bank)
+    db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "System Liquidity"', (amount,))
+    
     ref = f"BBPS{secrets.token_hex(4).upper()}"
     db.execute('''
         INSERT INTO transactions (account_id, type, amount, description, reference_number, mode, status, balance_after)
@@ -75,6 +78,9 @@ def apply_fd():
     
     new_balance = account['balance'] - amount
     db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (new_balance, account['id']))
+    
+    # Deduct from System Liquidity
+    db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "System Liquidity"', (amount,))
     
     ref = f"FD{secrets.token_hex(4).upper()}"
     db.execute('INSERT INTO transactions (account_id, type, amount, description, reference_number, mode, status, balance_after) VALUES (?, "debit", ?, ?, ?, "Investment", "completed", ?)',
@@ -109,6 +115,9 @@ def apply_investment():
     try:
         new_balance = account['balance'] - amount
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (new_balance, account['id']))
+        
+        # Deduct from System Liquidity
+        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "System Liquidity"', (amount,))
         
         ref = f"INV{secrets.token_hex(4).upper()}"
         db.execute('''

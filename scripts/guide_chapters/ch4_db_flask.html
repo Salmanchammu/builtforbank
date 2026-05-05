@@ -1,0 +1,62 @@
+<div class="chapter">
+    <h1>Chapter 4: Databases and the Flask Framework</h1>
+    
+    <h2>4.1 What is a Database?</h2>
+    <p>If variables in JavaScript and Python act as memory boxes, why do we need a database? Because variables exist in RAM (Random Access Memory). When the server restarts or loses power, RAM is wiped clean. A database is a specialized software that saves data persistently to a hard drive so it survives reboots. For a banking app, losing data is not an option.</p>
+
+    <h2>4.2 Relational (SQL) vs. Non-Relational (NoSQL)</h2>
+    <p>There are two major families of databases in modern web development.</p>
+    <ul>
+        <li><strong>NoSQL (e.g., MongoDB):</strong> Data is stored as flexible, JSON-like documents. You might have one document for a user that contains their name, age, and a nested list of their transactions. It's highly flexible and great for unstructured data or rapidly changing prototypes.</li>
+        <li><strong>Relational SQL (e.g., SQLite, PostgreSQL):</strong> Data is stored in strict, rigid tables with rows and columns. SmartBank uses a Relational Database. Why? Because banking data is highly structured and interconnected. A User has an Account. An Account has Transactions. SQL is built specifically to handle these relationships safely and efficiently.</li>
+    </ul>
+
+    <h2>4.3 The Anatomy of SQL Tables (Primary and Foreign Keys)</h2>
+    <p>In your `schema.sql` file, you define tables. Think of a table like an Excel spreadsheet. Every column has a specific data type (e.g., INTEGER, TEXT).</p>
+    
+    <h3>The Primary Key</h3>
+    <p>Every single row in a table must have a unique identifier. This is the <strong>Primary Key</strong>. In your `users` table, the `id` column is the Primary Key. Even if two users are named "Salman", their IDs will be `1` and `2`. The database guarantees that no two rows will ever have the same Primary Key.</p>
+
+    <h3>The Foreign Key</h3>
+    <p>This is how relationships are formed. Suppose you have a `transactions` table. If you want to record that Salman deposited ₹500, you don't write "Salman" in the transactions table. You write `1` (Salman's Primary Key ID) in a column called `user_id`. In this context, `user_id` is a <strong>Foreign Key</strong> because it points to the Primary Key of a foreign table. This links the two tables together.</p>
+
+    <h2>4.4 SQL Commands (CRUD)</h2>
+    <p>You interact with the database using SQL (Structured Query Language). Most operations fall under the acronym <strong>CRUD</strong>:</p>
+    <ul>
+        <li><strong>C</strong>reate: <code>INSERT INTO users (name, role) VALUES ('Salman', 'Admin')</code></li>
+        <li><strong>R</strong>ead: <code>SELECT * FROM users WHERE id = 1</code></li>
+        <li><strong>U</strong>pdate: <code>UPDATE accounts SET balance = 5000 WHERE id = 1</code></li>
+        <li><strong>D</strong>elete: <code>DELETE FROM transactions WHERE status = 'failed'</code></li>
+    </ul>
+
+    <h2>4.5 ACID Properties (Crucial for Viva!)</h2>
+    <p>For a banking application, the database must be ACID compliant. This guarantees that your money is safe even during server crashes.</p>
+    <ul>
+        <li><strong>Atomicity:</strong> "All or Nothing." If you transfer ₹500 to a friend, the database must deduct ₹500 from you AND add ₹500 to your friend. If the server crashes in the exact millisecond between those two actions, Atomicity guarantees the database will automatically cancel the entire transaction. The money doesn't disappear.</li>
+        <li><strong>Consistency:</strong> The database rules are strictly enforced. If a column is defined as an INTEGER, trying to save the word "Hello" will be rejected instantly.</li>
+        <li><strong>Isolation:</strong> If two people try to transfer money at the exact same microsecond, Isolation ensures they are processed sequentially, so the math doesn't overlap and calculate the balance incorrectly.</li>
+        <li><strong>Durability:</strong> Once the database says "Transaction Successful", the data is permanently written to the hard drive. If someone kicks the server's power plug out a millisecond later, the data is still there when the server reboots.</li>
+    </ul>
+
+    <h2>4.6 The Flask Web Framework</h2>
+    <p>Now that we have HTML/JS on the frontend and a Database on the backend, how do they talk? Enter <strong>Flask</strong>.</p>
+    <p>Flask is a web framework written in Python. A framework is simply a large collection of pre-written code that handles the boring, repetitive parts of web development (like processing HTTP headers and managing URLs), so you can focus on writing your actual app logic.</p>
+
+    <h3>WSGI (Web Server Gateway Interface)</h3>
+    <p>Python does not inherently know how to speak the language of the internet (HTTP). Web servers like Apache or Nginx speak HTTP, but they don't understand Python code. WSGI is the universal translator sitting in the middle. Flask uses Werkzeug, a WSGI utility library, to translate web requests into Python objects that your code can understand.</p>
+
+    <h3>Micro-Framework vs. Batteries Included</h3>
+    <p>You will likely be asked, "Why Flask and not Django?"</p>
+    <p>Django is a "batteries included" framework. It comes with its own massive ORM (database system), an admin panel, and an authentication system pre-installed. You just configure it. <br>
+    Flask is a "micro-framework". It gives you the absolute bare minimum required to get a server running. Everything else—database connections, login logic—you have to write yourself. You chose Flask because it gave you absolute architectural freedom and allowed you to learn exactly how full-stack systems work from the ground up, rather than relying on automated magic.</p>
+
+    <h3>Routing</h3>
+    <p>Routing is how Flask knows which Python function to run when a user visits a specific URL.</p>
+    <div class="code-block">
+@app.route('/dashboard', methods=['GET'])<br>
+def show_dashboard():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return render_template('dashboard.html')
+    </div>
+    <p>When the client's browser requests the URL <code>/dashboard</code>, Flask matches that URL to this specific decorator and executes the <code>show_dashboard()</code> function. The function then reads the HTML file from the hard drive and sends it back to the browser over the internet.</p>
+
+</div>

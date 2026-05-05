@@ -1,0 +1,81 @@
+<div class="chapter">
+    <h1>Chapter 3: Python (The Brain of the Backend)</h1>
+    
+    <h2>3.1 Why Python?</h2>
+    <p>Python is known for its incredibly clean and readable syntax. Unlike languages like Java or C++ that require massive amounts of "boilerplate" code just to print a simple word, Python gets straight to the point. In SmartBank, Python is the engine of your backend. It handles security, calculates balances, and securely stores data in the SQL database.</p>
+    
+    <h2>3.2 Core Data Structures</h2>
+    <p>This is a guaranteed viva question. You must know the difference between the four main data structures in Python: Lists, Tuples, Dictionaries, and Sets.</p>
+    
+    <h3>Mutability (The Most Important Concept)</h3>
+    <p><strong>Mutable</strong> means the data <em>can</em> be changed after it is created in memory. If you add an item to a list, it stays in the exact same memory location, it just gets bigger.</p>
+    <p><strong>Immutable</strong> means the data <em>cannot</em> be changed. If you try to change a string in Python, the computer actually destroys the original string in memory and creates a brand new one. Strings, numbers, and Tuples are immutable.</p>
+
+    <h3>1. Lists <code>[]</code></h3>
+    <p>Lists are ordered, mutable, and allow duplicate values. Think of a shopping list. You can add items, remove items, and the order in which you wrote them down is preserved.</p>
+    <div class="code-block">
+accounts = ["Savings", "Current", "Loan"]<br>
+accounts.append("Credit") <span class="comment"># This works perfectly because lists are Mutable.</span>
+    </div>
+
+    <h3>2. Tuples <code>()</code></h3>
+    <p>Tuples are ordered and allow duplicates, but they are <strong>Immutable</strong>. Once you create a tuple, you can never add or remove items from it.</p>
+    <ul>
+        <li><strong>Why use them?</strong> Because they can't change, Python can process them much faster than lists. They also use less memory. You use tuples for data that should never be altered, like geographic coordinates (latitude, longitude) or RGB color codes.</li>
+    </ul>
+
+    <h3>3. Dictionaries <code>{}</code></h3>
+    <p>Dictionaries are unordered collections of Key-Value pairs. They are mutable. Think of an actual dictionary: you look up a word (the Key) to find the definition (the Value).</p>
+    <p>Dictionaries use <strong>Hash Tables</strong> under the hood. This means looking up a value takes almost zero time, even if the dictionary contains a million items. This is why we use dictionaries constantly in backend development.</p>
+    <div class="code-block">
+user = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"id": 101,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"name": "Salman",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"balance": 50000<br>
+}<br>
+print(user["name"]) <span class="comment"># Instantly prints "Salman"</span>
+    </div>
+    <div class="viva-tip"><b>Viva Tip:</b> An examiner might ask, "Can a list be a key in a dictionary?" The answer is NO. Dictionary keys must be <b>Immutable</b> (like strings or tuples) so that their internal hash value never changes.</div>
+
+    <h3>4. Sets <code>{}</code></h3>
+    <p>Sets are unordered, mutable, but they <strong>do not allow duplicates</strong>. If you have a list of a thousand transaction IDs and you want to instantly remove all the duplicates, you simply convert the list into a Set.</p>
+
+    <h2>3.3 Memory Management and Garbage Collection</h2>
+    <p>In languages like C, developers have to manually allocate and free memory from the computer's RAM. If they forget, it causes a "memory leak" and the computer eventually crashes. Python handles this automatically.</p>
+    <p>Python uses <strong>Reference Counting</strong>. Imagine a Python object in memory is a balloon. Every variable that points to that object is a string holding the balloon. If three variables point to it, the reference count is 3. If you delete those variables, the strings are let go. When the reference count drops to 0, Python instantly pops the balloon (frees the memory).</p>
+    <p>Python also runs a background <strong>Garbage Collector</strong>. Sometimes, Object A points to Object B, and Object B points to Object A, creating an isolated circle. Even if your main program isn't using them, their reference count isn't zero. The Garbage Collector's job is to detect these isolated circles and destroy them.</p>
+
+    <h2>3.4 Object-Oriented Programming (OOP)</h2>
+    <p>OOP is a way of organizing code so that it maps to real-world concepts. Instead of writing random functions, you create "Classes" and "Objects".</p>
+    <ul>
+        <li><strong>Class:</strong> The blueprint. Imagine architectural blueprints for a house. You can't live in a blueprint. It just defines what the house should look like (doors, windows, paint color).</li>
+        <li><strong>Object (Instance):</strong> The actual house built from the blueprint. You can build 100 different houses from the same blueprint. In code, <code>user1</code> and <code>user2</code> are two different objects created from the <code>User</code> class.</li>
+    </ul>
+
+    <h3>The <code>__init__</code> Method and <code>self</code></h3>
+    <p>In Python, the <code>__init__</code> method is the <strong>constructor</strong>. It is a special function that runs automatically the moment you create an object. It "initializes" the object's properties.</p>
+    <p>The <code>self</code> keyword is highly confusing to beginners. It simply refers to the specific object being created. If you have a blueprint instruction that says "paint the door red", you need to know <em>which</em> house's door to paint. <code>self.door = "red"</code> means "paint <em>my</em> door red".</p>
+    <div class="code-block">
+class BankAccount:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;def __init__(self, owner, balance):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.owner = owner<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.balance = balance<br>
+<br>
+account1 = BankAccount("Salman", 1000) <span class="comment"># __init__ runs automatically here!</span>
+    </div>
+
+    <h2>3.5 Decorators (The '@' Symbol)</h2>
+    <p>Since your project uses Flask, you use Decorators constantly (like <code>@app.route</code>). An examiner will definitely ask about this.</p>
+    <p>In Python, functions are "first-class citizens." This means a function is treated just like any other variable. You can pass a function into another function as an argument.</p>
+    <p>A Decorator is simply a function that takes another function, wraps it in some extra code, and returns the modified function. It allows you to "decorate" or modify a function without changing its internal code.</p>
+    <p><strong>Example:</strong> In SmartBank, you might have a function called <code>view_dashboard()</code>. But you don't want anyone to see it unless they are logged in. You could write a massive if-statement inside the function. Or, you could write a decorator called <code>@login_required</code>. You place the decorator directly above the function. Before Python executes the dashboard logic, it runs the decorator's security check first.</p>
+
+    <h2>3.6 Error Handling (Try / Except)</h2>
+    <p>When bad things happen in code (like trying to divide by zero, or a database connection dying), Python throws an "Exception" and completely crashes the program. In a web server, a crash means the website goes offline for everyone.</p>
+    <p>To prevent this, we use Error Handling.</p>
+    <ul>
+        <li><strong>try:</strong> Python attempts to run this block of code.</li>
+        <li><strong>except:</strong> If an error occurs inside the <code>try</code> block, Python immediately jumps here. Instead of crashing, you can log the error and return a safe message to the user.</li>
+        <li><strong>finally:</strong> This code runs <em>no matter what</em>. Even if an error happens, even if the function returns early. In backend development, this is absolutely crucial for databases. If your database query crashes, the <code>finally</code> block ensures that the database connection is safely closed, preventing server resource leaks.</li>
+    </ul>
+</div>

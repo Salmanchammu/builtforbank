@@ -1,0 +1,71 @@
+<div class="chapter">
+    <h1>Chapter 1: The Foundations of the Web (HTML & CSS)</h1>
+    
+    <h2>1.1 Introduction to the Web: Clients and Servers</h2>
+    <p>Before we look at a single line of code, you must understand how the internet actually works. When you open a browser like Google Chrome or Microsoft Edge, your computer acts as a <strong>Client</strong>. When you type in a URL (like <code>www.smartbank.com</code>), your browser doesn't magically know what to display. Instead, it sends an <strong>HTTP Request</strong> over the internet.</p>
+    
+    <p>This request travels through miles of fiber optic cables until it reaches another computer, usually sitting in a massive, air-conditioned warehouse. This computer is called a <strong>Server</strong>. Why? Because its only job in life is to <em>serve</em> data to clients. In the SmartBank project, your Python code (using Flask) is the Server, and the browser running your HTML/JS is the Client.</p>
+    
+    <p>The Server receives the request, processes it, and sends back an <strong>HTTP Response</strong>. This response contains three main ingredients: HTML (the structure), CSS (the paint), and JavaScript (the muscle). Let's dive into the first two.</p>
+
+    <h2>1.2 HTML: The Skeleton of the Web</h2>
+    <p>HTML stands for <strong>HyperText Markup Language</strong>. Notice that it is <em>not</em> a programming language. You cannot write logic in HTML. You cannot say, "If the user is logged in, show this button." HTML is purely a markup language used to define the structure of a document.</p>
+    
+    <h3>Tags and Elements</h3>
+    <p>HTML is written using <strong>tags</strong>. Think of tags like containers. You open a container, put something inside, and then close it.</p>
+    <div class="code-block">
+&lt;h1&gt;Welcome to SmartBank&lt;/h1&gt;<br>
+&lt;p&gt;Your money is safe with us.&lt;/p&gt;
+    </div>
+    <p>In the example above, <code>&lt;h1&gt;</code> is the opening tag, and <code>&lt;/h1&gt;</code> is the closing tag. Everything together (the tags and the text inside) is called an <strong>HTML Element</strong>.</p>
+
+    <h3>The DOM (Document Object Model)</h3>
+    <p>This is a crucial concept for your viva. When the browser downloads your HTML file, it doesn't just read it like a book. It converts it into a giant family tree called the <strong>Document Object Model (DOM)</strong>. </p>
+    <p>Imagine a real tree. The root is the <code>&lt;html&gt;</code> tag. The branches are the <code>&lt;head&gt;</code> and <code>&lt;body&gt;</code> tags. The leaves are the text inside your paragraphs. We care about the DOM because later, we use JavaScript to climb this tree and change the leaves without reloading the page!</p>
+
+    <h3>Semantic HTML</h3>
+    <p>In the old days, developers used <code>&lt;div&gt;</code> tags for absolutely everything. A header was a div, a footer was a div, a sidebar was a div. This is terrible for two reasons:</p>
+    <ol>
+        <li><strong>Accessibility:</strong> Blind users use "Screen Readers" to browse the web. If everything is a <code>&lt;div&gt;</code>, the screen reader doesn't know where the main content starts and where the navigation menu ends.</li>
+        <li><strong>SEO (Search Engine Optimization):</strong> Google's robots scan websites to understand them. They look for meaning.</li>
+    </ol>
+    <p>In SmartBank, we use <strong>Semantic HTML</strong>. Instead of <code>&lt;div id="nav"&gt;</code>, we use the actual <code>&lt;nav&gt;</code> tag. We use <code>&lt;header&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;section&gt;</code>, and <code>&lt;footer&gt;</code>. This gives our HTML structural meaning.</p>
+
+    <h2>1.3 CSS: The Paint and the Layout</h2>
+    <p>CSS stands for <strong>Cascading Style Sheets</strong>. If HTML is the skeleton, CSS is the skin, clothes, and makeup. Without CSS, every website would look like a boring Word document from 1995.</p>
+
+    <h3>Selectors and Specificity</h3>
+    <p>To style an HTML element, you have to "select" it. There are three main ways to do this:</p>
+    <ul>
+        <li><strong>Tag Selector:</strong> <code>p { color: red; }</code>. This selects <em>every single paragraph</em> on the page. It's very broad.</li>
+        <li><strong>Class Selector:</strong> <code>.btn { color: blue; }</code>. Notice the dot (<code>.</code>). A class is a reusable label you can stick on multiple elements. You might have 20 buttons on your page, and they all use the <code>class="btn"</code>.</li>
+        <li><strong>ID Selector:</strong> <code>#header { background: black; }</code>. Notice the hashtag (<code>#</code>). An ID is a unique serial number. You can only use it <strong>once</strong> per page.</li>
+    </ul>
+    <p>If you give an element both a class that says "be blue" and an ID that says "be red", the ID wins. This is called <strong>Specificity</strong>. IDs are more specific than classes, so they override them.</p>
+
+    <h3>The Box Model</h3>
+    <p>If you learn nothing else about CSS, learn this: <strong>Every single element on a webpage is a rectangular box.</strong> Even if a button looks round because you gave it curved corners, the browser calculates it as a box. This is the Box Model.</p>
+    <p>The Box Model consists of four layers, starting from the inside out:</p>
+    <ol>
+        <li><strong>Content:</strong> The actual text or image (e.g., the word "Submit").</li>
+        <li><strong>Padding:</strong> The invisible cushioning <em>inside</em> the box. If you add padding, the distance between the text and the border increases.</li>
+        <li><strong>Border:</strong> The visible line that wraps around the padding.</li>
+        <li><strong>Margin:</strong> The invisible forcefield <em>outside</em> the box. If you add margin, it pushes other boxes away from this one.</li>
+    </ol>
+
+    <h3>Flexbox vs. CSS Grid</h3>
+    <p>In SmartBank, you used modern CSS layout tools to position things on the screen.</p>
+    <p><strong>Flexbox (display: flex):</strong> Imagine you have 5 buttons and you want them to sit in a perfectly straight line, evenly spaced out. Flexbox is designed for 1-Dimensional layouts (either a row OR a column). It makes elements "flexible" so they stretch or shrink to fill the available space.</p>
+    <p><strong>CSS Grid (display: grid):</strong> Imagine a chessboard. You have both rows AND columns. Grid is designed for 2-Dimensional layouts. In your SmartBank dashboard, you have a grid of cards (Total Balance, Active Loans, etc.). Grid allows you to define exactly how many columns you want (e.g., <code>grid-template-columns: 1fr 1fr 1fr</code> creates 3 equal columns).</p>
+
+    <h3>Responsive Design and Media Queries</h3>
+    <p>How does SmartBank look good on both a massive 32-inch monitor and a tiny 5-inch iPhone? Through <strong>Media Queries</strong>.</p>
+    <div class="code-block">
+@media (max-width: 768px) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.dashboard-grid {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;grid-template-columns: 1fr;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}
+    </div>
+    <p>This code tells the browser: "If the screen width ever drops below 768 pixels, change the dashboard grid to have only 1 column." This forces the cards to stack vertically on top of each other, making them easy to scroll through on a phone.</p>
+</div>
