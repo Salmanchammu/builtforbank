@@ -342,65 +342,69 @@ def verify_login():
 
 @auth_bp.route('/face-login', methods=['POST'])
 def face_login():
-    """Face authentication for regular users and agri buyers"""
-    data = request.json
-    face_descriptor = data.get('face_descriptor')
-    
-    if not face_descriptor:
-        return jsonify({'error': 'Face descriptor required'}), 400
-    
-    db = get_db()
-    # Search regular users first
-    users = db.execute('SELECT * FROM users WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
-    for u in users:
-        stored_descriptor = u['face_descriptor']
-        if stored_descriptor and compare_face_descriptors(face_descriptor, stored_descriptor):
-            session.clear()
-            session.permanent = True
-            session['user_id'] = u['id']
-            session['username'] = u['username']
-            session['role'] = 'user'
-            session['name'] = u['name']
-            
-            # Update current login location
-            trigger_geo_lookup(u['id'], 'users')
-            try:
-                db.execute('UPDATE users SET last_login = ? WHERE id = ?', (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), u['id']))
-                db.commit()
-            except:
-                db.rollback()
+    import traceback
+    try:
+        data = request.json
+        face_descriptor = data.get('face_descriptor')
+        
+        if not face_descriptor:
+            return jsonify({'error': 'Face descriptor required'}), 400
+        
+        db = get_db()
+        # Search regular users first
+        users = db.execute('SELECT * FROM users WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
+        for u in users:
+            stored_descriptor = u['face_descriptor']
+            if stored_descriptor and compare_face_descriptors(face_descriptor, stored_descriptor):
+                session.clear()
+                session.permanent = True
+                session['user_id'] = u['id']
+                session['username'] = u['username']
+                session['role'] = 'user'
+                session['name'] = u['name']
+                
+                # Update current login location
+                trigger_geo_lookup(u['id'], 'users')
+                try:
+                    db.execute('UPDATE users SET last_login = ? WHERE id = ?', (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), u['id']))
+                    db.commit()
+                except:
+                    db.rollback()
 
-            log_audit(u['id'], 'user', 'face_login', f"Successful face login for {u['username']}")
-            logger.info(f"Face Login Success: user={u['username']}")
-            return jsonify({
-                'success': True, 'role': 'user', 'name': u['name'],
-                'user': {'id': u['id'], 'username': u['username'], 'name': u['name'], 'email': u['email'], 'profile_image': u['profile_image']}
-            })
+                log_audit(u['id'], 'user', 'face_login', f"Successful face login for {u['username']}")
+                logger.info(f"Face Login Success: user={u['username']}")
+                return jsonify({
+                    'success': True, 'role': 'user', 'name': u['name'],
+                    'user': {'id': u['id'], 'username': u['username'], 'name': u['name'], 'email': u['email'], 'profile_image': u['profile_image']}
+                })
 
-    # Search agri_buyers if no user match
-    buyers = db.execute('SELECT * FROM agri_buyers WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
-    for b in buyers:
-        stored_descriptor = b['face_descriptor']
-        if stored_descriptor and compare_face_descriptors(face_descriptor, stored_descriptor):
-            session.clear()
-            session.permanent = True
-            session['user_id'] = b['id']
-            session['buyer_id'] = b['id']
-            session['username'] = b['buyer_id']
-            session['role'] = 'agri_buyer'
-            session['name'] = b['name']
-            
-            # Update current login location
-            trigger_geo_lookup(b['id'], 'agri_buyers')
+        # Search agri_buyers if no user match
+        buyers = db.execute('SELECT * FROM agri_buyers WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
+        for b in buyers:
+            stored_descriptor = b['face_descriptor']
+            if stored_descriptor and compare_face_descriptors(face_descriptor, stored_descriptor):
+                session.clear()
+                session.permanent = True
+                session['user_id'] = b['id']
+                session['buyer_id'] = b['id']
+                session['username'] = b['buyer_id']
+                session['role'] = 'agri_buyer'
+                session['name'] = b['name']
+                
+                # Update current login location
+                trigger_geo_lookup(b['id'], 'agri_buyers')
 
-            log_audit(b['id'], 'agri_buyer', 'face_login', f"Successful face login for buyer {b['buyer_id']}")
-            logger.info(f"Face Login Success: agri_buyer={b['buyer_id']}")
-            return jsonify({
-                'success': True, 'role': 'agri_buyer', 'name': b['name'],
-                'buyer': {'id': b['id'], 'buyer_id': b['buyer_id'], 'name': b['name'], 'email': b['email'], 'role': 'agri_buyer'}
-            })
-            
-    return jsonify({'error': 'Face not recognized'}), 401
+                log_audit(b['id'], 'agri_buyer', 'face_login', f"Successful face login for buyer {b['buyer_id']}")
+                logger.info(f"Face Login Success: agri_buyer={b['buyer_id']}")
+                return jsonify({
+                    'success': True, 'role': 'agri_buyer', 'name': b['name'],
+                    'buyer': {'id': b['id'], 'buyer_id': b['buyer_id'], 'name': b['name'], 'email': b['email'], 'role': 'agri_buyer'}
+                })
+                
+        return jsonify({'error': 'Face not recognized'}), 401
+    except Exception as e:
+        logger.error(f"Critical Face Login Error: {e}\n{traceback.format_exc()}")
+        return jsonify({'error': f"Internal Server Error: {str(e)}"}), 500
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
