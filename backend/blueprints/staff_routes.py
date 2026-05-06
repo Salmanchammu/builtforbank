@@ -636,45 +636,43 @@ def clock_out():
 
 @staff_bp.route('/face-login', methods=['POST'])
 def face_login():
-    data = request.json
-    face_descriptor = data.get('face_descriptor')
-    
-    if not face_descriptor:
-        return jsonify({'error': 'Face descriptor required'}), 400
-    
-    db = get_db()
-    # Find all staff with face auth enabled
-    staff_list = db.execute('SELECT * FROM staff WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
-    
-    for s in staff_list:
-        stored_descriptor = s['face_descriptor']
-        if stored_descriptor and compare_face_descriptors(face_descriptor, stored_descriptor):
-            # Login success
-            session.clear()
-            session.permanent = True
-            session['user_id'] = s['id']
-            session['staff_id'] = s['id']
-            session['username'] = s['staff_id']
-            session['role'] = 'staff'
-            session['name'] = s['name']
-            
-            logger.info(f"Face Login Success: staff={s['staff_id']}")
-            return jsonify({
-                'success': True,
-                'role': 'staff',
-                'name': s['name'],
-                'staff': {
-                    'id': s['id'],
-                    'staff_id': s['staff_id'],
-                    'name': s['name'],
-                    'email': s['email'],
-                    'department': s['department'],
-                    'position': s['position'],
-                    'profile_image': s['profile_image']
-                }
-            })
-            
-    return jsonify({'error': 'Face not recognized'}), 401
+    import traceback
+    try:
+        data = request.json
+        face_descriptor = data.get('face_descriptor')
+        
+        if not face_descriptor:
+            return jsonify({'error': 'Face descriptor required'}), 400
+        
+        db = get_db()
+        # Find all staff with face auth enabled
+        staff_list = db.execute('SELECT * FROM staff WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
+        
+        for s in staff_list:
+            stored_descriptor = s['face_descriptor']
+            if stored_descriptor and compare_face_descriptors(face_descriptor, stored_descriptor):
+                session.clear()
+                session.permanent = True
+                session['staff_id'] = s['id']
+                session['username'] = s['staff_id']
+                session['role'] = 'staff'
+                session['name'] = s['name']
+                session['department'] = s['department']
+                
+                # Update current login location
+                trigger_geo_lookup(s['id'], 'staff')
+
+                log_audit(s['id'], 'staff', 'face_login', f"Successful face login for staff {s['staff_id']}")
+                logger.info(f"Face Login Success: staff={s['staff_id']}")
+                return jsonify({
+                    'success': True, 'role': 'staff', 'name': s['name'],
+                    'staff': {'id': s['id'], 'staff_id': s['staff_id'], 'name': s['name'], 'department': s['department'], 'profile_image': s.get('profile_image')}
+                })
+                
+        return jsonify({'error': 'Face not recognized'}), 401
+    except Exception as e:
+        logger.error(f"Critical Face Login Error (Staff): {e}\n{traceback.format_exc()}")
+        return jsonify({'error': f"Internal Server Error: {str(e)}"}), 500
 
 @staff_bp.route('/geo-map', methods=['GET'])
 @role_required(['staff', 'admin'])

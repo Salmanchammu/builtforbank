@@ -472,44 +472,48 @@ def admin_test_email():
 
 @admin_bp.route('/face-login', methods=['POST'])
 def face_login():
-    data = request.json
-    face_descriptor = data.get('face_descriptor')
-    
-    if not face_descriptor:
-        return jsonify({'error': 'Face descriptor required'}), 400
-    
-    db = get_db()
-    # Find all admins with face auth enabled
-    admins = db.execute('SELECT * FROM admins WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
-    
-    for a in admins:
-        stored_descriptor = a['face_descriptor']
-        if stored_descriptor and compare_face_descriptors(face_descriptor, stored_descriptor):
-            # Login success
-            session.clear()
-            session.permanent = True
-            session['user_id'] = a['id']
-            session['admin_id'] = a['id']
-            session['username'] = a['username']
-            session['role'] = 'admin'
-            session['name'] = a['name']
-            
-            logger.info(f"Face Login Success: admin={a['username']}")
-            return jsonify({
-                'success': True,
-                'role': 'admin',
-                'name': a['name'],
-                'admin': {
-                    'id': a['id'],
-                    'username': a['username'],
+    import traceback
+    try:
+        data = request.json
+        face_descriptor = data.get('face_descriptor')
+        
+        if not face_descriptor:
+            return jsonify({'error': 'Face descriptor required'}), 400
+        
+        db = get_db()
+        # Find all admins with face auth enabled
+        admins = db.execute('SELECT * FROM admins WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
+        
+        for a in admins:
+            stored_descriptor = a['face_descriptor']
+            if stored_descriptor and compare_face_descriptors(face_descriptor, stored_descriptor):
+                # Login success
+                session.clear()
+                session.permanent = True
+                session['user_id'] = a['id']
+                session['admin_id'] = a['id']
+                session['username'] = a['username']
+                session['role'] = 'admin'
+                session['name'] = a['name']
+                
+                logger.info(f"Face Login Success: admin={a['username']}")
+                return jsonify({
+                    'success': True,
+                    'role': 'admin',
                     'name': a['name'],
-                    'email': a['email'],
-                    'level': a['level'],
-                    'profile_image': a['profile_image']
-                }
-            })
-            
-    return jsonify({'error': 'Face not recognized'}), 401
+                    'admin': {
+                        'id': a['id'],
+                        'username': a['username'],
+                        'name': a['name'],
+                        'email': a['email'],
+                        'level': a['level'],
+                        'profile_image': a['profile_image']
+                    }
+                })
+                
+        return jsonify({'error': 'Face not recognized'}), 401
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @admin_bp.route('/geo-map', methods=['GET'])
 @role_required('admin')

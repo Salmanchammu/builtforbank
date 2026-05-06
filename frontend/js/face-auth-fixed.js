@@ -290,7 +290,7 @@ class FaceAuthManager {
         }
     }
 
-    // ─── Record 5s KYC Video ──────────────────────────────────────────────────
+    // ─── Record 15s KYC Video ──────────────────────────────────────────────────
     async recordKYCVideo() {
         return new Promise((resolve) => {
             try {
@@ -304,9 +304,9 @@ class FaceAuthManager {
                     reader.readAsDataURL(blob);
                 };
 
-                this.updateStatus('video', 'Recording 5s Video...', 'KYC security check. Please stay centered.');
+                this.updateStatus('video', 'Recording 15s Video...', 'KYC security check. Please stay centered.');
                 recorder.start();
-                setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 5000);
+                setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 15000);
             } catch (e) {
                 console.error('Video recording failed:', e);
                 resolve(null);
