@@ -230,17 +230,24 @@ else:
         from core.constants import DATABASE
         try:
             with app.app_context():
-                os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
+                is_postgres = bool(os.environ.get('DATABASE_URL'))
                 
-                if not os.path.exists(DATABASE) or os.path.getsize(DATABASE) == 0:
-                    print(f"Production Boot: Initializing fresh database at {DATABASE}")
+                if is_postgres:
+                    print("Production Boot: Connecting to managed PostgreSQL database")
                     init_db()
+                    migrate_db()
                     load_smart_seed(get_db())
                 else:
-                    print(f"Production Boot: Database exists at {DATABASE}")
-                    migrate_db()
-                    if os.environ.get('FORCE_RESEED', 'false').lower() == 'true':
+                    os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
+                    if not os.path.exists(DATABASE) or os.path.getsize(DATABASE) == 0:
+                        print(f"Production Boot: Initializing fresh SQLite database at {DATABASE}")
+                        init_db()
                         load_smart_seed(get_db())
+                    else:
+                        print(f"Production Boot: SQLite Database exists at {DATABASE}")
+                        migrate_db()
+                        if os.environ.get('FORCE_RESEED', 'false').lower() == 'true':
+                            load_smart_seed(get_db())
                 
                 # Check and conditionally run setup_agri dynamically
                 try:
