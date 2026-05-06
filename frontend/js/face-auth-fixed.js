@@ -34,7 +34,7 @@ class FaceAuthManager {
                     new Promise((_, reject) => setTimeout(() => reject(new Error('Face AI Script timeout')), 15000))
                 ]);
             }
-            const MODEL_URL = '/models';
+            const MODEL_URL = window.location.origin + '/models';
             await Promise.race([
                 Promise.all([
                     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
@@ -56,7 +56,8 @@ class FaceAuthManager {
     loadFaceAPIScript() {
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = 'js/face-api.min.js';
+            // Use absolute path to avoid mobile URL resolution issues
+            script.src = '/js/face-api.min.js';
             script.onload = () => resolve();
             script.onerror = () => reject(new Error('Failed to load face-api.js'));
             document.head.appendChild(script);
@@ -173,9 +174,25 @@ class FaceAuthManager {
     async startCamera() {
         try {
             this.updateStatus('loading', 'Starting Camera...', 'Requesting camera access');
-            this.stream = await navigator.mediaDevices.getUserMedia({
-                video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
-            });
+
+            // Try preferred constraints first, then fall back for mobile compatibility
+            let stream = null;
+            const constraintsList = [
+                { video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } },
+                { video: { facingMode: 'user' } },
+                { video: true }
+            ];
+            for (const constraints of constraintsList) {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    break;
+                } catch (e) {
+                    console.warn('Camera constraint failed, trying fallback:', e.message);
+                }
+            }
+            if (!stream) throw new Error('Could not access camera with any constraints');
+            this.stream = stream;
+
             this.video = document.getElementById('faceVideo');
             if (!this.video) throw new Error('Video element not found');
             this.video.srcObject = this.stream;
