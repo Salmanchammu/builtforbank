@@ -274,7 +274,7 @@ def place_order():
     note = data.get('note', '')
 
     db = get_db()
-    listing = db.execute('SELECT * FROM crop_listings WHERE id = ? AND status = "active"', (listing_id,)).fetchone()
+    listing = db.execute('SELECT * FROM crop_listings WHERE id = ? AND status = \'active\'', (listing_id,)).fetchone()
     if not listing:
         return jsonify({'error': 'Listing not available'}), 404
     if qty < float(listing['min_order_kg']):
@@ -484,7 +484,7 @@ def buyer_dashboard():
         user = db.execute('SELECT id FROM users WHERE username = ?', (buyer['buyer_id'],)).fetchone()
         if user:
             # First, check if a Business account was approved but not yet linked
-            acc = db.execute('SELECT id, account_number, balance FROM accounts WHERE user_id = ? AND account_type = "Current" AND status = "active"', (user['id'],)).fetchone()
+            acc = db.execute('SELECT id, account_number, balance FROM accounts WHERE user_id = ? AND account_type = "Current" AND status = \'active\'', (user['id'],)).fetchone()
             if acc:
                 # Auto-link the account
                 db.execute('UPDATE agri_buyers SET associated_account_id = ? WHERE id = ?', (acc['id'], bid))
@@ -565,7 +565,7 @@ def buyer_request_wallet():
             f.write(base64.b64decode(kyc_video_b64.split(",")[1]))
 
         # Check for existing pending request
-        existing = db.execute('SELECT id FROM account_requests WHERE user_id = ? AND account_type = "Current" AND status = "pending"', (uid,)).fetchone()
+        existing = db.execute('SELECT id FROM account_requests WHERE user_id = ? AND account_type = "Current" AND status = \'pending\'', (uid,)).fetchone()
         if existing:
             return jsonify({'error': 'A request is already pending approval.'}), 400
             
@@ -667,7 +667,7 @@ def release_escrow(oid):
 
     try:
         # Credit farmer's agriculture account
-        acct = db.execute('SELECT * FROM accounts WHERE id = ? AND status = "active"', (order['farmer_account_id'],)).fetchone()
+        acct = db.execute('SELECT * FROM accounts WHERE id = ? AND status = \'active\'', (order['farmer_account_id'],)).fetchone()
         if not acct:
             return jsonify({'error': 'Farmer active agriculture account not found'}), 404
 

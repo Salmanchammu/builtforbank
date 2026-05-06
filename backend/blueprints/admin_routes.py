@@ -23,8 +23,8 @@ def admin_dashboard():
     
     # 1. Stats
     total_users = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
-    total_deposits = db.execute('SELECT SUM(balance) FROM accounts WHERE status = "active"').fetchone()[0] or 0
-    active_staff = db.execute('SELECT COUNT(*) FROM staff WHERE status = "active"').fetchone()[0]
+    total_deposits = db.execute('SELECT SUM(balance) FROM accounts WHERE status = \'active\'').fetchone()[0] or 0
+    active_staff = db.execute('SELECT COUNT(*) FROM staff WHERE status = \'active\'').fetchone()[0]
     liquidity_fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "Loan Liquidity Fund"').fetchone()
     liquidity_balance = float(liquidity_fund['balance']) if liquidity_fund else 1000000.00
     
@@ -51,14 +51,14 @@ def admin_dashboard():
     
     # 3. System Alerts
     # E.g. Pending Account Requests, Blocked Accounts, Loan Requests
-    pending_accounts = db.execute('SELECT COUNT(*) FROM account_requests WHERE status = "pending"').fetchone()[0]
-    blocked_accs = db.execute('SELECT COUNT(*) FROM accounts WHERE status = "blocked"').fetchone()[0]
-    pending_loans_count = db.execute('SELECT COUNT(*) FROM loans WHERE status = "pending"').fetchone()[0]
+    pending_accounts = db.execute('SELECT COUNT(*) FROM account_requests WHERE status = \'pending\'').fetchone()[0]
+    blocked_accs = db.execute('SELECT COUNT(*) FROM accounts WHERE status = \'blocked\'').fetchone()[0]
+    pending_loans_count = db.execute('SELECT COUNT(*) FROM loans WHERE status = \'pending\'').fetchone()[0]
     
     # Loan Stats for Liquidity Page
     loan_stats = {
-        'active': db.execute('SELECT COUNT(*) FROM loans WHERE status = "approved"').fetchone()[0],
-        'closed': db.execute('SELECT COUNT(*) FROM loans WHERE status = "closed"').fetchone()[0],
+        'active': db.execute('SELECT COUNT(*) FROM loans WHERE status = \'approved\'').fetchone()[0],
+        'closed': db.execute('SELECT COUNT(*) FROM loans WHERE status = \'closed\'').fetchone()[0],
         'overdue': db.execute('SELECT COUNT(*) FROM loans WHERE status = "overdue"').fetchone()[0]
     }
     
@@ -133,7 +133,7 @@ def create_user():
 
         hashed_pw = generate_password_hash(password)
         cursor = db.execute(
-            'INSERT INTO users (name, username, email, phone, password, date_of_birth, status) VALUES (?, ?, ?, ?, ?, ?, "active")',
+            'INSERT INTO users (name, username, email, phone, password, date_of_birth, status) VALUES (?, ?, ?, ?, ?, ?, \'active\')',
             (name, username, email, phone or None, hashed_pw, dob or None)
         )
         user_id = cursor.lastrowid
@@ -187,7 +187,7 @@ def add_staff():
     if db.execute('SELECT id FROM staff WHERE email = ?', (email,)).fetchone(): return jsonify({'error': 'Email exists'}), 400
     try:
         staff_id = f"STF{int(datetime.now().timestamp())}"
-        cursor = db.execute('INSERT INTO staff (staff_id, password, name, email, phone, department, position, status, base_salary) VALUES (?, ?, ?, ?, ?, ?, ?, "active", 50000.00)',
+        cursor = db.execute('INSERT INTO staff (staff_id, password, name, email, phone, department, position, status, base_salary) VALUES (?, ?, ?, ?, ?, ?, ?, \'active\', 50000.00)',
                   (staff_id, generate_password_hash(password), name, email, data.get('phone', ''), data.get('department', 'General'), data.get('position', 'Staff')))
         staff_db_id = cursor.lastrowid
         db.commit()
@@ -269,7 +269,7 @@ def get_liquidity_fund():
     db = get_db()
     fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "Loan Liquidity Fund"').fetchone()
     balance = float(fund['balance']) if fund else 1000000.00
-    active_loans = db.execute('SELECT COUNT(*) FROM loans WHERE status = "approved"').fetchone()[0]
+    active_loans = db.execute('SELECT COUNT(*) FROM loans WHERE status = \'approved\'').fetchone()[0]
     return jsonify({'success': True, 'fund_balance': balance, 'active_count': active_loans})
 
 @admin_bp.route('/reports', methods=['GET'])
@@ -331,7 +331,7 @@ def get_salary_list():
     db = get_db()
     now = datetime.now()
     start_of_month = now.replace(day=1).strftime('%Y-%m-%d')
-    staff_data = db.execute('SELECT id, staff_id as staff_code, name, department, position, base_salary FROM staff WHERE status = "active"').fetchall()
+    staff_data = db.execute('SELECT id, staff_id as staff_code, name, department, position, base_salary FROM staff WHERE status = \'active\'').fetchall()
     result = []
     for staff in staff_data:
         base = float(staff['base_salary'] or 50000.00)
@@ -374,7 +374,7 @@ def admin_add_admin():
     if not is_valid: return jsonify({'error': pwd_error}), 400
     db = get_db()
     try:
-        cursor = db.execute('INSERT INTO admins (name, username, email, password, level, status) VALUES (?, ?, ?, ?, ?, "active")',
+        cursor = db.execute('INSERT INTO admins (name, username, email, password, level, status) VALUES (?, ?, ?, ?, ?, \'active\')',
                   (name, username, email, generate_password_hash(password), level))
         admin_id = cursor.lastrowid
         db.commit()
@@ -482,7 +482,7 @@ def face_login():
         
         db = get_db()
         # Find all admins with face auth enabled
-        admins = db.execute('SELECT * FROM admins WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
+        admins = db.execute('SELECT * FROM admins WHERE face_auth_enabled = 1 AND status = \'active\'').fetchall()
         
         for a in admins:
             stored_descriptor = a['face_descriptor']

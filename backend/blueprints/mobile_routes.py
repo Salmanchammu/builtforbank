@@ -83,9 +83,9 @@ def apply_fd():
     db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "System Liquidity"', (amount,))
     
     ref = f"FD{secrets.token_hex(4).upper()}"
-    db.execute('INSERT INTO transactions (account_id, type, amount, description, reference_number, mode, status, balance_after) VALUES (?, "debit", ?, ?, ?, "Investment", "completed", ?)',
+    db.execute('INSERT INTO transactions (account_id, type, amount, description, reference_number, mode, status, balance_after) VALUES (?, "debit", ?, ?, ?, "Investment", \'completed\', ?)',
               (account['id'], amount, f"Fixed Deposit Booked: {tenure}", ref, new_balance))
-    db.execute('INSERT INTO service_applications (user_id, service_type, product_name, amount, tenure, account_id, status) VALUES (?, "Investment", "Fixed Deposit", ?, ?, ?, "pending")',
+    db.execute('INSERT INTO service_applications (user_id, service_type, product_name, amount, tenure, account_id, status) VALUES (?, "Investment", "Fixed Deposit", ?, ?, ?, \'pending\')',
               (user_id, amount, str(tenure), account['id']))
     
     log_audit(user_id, 'user', 'fd_creation', f"Booked FD of {amount}")

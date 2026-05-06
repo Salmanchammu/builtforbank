@@ -88,7 +88,7 @@ def signup():
         otp = generate_secure_otp()
         otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
         
-        cursor = db.execute('INSERT INTO users (username, password, email, phone, name, status, otp, phone_otp, otp_expiry, device_type) VALUES (?, ?, ?, ?, ?, "pending", ?, NULL, ?, ?)',
+        cursor = db.execute('INSERT INTO users (username, password, email, phone, name, status, otp, phone_otp, otp_expiry, device_type) VALUES (?, ?, ?, ?, ?, \'pending\', ?, NULL, ?, ?)',
                            (username, hashed, email, None, name, otp, otp_expiry, device_type))
         user_id = cursor.lastrowid
         db.commit()
@@ -128,7 +128,7 @@ def verify_otp():
     if datetime.now() > expiry: return jsonify({'error': 'verification codes expired'}), 400
     
     try:
-        db.execute('UPDATE users SET status = "active", otp = NULL, phone_otp = NULL, otp_expiry = NULL WHERE id = ?', (user['id'],))
+        db.execute('UPDATE users SET status = \'active\', otp = NULL, phone_otp = NULL, otp_expiry = NULL WHERE id = ?', (user['id'],))
         db.commit()
         return jsonify({'success': True, 'message': 'Account activated!'}), 200
     except Exception as e:
@@ -352,7 +352,7 @@ def face_login():
         
         db = get_db()
         # Search regular users first
-        users = db.execute('SELECT * FROM users WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
+        users = db.execute('SELECT * FROM users WHERE face_auth_enabled = 1 AND status = \'active\'').fetchall()
         for u in users:
             stored_descriptor = u['face_descriptor']
             if stored_descriptor and compare_face_descriptors(face_descriptor, stored_descriptor):
@@ -379,7 +379,7 @@ def face_login():
                 })
 
         # Search agri_buyers if no user match
-        buyers = db.execute('SELECT * FROM agri_buyers WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
+        buyers = db.execute('SELECT * FROM agri_buyers WHERE face_auth_enabled = 1 AND status = \'active\'').fetchall()
         for b in buyers:
             stored_descriptor = b['face_descriptor']
             if stored_descriptor and compare_face_descriptors(face_descriptor, stored_descriptor):
@@ -445,7 +445,7 @@ def buyer_signup():
     if db.execute('SELECT id FROM agri_buyers WHERE buyer_id = ? OR email = ?', (b_id, email)).fetchone():
         return jsonify({'error': 'Exists'}), 400
     try:
-        cursor = db.execute('INSERT INTO agri_buyers (buyer_id, password, name, email, phone, business_name, gst_number, status) VALUES (?, ?, ?, ?, ?, ?, ?, "pending")',
+        cursor = db.execute('INSERT INTO agri_buyers (buyer_id, password, name, email, phone, business_name, gst_number, status) VALUES (?, ?, ?, ?, ?, ?, ?, \'pending\')',
                   (b_id, generate_password_hash(pwd), name, email, None, data.get('business_name'), data.get('gst_number')))
         buyer_id = cursor.lastrowid
         db.commit()
@@ -471,11 +471,11 @@ def buyer_login():
         return jsonify({'error': 'Too many failed attempts. Please try again in 15 minutes.'}), 429
         
     db = get_db()
-    buyer = db.execute('SELECT * FROM agri_buyers WHERE (buyer_id = ? OR email = ?) AND status = "active"', (buyer_id, buyer_id)).fetchone()
+    buyer = db.execute('SELECT * FROM agri_buyers WHERE (buyer_id = ? OR email = ?) AND status = \'active\'', (buyer_id, buyer_id)).fetchone()
     
     # If not active, check if it's pending
     if not buyer:
-        pending = db.execute('SELECT id FROM agri_buyers WHERE (buyer_id = ? OR email = ?) AND status = "pending"', (buyer_id, buyer_id)).fetchone()
+        pending = db.execute('SELECT id FROM agri_buyers WHERE (buyer_id = ? OR email = ?) AND status = \'pending\'', (buyer_id, buyer_id)).fetchone()
         if pending:
             return jsonify({'error': 'Buyer account is pending approval'}), 403
         record_failed_attempt(client_ip)

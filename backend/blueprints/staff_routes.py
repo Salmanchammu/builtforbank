@@ -76,9 +76,9 @@ def dashboard():
     total_customers = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
     stats = {
         'total_customers': total_customers,
-        'pending_loans': db.execute('SELECT COUNT(*) FROM service_applications WHERE status = "pending"').fetchone()[0],
-        'total_balance': db.execute('SELECT SUM(balance) FROM accounts WHERE status = "active"').fetchone()[0] or 0,
-        'total_accounts': db.execute('SELECT COUNT(*) FROM accounts WHERE status = "active"').fetchone()[0],
+        'pending_loans': db.execute('SELECT COUNT(*) FROM service_applications WHERE status = \'pending\'').fetchone()[0],
+        'total_balance': db.execute('SELECT SUM(balance) FROM accounts WHERE status = \'active\'').fetchone()[0] or 0,
+        'total_accounts': db.execute('SELECT COUNT(*) FROM accounts WHERE status = \'active\'').fetchone()[0],
         'main_bank_liquidity': float(main_bank_fund['balance']) if main_bank_fund else 50000000.00
     }
     
@@ -207,8 +207,8 @@ def staff_get_liquidity_fund():
     db = get_db()
     fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "Loan Liquidity Fund"').fetchone()
     balance = float(fund['balance']) if fund else 1000000.00
-    active_count = db.execute('SELECT COUNT(*) FROM loans WHERE status = "approved"').fetchone()[0]
-    paid_count = db.execute('SELECT COUNT(*) FROM loans WHERE status = "closed"').fetchone()[0]
+    active_count = db.execute('SELECT COUNT(*) FROM loans WHERE status = \'approved\'').fetchone()[0]
+    paid_count = db.execute('SELECT COUNT(*) FROM loans WHERE status = \'closed\'').fetchone()[0]
     return jsonify({'success': True, 'fund_balance': balance, 'active_count': active_count, 'paid_count': paid_count})
 
 @staff_bp.route('/service-applications', methods=['GET'])
@@ -236,7 +236,7 @@ def update_service_application(app_id):
         if status == 'approved':
             if app_data['service_type'] == 'Loan':
                 # Handle Loan Disbursement
-                loan = db.execute('SELECT * FROM loans WHERE user_id = ? AND loan_amount = ? AND status = "pending" AND target_account_id = ? ORDER BY application_date DESC LIMIT 1',
+                loan = db.execute('SELECT * FROM loans WHERE user_id = ? AND loan_amount = ? AND status = \'pending\' AND target_account_id = ? ORDER BY application_date DESC LIMIT 1',
                                  (app_data['user_id'], app_data['amount'], app_data['account_id'])).fetchone()
                 if loan:
                     target_acc = db.execute('SELECT * FROM accounts WHERE id = ?', (app_data['account_id'],)).fetchone()
@@ -244,7 +244,7 @@ def update_service_application(app_id):
                         new_balance = target_acc['balance'] + app_data['amount']
                         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (new_balance, target_acc['id']))
                         
-                        db.execute('UPDATE loans SET status = "approved", approved_date = CURRENT_TIMESTAMP, disbursement_date = CURRENT_TIMESTAMP, approved_by = ? WHERE id = ?',
+                        db.execute('UPDATE loans SET status = \'approved\', approved_date = CURRENT_TIMESTAMP, disbursement_date = CURRENT_TIMESTAMP, approved_by = ? WHERE id = ?',
                                   (session.get('staff_id'), loan['id']))
                         
                         ref = f"LDIS{secrets.token_hex(4).upper()}"
@@ -280,10 +280,10 @@ def update_service_application(app_id):
                 # Handle Card Issuance
                 # Fix: use COALESCE to handle NULL account_id matching
                 if app_data['account_id']:
-                    card_req = db.execute('SELECT * FROM card_requests WHERE user_id = ? AND account_id = ? AND status = "pending" ORDER BY request_date DESC LIMIT 1',
+                    card_req = db.execute('SELECT * FROM card_requests WHERE user_id = ? AND account_id = ? AND status = \'pending\' ORDER BY request_date DESC LIMIT 1',
                                         (app_data['user_id'], app_data['account_id'])).fetchone()
                 else:
-                    card_req = db.execute('SELECT * FROM card_requests WHERE user_id = ? AND status = "pending" ORDER BY request_date DESC LIMIT 1',
+                    card_req = db.execute('SELECT * FROM card_requests WHERE user_id = ? AND status = \'pending\' ORDER BY request_date DESC LIMIT 1',
                                         (app_data['user_id'],)).fetchone()
                 
                 # Determine account_id from card_req or fallback
@@ -311,11 +311,11 @@ def update_service_application(app_id):
                 
                 # Update card_requests if exists
                 if card_req:
-                    db.execute('UPDATE card_requests SET status = "approved", processed_date = CURRENT_TIMESTAMP, processed_by = ? WHERE id = ?', 
+                    db.execute('UPDATE card_requests SET status = \'approved\', processed_date = CURRENT_TIMESTAMP, processed_by = ? WHERE id = ?', 
                               (session.get('staff_id'), card_req['id']))
                 else:
                     # Update ALL pending card_requests for this user (catch-all)
-                    db.execute('UPDATE card_requests SET status = "approved", processed_date = CURRENT_TIMESTAMP, processed_by = ? WHERE user_id = ? AND status = "pending"',
+                    db.execute('UPDATE card_requests SET status = \'approved\', processed_date = CURRENT_TIMESTAMP, processed_by = ? WHERE user_id = ? AND status = \'pending\'',
                               (session.get('staff_id'), app_data['user_id']))
                 
                 logger.info(f"Card Issued: card={c_num[-4:]} type={card_type} for user={app_data['user_id']}")
@@ -323,10 +323,10 @@ def update_service_application(app_id):
         elif status == 'rejected':
             if app_data['service_type'] == 'Card':
                 if app_data['account_id']:
-                    db.execute('UPDATE card_requests SET status = "rejected", processed_date = CURRENT_TIMESTAMP, processed_by = ?, staff_notes = ? WHERE user_id = ? AND account_id = ? AND status = "pending"',
+                    db.execute('UPDATE card_requests SET status = \'rejected\', processed_date = CURRENT_TIMESTAMP, processed_by = ?, staff_notes = ? WHERE user_id = ? AND account_id = ? AND status = \'pending\'',
                               (session.get('staff_id'), reason, app_data['user_id'], app_data['account_id']))
                 else:
-                    db.execute('UPDATE card_requests SET status = "rejected", processed_date = CURRENT_TIMESTAMP, processed_by = ?, staff_notes = ? WHERE user_id = ? AND status = "pending"',
+                    db.execute('UPDATE card_requests SET status = \'rejected\', processed_date = CURRENT_TIMESTAMP, processed_by = ?, staff_notes = ? WHERE user_id = ? AND status = \'pending\'',
                               (session.get('staff_id'), reason, app_data['user_id']))
 
         msg_title = f"{app_data['service_type']} Application - {status.capitalize()}"
@@ -382,14 +382,14 @@ def approve_account_request(req_id):
                     return jsonify({'error': 'Unauthorized account link attempt'}), 403
                 db.execute('UPDATE accounts SET account_type = ?, tax_id = ? WHERE id = ?', (req['account_type'], req['tax_id'], req['original_account_id']))
             else:
-                db.execute('INSERT INTO accounts (user_id, account_number, account_type, tax_id, balance, status) VALUES (?, ?, ?, ?, 0.00, "active")', (req['user_id'], acc_num, req['account_type'], req['tax_id']))
-            db.execute('UPDATE account_requests SET status = "approved", processed_date = CURRENT_TIMESTAMP, processed_by = ? WHERE id = ?', (staff_id, req_id))
+                db.execute('INSERT INTO accounts (user_id, account_number, account_type, tax_id, balance, status) VALUES (?, ?, ?, ?, 0.00, \'active\')', (req['user_id'], acc_num, req['account_type'], req['tax_id']))
+            db.execute('UPDATE account_requests SET status = \'approved\', processed_date = CURRENT_TIMESTAMP, processed_by = ? WHERE id = ?', (staff_id, req_id))
             
             msg_title = "Account Request Approved"
             msg_body = f"Your request for a {req['account_type']} account has been approved and account has been created."
             notify_user(db, req['user_id'], msg_title, msg_body, 'success')
         else:
-            db.execute('UPDATE account_requests SET status = "rejected", processed_date = CURRENT_TIMESTAMP, processed_by = ?, rejection_reason = ? WHERE id = ?', (staff_id, reason, req_id))
+            db.execute('UPDATE account_requests SET status = \'rejected\', processed_date = CURRENT_TIMESTAMP, processed_by = ?, rejection_reason = ? WHERE id = ?', (staff_id, reason, req_id))
             
             msg_title = "Account Request Rejected"
             msg_body = f"Your request for a {req['account_type']} account has been rejected."
@@ -414,7 +414,7 @@ def add_transaction():
         new_bal = account['balance'] + amount
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (new_bal, account['id']))
         db.execute('UPDATE system_finances SET balance = balance + ? WHERE fund_name = "System Liquidity"', (amount,))
-        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, mode) VALUES (?, "credit", ?, ?, "completed", "Staff Deposit", "CASH")', (account['id'], amount, new_bal))
+        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, mode) VALUES (?, "credit", ?, ?, \'completed\', "Staff Deposit", "CASH")', (account['id'], amount, new_bal))
         db.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -434,7 +434,7 @@ def withdraw_transaction():
         new_bal = account['balance'] - amount
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (new_bal, account['id']))
         db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "System Liquidity"', (amount,))
-        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, mode) VALUES (?, "debit", ?, ?, "completed", "Staff Withdrawal", "CASH")', (account['id'], amount, new_bal))
+        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, mode) VALUES (?, "debit", ?, ?, \'completed\', "Staff Withdrawal", "CASH")', (account['id'], amount, new_bal))
         db.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -461,8 +461,8 @@ def transfer_transaction():
         ref = f"TRF{secrets.token_hex(4).upper()}"
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (sender_bal, sender['id']))
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (receiver_bal, receiver['id']))
-        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, reference_number, mode) VALUES (?, "debit", ?, ?, "completed", ?, ?, "Transfer")', (sender['id'], amount, sender_bal, f"Transfer to {receiver['account_number']}", ref))
-        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, reference_number, mode) VALUES (?, "credit", ?, ?, "completed", ?, ?, "Transfer")', (receiver['id'], amount, receiver_bal, f"Transfer from {sender['account_number']}", ref))
+        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, reference_number, mode) VALUES (?, "debit", ?, ?, \'completed\', ?, ?, "Transfer")', (sender['id'], amount, sender_bal, f"Transfer to {receiver['account_number']}", ref))
+        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, reference_number, mode) VALUES (?, "credit", ?, ?, \'completed\', ?, ?, "Transfer")', (receiver['id'], amount, receiver_bal, f"Transfer from {sender['account_number']}", ref))
         db.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -646,7 +646,7 @@ def face_login():
         
         db = get_db()
         # Find all staff with face auth enabled
-        staff_list = db.execute('SELECT * FROM staff WHERE face_auth_enabled = 1 AND status = "active"').fetchall()
+        staff_list = db.execute('SELECT * FROM staff WHERE face_auth_enabled = 1 AND status = \'active\'').fetchall()
         
         for s in staff_list:
             stored_descriptor = s['face_descriptor']
@@ -801,11 +801,11 @@ def update_agri_proof(user_id):
     
     try:
         if req:
-            db.execute('UPDATE account_requests SET agri_proof = ?, status = "pending" WHERE id = ?', (agri_proof, req['id']))
+            db.execute('UPDATE account_requests SET agri_proof = ?, status = \'pending\' WHERE id = ?', (agri_proof, req['id']))
         else:
             # If no request exists, we might just update the most recent one or create a dummy one
             # Alternatively, if they are a farmer, they should have an Agriculture request. Let's just create one if not found.
-            db.execute('INSERT INTO account_requests (user_id, account_type, status, agri_proof) VALUES (?, "Agriculture", "pending", ?)', (user_id, agri_proof))
+            db.execute('INSERT INTO account_requests (user_id, account_type, status, agri_proof) VALUES (?, "Agriculture", \'pending\', ?)', (user_id, agri_proof))
             
         # Log the action
         staff_id = session.get('staff_id') or session.get('admin_id')
@@ -861,7 +861,7 @@ def staff_block_card(card_id):
         if not card:
             return jsonify({'error': 'Card not found'}), 404
             
-        db.execute('UPDATE cards SET status = "blocked", updated_at = CURRENT_TIMESTAMP WHERE id = ?', (card_id,))
+        db.execute('UPDATE cards SET status = \'blocked\', updated_at = CURRENT_TIMESTAMP WHERE id = ?', (card_id,))
         
         # Log action
         db.execute('INSERT INTO staff_activity_logs (staff_id, action, details) VALUES (?, ?, ?)',
@@ -884,7 +884,7 @@ def staff_unblock_card(card_id):
         if not card:
             return jsonify({'error': 'Card not found'}), 404
             
-        db.execute('UPDATE cards SET status = "active", updated_at = CURRENT_TIMESTAMP WHERE id = ?', (card_id,))
+        db.execute('UPDATE cards SET status = \'active\', updated_at = CURRENT_TIMESTAMP WHERE id = ?', (card_id,))
         
         # Log action
         db.execute('INSERT INTO staff_activity_logs (staff_id, action, details) VALUES (?, ?, ?)',
@@ -1434,7 +1434,7 @@ def send_staff_live_chat_message(sid):
     data = request.json
     
     chat_session = db.execute(
-        'SELECT * FROM live_chat_sessions WHERE id = ? AND status = "active"', (sid,)
+        'SELECT * FROM live_chat_sessions WHERE id = ? AND status = \'active\'', (sid,)
     ).fetchone()
     if not chat_session:
         return jsonify({'error': 'Session not found or not active'}), 404

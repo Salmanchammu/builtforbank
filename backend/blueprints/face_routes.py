@@ -62,7 +62,7 @@ def register_face():
     
     try:
         if role == 'user':
-            kyc_record = db.execute('SELECT face_descriptor FROM account_requests WHERE user_id = ? AND status = "approved" AND face_descriptor IS NOT NULL ORDER BY id DESC LIMIT 1', (user_id,)).fetchone()
+            kyc_record = db.execute('SELECT face_descriptor FROM account_requests WHERE user_id = ? AND status = \'approved\' AND face_descriptor IS NOT NULL ORDER BY id DESC LIMIT 1', (user_id,)).fetchone()
             if kyc_record and kyc_record['face_descriptor']:
                 from core.auth import compare_face_descriptors
                 is_match = compare_face_descriptors(descriptor, kyc_record['face_descriptor'])

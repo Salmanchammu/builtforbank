@@ -87,7 +87,7 @@ def get_user_dashboard():
             return jsonify({'error': 'User not found'}), 404
             
         accounts = db.execute('SELECT * FROM accounts WHERE user_id = ?', (user_id,)).fetchall()
-        account_requests = db.execute('SELECT * FROM account_requests WHERE user_id = ? AND status = "pending"', (user_id,)).fetchall()
+        account_requests = db.execute('SELECT * FROM account_requests WHERE user_id = ? AND status = \'pending\'', (user_id,)).fetchall()
         transactions = db.execute('SELECT t.*, a.account_number FROM transactions t JOIN accounts a ON t.account_id = a.id WHERE a.user_id = ? ORDER BY t.transaction_date DESC LIMIT 10', (user_id,)).fetchall()
         notifications = db.execute('SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC', (user_id,)).fetchall()
         cards = db.execute('SELECT * FROM cards WHERE user_id = ?', (user_id,)).fetchall()
@@ -666,9 +666,9 @@ def apply_loan():
     if tenure > 60: return jsonify({'error': 'Loan tenure cannot exceed 60 months'}), 400
     db = get_db()
     try:
-        db.execute('INSERT INTO loans (user_id, loan_type, loan_amount, tenure_months, interest_rate, status, target_account_id, outstanding_amount) VALUES (?, ?, ?, ?, ?, "pending", ?, ?)',
+        db.execute('INSERT INTO loans (user_id, loan_type, loan_amount, tenure_months, interest_rate, status, target_account_id, outstanding_amount) VALUES (?, ?, ?, ?, ?, \'pending\', ?, ?)',
                   (user_id, loan_type, amount, tenure, 5.0, target_account_id, amount))
-        db.execute('INSERT INTO service_applications (user_id, service_type, product_name, amount, tenure, status, account_id) VALUES (?, "Loan", ?, ?, ?, "pending", ?)',
+        db.execute('INSERT INTO service_applications (user_id, service_type, product_name, amount, tenure, status, account_id) VALUES (?, "Loan", ?, ?, ?, \'pending\', ?)',
                   (user_id, loan_type, amount, tenure, target_account_id))
         db.commit()
         user = db.execute('SELECT email, name FROM users WHERE id = ?', (user_id,)).fetchone()
@@ -688,7 +688,7 @@ def repay_loan():
     if amount <= 0: return jsonify({'error': 'Invalid amount'}), 400
     db = get_db()
     try:
-        loan = db.execute('SELECT * FROM loans WHERE id = ? AND user_id = ? AND status = "approved"', (loan_id, user_id)).fetchone()
+        loan = db.execute('SELECT * FROM loans WHERE id = ? AND user_id = ? AND status = \'approved\'', (loan_id, user_id)).fetchone()
         if not loan: return jsonify({'error': 'Loan not found or not approved'}), 404
         outstanding = float(loan['outstanding_amount']) if loan['outstanding_amount'] is not None else float(loan['loan_amount'])
         if amount > outstanding: amount = outstanding
@@ -702,7 +702,7 @@ def repay_loan():
         new_outstanding = outstanding - amount
         db.execute('UPDATE system_finances SET balance = balance + ? WHERE fund_name = "Loan Liquidity Fund"', (amount,))
         db.execute('UPDATE loans SET outstanding_amount = ? WHERE id = ?', (new_outstanding, loan_id))
-        if new_outstanding <= 0: db.execute('UPDATE loans SET status = "closed" WHERE id = ?', (loan_id,))
+        if new_outstanding <= 0: db.execute('UPDATE loans SET status = \'closed\' WHERE id = ?', (loan_id,))
         
         ref = f"LRP{secrets.token_hex(4).upper()}"
         if mode == 'account' and acc_bal is not None:
@@ -753,11 +753,11 @@ def open_new_account():
             trigger_geo_lookup(user_id, 'users')
 
         import json
-        db.execute('INSERT INTO account_requests (user_id, account_type, aadhaar_number, pan_number, tax_id, face_descriptor, kyc_photo, kyc_video, status, signup_ip, signup_lat, signup_lng, agri_address, agri_proof, salary_proof, current_proof) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "pending", ?, ?, ?, ?, ?, ?, ?)',
+        db.execute('INSERT INTO account_requests (user_id, account_type, aadhaar_number, pan_number, tax_id, face_descriptor, kyc_photo, kyc_video, status, signup_ip, signup_lat, signup_lng, agri_address, agri_proof, salary_proof, current_proof) VALUES (?, ?, ?, ?, ?, ?, ?, ?, \'pending\', ?, ?, ?, ?, ?, ?, ?)',
                   (user_id, account_type, aadhaar, pan, tax_id, json.dumps(face), kyc_p, kyc_v, client_ip, lat, lng, agri_address, agri_proof, salary_proof, current_proof))
         
         # Also track as a general service application for unified staff view
-        db.execute('INSERT INTO service_applications (user_id, service_type, product_name, status) VALUES (?, "Account", ?, "pending")',
+        db.execute('INSERT INTO service_applications (user_id, service_type, product_name, status) VALUES (?, "Account", ?, \'pending\')',
                    (user_id, account_type))
         
         db.commit()
@@ -895,20 +895,20 @@ def request_card():
         actual_type = 'Classic' if c_type.lower() == 'debit' else 'Credit'
         
         # Prevent duplicate: check if user already has an active card OF THIS TYPE
-        existing_card = db.execute('SELECT id FROM cards WHERE user_id = ? AND status = "active" AND LOWER(card_type) = ?', (user_id, actual_type.lower())).fetchone()
+        existing_card = db.execute('SELECT id FROM cards WHERE user_id = ? AND status = \'active\' AND LOWER(card_type) = ?', (user_id, actual_type.lower())).fetchone()
         if existing_card:
             return jsonify({'error': f'You already have an active {actual_type} card. Go to Cards section to manage it.'}), 400
         
         # Prevent duplicate: check if user already has a pending request OF THIS TYPE
-        existing_req = db.execute('SELECT id FROM card_requests WHERE user_id = ? AND status = "pending" AND LOWER(card_type) = ?', (user_id, c_type.lower())).fetchone()
+        existing_req = db.execute('SELECT id FROM card_requests WHERE user_id = ? AND status = \'pending\' AND LOWER(card_type) = ?', (user_id, c_type.lower())).fetchone()
         if existing_req:
             return jsonify({'error': f'You already have a pending {c_type} card request. Please wait for it to be processed.'}), 400
 
-        db.execute('INSERT INTO card_requests (user_id, account_id, card_type, requested_credit_limit, status) VALUES (?, ?, ?, ?, "pending")',
+        db.execute('INSERT INTO card_requests (user_id, account_id, card_type, requested_credit_limit, status) VALUES (?, ?, ?, ?, \'pending\')',
                   (user_id, acc_id, c_type, lim))
         
         # Also track as a general service application for unified staff view
-        db.execute('INSERT INTO service_applications (user_id, account_id, service_type, product_name, amount, status) VALUES (?, ?, "Card", ?, ?, "pending")',
+        db.execute('INSERT INTO service_applications (user_id, account_id, service_type, product_name, amount, status) VALUES (?, ?, "Card", ?, ?, \'pending\')',
                    (user_id, acc_id, c_type, lim))
         
         db.commit()
@@ -932,7 +932,7 @@ def block_card(card_id):
             return jsonify({'error': 'Card is already inactive or blocked'}), 400
             
         # Update the card status to blocked
-        db.execute('UPDATE cards SET status = "blocked" WHERE id = ?', (card_id,))
+        db.execute('UPDATE cards SET status = \'blocked\' WHERE id = ?', (card_id,))
         
         # Log the action
         db.execute('INSERT INTO user_activity_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
@@ -969,7 +969,7 @@ def unblock_card(card_id):
             return jsonify({'error': 'Only blocked cards can be unblocked'}), 400
             
         # Update the card status to active
-        db.execute('UPDATE cards SET status = "active" WHERE id = ?', (card_id,))
+        db.execute('UPDATE cards SET status = \'active\' WHERE id = ?', (card_id,))
         
         # Log the action
         db.execute('INSERT INTO user_activity_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
@@ -1804,7 +1804,7 @@ def send_ticket_message(ticket_id):
         ''', (ticket_id, user_id, message))
         
         # Optionally update ticket status to 'pending' if it was 'open' or 'replied'
-        db.execute('UPDATE support_tickets SET status = "pending" WHERE id = ?', (ticket_id,))
+        db.execute('UPDATE support_tickets SET status = \'pending\' WHERE id = ?', (ticket_id,))
         db.commit()
 
         # Email Notification
@@ -1922,7 +1922,7 @@ def send_live_chat_message(sid):
     data = request.json
     
     chat_session = db.execute(
-        'SELECT * FROM live_chat_sessions WHERE id = ? AND user_id = ? AND status IN ("waiting", "active")', (sid, user_id)
+        'SELECT * FROM live_chat_sessions WHERE id = ? AND user_id = ? AND status IN ("waiting", \'active\')', (sid, user_id)
     ).fetchone()
     if not chat_session:
         return jsonify({'error': 'Session not found or closed'}), 404
