@@ -112,18 +112,25 @@ function injectConnectionDebugger(errorMsg) {
 // --- GLOBAL FETCH INTERCEPTOR ---
 const originalFetch = window.fetch;
 window.fetch = async function (url, options) {
-    if (!options) options = {};
-    if (!options.headers) options.headers = {};
-
-    const urlString = typeof url === 'string' ? url : (url instanceof URL ? url.href : '');
+    // If the first argument is a Request object, extract the URL string.
+    const urlString = (url instanceof Request) ? url.url : (typeof url === 'string' ? url : (url instanceof URL ? url.href : ''));
+    
     const isInternalAPI = urlString.includes('/api/') || urlString.includes(':5000/api');
     
+    // We only mutate options if we need to.
     if (isInternalAPI) {
-        console.log(`[Fetch Debug] ${options.method || 'GET'} -> ${urlString}`);
+        if (!options) options = {};
         options.credentials = 'include';
-        // Add tunnel bypass headers anyway
+        
+        // Handle headers safely
+        if (!options.headers) {
+            options.headers = {};
+        }
+        
         if (options.headers instanceof Headers) {
             options.headers.append('Bypass-Tunnel-Reminder', 'true');
+        } else if (Array.isArray(options.headers)) {
+            options.headers.push(['Bypass-Tunnel-Reminder', 'true']);
         } else {
             options.headers['Bypass-Tunnel-Reminder'] = 'true';
         }

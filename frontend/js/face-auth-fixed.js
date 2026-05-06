@@ -483,7 +483,7 @@ class FaceAuthManager {
                 const url = window.location.href;
                 role = (url.includes('admin') || sessionStorage.getItem('userRole') === 'admin') ? 'admin' : 
                        (url.includes('agri') || sessionStorage.getItem('userRole') === 'agri_buyer') ? 'agri_buyer' :
-                       (url.includes('user.html') || url.includes('mobile-auth.html') || sessionStorage.getItem('userRole') === 'user') ? 'user' : 'staff';
+                       (url.includes('staff') || sessionStorage.getItem('userRole') === 'staff') ? 'staff' : 'user';
             }
             const endpoint = role === 'admin' ? '/admin/face-login' : 
                              (role === 'user' || role === 'agri_buyer') ? '/auth/face-login' : 
@@ -494,7 +494,16 @@ class FaceAuthManager {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ face_descriptor: descriptor })
             });
-            const data = await response.json();
+            
+            let data;
+            try {
+                const textResponse = await response.clone().text();
+                data = JSON.parse(textResponse);
+            } catch (parseError) {
+                console.error("[FaceAuth] JSON Parse Error! Raw response:", await response.text());
+                throw new Error("Server returned an invalid response (not JSON). " + parseError.message);
+            }
+            
             if (!response.ok) throw new Error(data.error || 'Verification failed');
             console.log('[FaceAuth] ✓ Face matched in database! User:', data.name);
             this.updateStatus('success', 'Authenticated!', 'Redirecting to your dashboard...');

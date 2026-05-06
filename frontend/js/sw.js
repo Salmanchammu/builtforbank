@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartbank-cache-v2';
+const CACHE_NAME = 'smartbank-cache-v3';
 const urlsToCache = [
     '/',
     '/mobile-auth.html',
@@ -14,6 +14,13 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-    // Force network only during debug to prevent connection failures
+    // CRITICAL iOS SAFARI FIX:
+    // WebKit throws 'DOMException: The string did not match the expected pattern.' 
+    // when a Service Worker intercepts and replays a POST Request with a body.
+    // Bypass all non-GET requests and API calls to prevent this.
+    if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+        return; // Let the browser handle it natively
+    }
+
     event.respondWith(fetch(event.request));
 });
