@@ -12,6 +12,7 @@ from core.auth import login_required, role_required, log_audit, compare_face_des
 from core.email_utils import send_email_async
 from core.utils import validate_email, validate_password
 from core.constants import PROFILE_PICS_FOLDER, allowed_file
+from core.utils import to_json_serializable
 
 admin_bp = Blueprint('admin', __name__)
 logger = logging.getLogger('smart_bank.admin')
@@ -31,7 +32,7 @@ def admin_dashboard():
     main_bank_fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "System Liquidity"').fetchone()
     main_bank_liquidity = float(main_bank_fund['balance']) if main_bank_fund else 50000000.00
     
-    today_trans = db.execute('SELECT COUNT(*) FROM transactions WHERE date(transaction_date) = date("now")').fetchone()[0]
+    today_trans = db.execute("SELECT COUNT(*) FROM transactions WHERE CAST(transaction_date AS DATE) = CURRENT_DATE").fetchone()[0]
     
     stats = {
         'totalUsers': total_users,
@@ -59,7 +60,7 @@ def admin_dashboard():
     loan_stats = {
         'active': db.execute('SELECT COUNT(*) FROM loans WHERE status = \'approved\'').fetchone()[0],
         'closed': db.execute('SELECT COUNT(*) FROM loans WHERE status = \'closed\'').fetchone()[0],
-        'overdue': db.execute('SELECT COUNT(*) FROM loans WHERE status = "overdue"').fetchone()[0]
+        'overdue': db.execute("SELECT COUNT(*) FROM loans WHERE status = 'overdue'").fetchone()[0]
     }
     
     system_alerts = []
@@ -84,14 +85,14 @@ def admin_dashboard():
     ''').fetchall()
     recent_transactions = [dict(t) for t in recent_trx_rows]
 
-    return jsonify({
+    return jsonify(to_json_serializable({
         'success': True,
         'stats': stats,
         'loan_stats': loan_stats,
         'recentUsers': recent_users,
         'systemAlerts': system_alerts,
         'recentTransactions': recent_transactions
-    })
+    }))
 
 @admin_bp.route('/users', methods=['GET'])
 @role_required('admin')

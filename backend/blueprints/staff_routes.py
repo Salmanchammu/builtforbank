@@ -10,6 +10,7 @@ from core.auth import login_required, role_required, compare_face_descriptors, t
 from core.email_utils import send_email_async
 from core.encryption import encrypt_message, decrypt_message
 from core.constants import PROFILE_PICS_FOLDER, allowed_file
+from core.utils import to_json_serializable
 
 staff_bp = Blueprint('staff', __name__)
 logger = logging.getLogger('smart_bank.staff')
@@ -86,7 +87,7 @@ def dashboard():
     pending_loans = [dict(l) for l in db.execute('''
         SELECT sa.id, sa.product_name as title, sa.service_type, u.name as customer 
         FROM service_applications sa JOIN users u ON sa.user_id = u.id 
-        WHERE sa.status = "pending" ORDER BY sa.applied_at DESC LIMIT 5
+        WHERE sa.status = 'pending' ORDER BY sa.applied_at DESC LIMIT 5
 
     ''').fetchall()]
     
@@ -105,14 +106,14 @@ def dashboard():
         ORDER BY t.transaction_date DESC LIMIT 10
     ''').fetchall()]
     
-    return jsonify({
+    return jsonify(to_json_serializable({
         'success': True, 
         'stats': stats, 
         'recent_customers': recent_customers, 
         'pending_loans': pending_loans,
         'recent_activities': recent_activities,
         'recent_transactions': recent_transactions
-    })
+    }))
 
 @staff_bp.route('/analytics', methods=['GET'])
 @role_required(['staff', 'admin'])

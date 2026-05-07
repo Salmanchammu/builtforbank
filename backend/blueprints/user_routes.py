@@ -12,19 +12,7 @@ from core.email_utils import send_email_async
 from core.encryption import encrypt_message, decrypt_message
 from core.constants import PROFILE_PICS_FOLDER, allowed_file
 
-from decimal import Decimal
-
-def to_json_serializable(data):
-    """Recursively convert datetime and decimal objects to strings for JSON serialization."""
-    if isinstance(data, list):
-        return [to_json_serializable(item) for item in data]
-    if isinstance(data, dict):
-        return {k: to_json_serializable(v) for k, v in data.items()}
-    if isinstance(data, (datetime,)):
-        return data.isoformat()
-    if isinstance(data, Decimal):
-        return float(data)
-    return data
+from core.utils import to_json_serializable
 
 user_bp = Blueprint('user', __name__)
 logger = logging.getLogger('smart_bank.user')
