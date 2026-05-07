@@ -156,8 +156,7 @@ async function handleLogin(e) {
              if (otpInput) otpInput.value = '';
              if (d.dev_otp) {
                  if (otpInput) otpInput.value = d.dev_otp;
-                 showMobileToast('OTP Auto-filled. Logging in...', 'success');
-                 setTimeout(() => handleMobileVerifyLogin(), 500);
+                 showMobileToast('OTP Auto-filled. Tap Verify to continue.', 'success');
              } else {
                  showMobileToast('Verification code sent to your registered email.', 'info');
              }
@@ -999,12 +998,20 @@ async function submitNewAccount() {
         const aadhaarProof = await toBase64(aadhaarFile);
         const panProof = await toBase64(panFile);
         
-        // Capture Geolocation
+        // Capture Geolocation (MANDATORY for KYC)
         const location = await getMobileLocation();
+        if (!location || !location.lat) {
+            throw new Error('Location access is mandatory for KYC verification. Please allow location permission in your device and try again.');
+        }
 
-        if (!window.faceAuthManager) throw new Error('Face Auth Manager not loaded');
-        const kycData = await window.faceAuthManager.captureFaceForKYC();
-        if (!kycData || !kycData.descriptor) throw new Error('Face verification failed');
+        if (!window.faceAuthManager) throw new Error('Face Authentication is not available. Please refresh the app and allow camera access.');
+        let kycData = null;
+        try {
+            kycData = await window.faceAuthManager.captureFaceForKYC();
+        } catch (faceErr) {
+            throw new Error('Camera access denied or face detection failed. Please allow camera permission and try again.');
+        }
+        if (!kycData || !kycData.descriptor) throw new Error('Face verification was cancelled or failed. Please try again and look directly at the camera.');
 
         const payload = {
             account_type: type,

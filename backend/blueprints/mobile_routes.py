@@ -31,7 +31,7 @@ def billpay():
     # Daily Limit Check
     user = db.execute('SELECT daily_limit FROM users WHERE id = ?', (user_id,)).fetchone()
     user_global_limit = user['daily_limit'] if user and user['daily_limit'] is not None else 200000.00
-    daily_limit = account['daily_limit'] if account.get('daily_limit') is not None else user_global_limit
+    daily_limit = account['daily_limit'] if 'daily_limit' in account.keys() and account['daily_limit'] is not None else user_global_limit
     
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
     today_spent_row = db.execute('''

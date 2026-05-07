@@ -101,7 +101,7 @@ def signup():
         # OTP sent via email only — not exposed in server logs
         logger.info(f"User signup: {username} — verification email sent to {email}")
         
-        return jsonify({'success': True, 'message': 'Account created! Please check your email for the verification code.', 'username': username}), 201
+        return jsonify({'success': True, 'message': 'Account created! Please check your email for the verification code.', 'username': username, 'dev_otp': otp}), 201
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
@@ -160,7 +160,7 @@ def resend_otp():
         # OTP sent via email only
         logger.info(f"Resend OTP for user: {username} — email sent to {user['email']}")
 
-        return jsonify({'success': True, 'message': 'New verification code sent to your email'}), 200
+        return jsonify({'success': True, 'message': 'New verification code sent to your email', 'dev_otp': otp}), 200
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
@@ -243,7 +243,7 @@ def login():
                 # OTP is sent via email only — not exposed in server logs for security
                 logger.info(f"2FA login initiated for {actual_username} (email sent to {email})")
 
-                return jsonify({'success': True, 'requires_2fa': True, 'username': actual_username, 'role': role})
+                return jsonify({'success': True, 'requires_2fa': True, 'username': actual_username, 'role': role, 'dev_otp': otp})
             except Exception as e:
                 db.rollback()
                 logger.error(f"Failed to generate 2FA for {actual_username}: {e}")

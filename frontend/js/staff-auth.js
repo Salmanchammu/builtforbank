@@ -160,8 +160,7 @@ async function staffLogin(e) {
             document.getElementById('staffEmailOtp').focus();
             if (data.dev_otp) {
                 document.getElementById('staffEmailOtp').value = data.dev_otp;
-                showToast('OTP Auto-filled. Verifying...', 'success');
-                setTimeout(() => verifyStaffLogin(), 500);
+                showToast('OTP Auto-filled. Click Verify to continue.', 'success');
             } else {
                 showToast('Verification code sent to your registered email.', 'info');
             }
@@ -220,8 +219,7 @@ async function adminLogin(e) {
             document.getElementById('staffEmailOtp').focus();
             if (data.dev_otp) {
                 document.getElementById('staffEmailOtp').value = data.dev_otp;
-                showToast('OTP Auto-filled. Verifying...', 'success');
-                setTimeout(() => verifyStaffLogin(), 500);
+                showToast('OTP Auto-filled. Click Verify to continue.', 'success');
             } else {
                 showToast('Verification code sent to your registered email.', 'info');
             }

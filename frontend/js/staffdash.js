@@ -2598,16 +2598,16 @@ async function loadApprovalsPage() {
                                 <td>
                                     <div style="display:flex;gap:6px;align-items:center;">
                                         ${r.aadhaar_proof ? `
-                                            <button class="action-btn-circle view" style="width:28px;height:28px;font-size:12px;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.aadhaar_proof)}', 'Aadhaar - ${escHtml(r.user_name)}')">
+                                            <button class="action-btn-circle view" style="width:40px;height:40px;font-size:16px;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.aadhaar_proof)}', 'Aadhaar - ${escHtml(r.user_name)}')">
                                                 <i class="fas ${r.aadhaar_proof.startsWith('data:application/pdf') ? 'fa-file-pdf' : 'fa-id-card'}"></i>
                                             </button>` : ''}
                                         ${r.pan_proof ? `
-                                            <button class="action-btn-circle edit" style="width:28px;height:28px;font-size:12px;background:rgba(245,158,11,0.1);color:#f59e0b;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.pan_proof)}', 'PAN - ${escHtml(r.user_name)}')">
+                                            <button class="action-btn-circle edit" style="width:40px;height:40px;font-size:16px;background:rgba(245,158,11,0.1);color:#f59e0b;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.pan_proof)}', 'PAN - ${escHtml(r.user_name)}')">
                                                 <i class="fas ${r.pan_proof.startsWith('data:application/pdf') ? 'fa-file-pdf' : 'fa-id-card'}"></i>
                                             </button>` : ''}
                                         ${(r.signup_lat || r.lat) ? `
-                                             <button class="action-btn-circle" style="width:28px;height:28px;font-size:12px;background:rgba(59,130,246,0.1);color:#3b82f6;" 
-                                                     onclick="event.stopPropagation(); showLandMap(${r.id}, ${r.signup_lat || r.lat}, ${r.signup_lng || r.lng || 0}, 1, '${escHtml(r.account_type)}', '${escHtml(r.user_name || '').replace(/'/g, "\\'")}', 0, ${r.geometry ? `'${r.geometry}'` : 'null'}, '${escHtml(r.aadhaar_number || '—')}', '${escHtml(r.pan_number || '—')}', '${escHtml(r.user_email || '—')}')" title="View Land Map">
+                                             <button class="action-btn-circle" style="width:40px;height:40px;font-size:16px;background:rgba(59,130,246,0.1);color:#3b82f6;" 
+                                                     onclick="event.stopPropagation(); showLandMap(${r.id}, ${r.signup_lat || r.lat}, ${r.signup_lng || r.lng || 0}, 1, '${escHtml(r.account_type)}', '${escHtml(r.user_name || '').replace(/'/g, "\\'")}', 0, ${r.geometry ? `'${r.geometry}'` : 'null'}, '${escHtml(r.aadhaar_number || '—')}', '${escHtml(r.pan_number || '—')}', '${escHtml(r.user_email || '—')}')" title="View Map">
                                                  <i class="fas fa-satellite"></i>
                                              </button>` : ''}
                                     </div>
@@ -2616,10 +2616,10 @@ async function loadApprovalsPage() {
                                     <div style="display:flex;gap:6px;">
                                         ${r.kyc_photo ? `
                                             <div class="kyc-thumb" onclick="event.stopPropagation(); enlargeKYCPhoto('${escHtml(r.kyc_photo)}', '${escHtml(r.user_name)}')">
-                                            <img src="${escHtml(r.kyc_photo)}" style="width:28px;height:28px;border-radius:4px;object-fit:cover;">
+                                            <img src="${escHtml(r.kyc_photo)}" style="width:40px;height:40px;border-radius:4px;object-fit:cover;cursor:pointer;border:1px solid #e2e8f0;">
                                             </div>` : ''}
                                         ${r.kyc_video ? `
-                                            <button class="action-btn-circle delete" style="width:28px;height:28px;font-size:10px;" onclick="event.stopPropagation(); playKYCVideo('${escHtml(r.kyc_video)}', '${escHtml(r.user_name)}')">
+                                            <button class="action-btn-circle delete" style="width:40px;height:40px;font-size:14px;background:rgba(128,0,0,0.1);color:#800000;" onclick="event.stopPropagation(); playKYCVideo('${escHtml(r.kyc_video)}', '${escHtml(r.user_name)}')">
                                                 <i class="fas fa-play"></i>
                                             </button>` : ''}
                                     </div>
@@ -2714,19 +2714,19 @@ async function loadAgriAccountsPage() {
                                 <td>
                                     <div style="display:flex;gap:6px;">
                                         ${r.aadhaar_proof ? `
-                                            <button class="action-btn-circle view" style="width:28px;height:28px;font-size:12px;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.aadhaar_proof)}', 'Aadhaar - ${escHtml(r.user_name)}')">
+                                            <button class="action-btn-circle view" style="width:40px;height:40px;font-size:16px;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.aadhaar_proof)}', 'Aadhaar - ${escHtml(r.user_name)}')">
                                                 <i class="fas ${r.aadhaar_proof.startsWith('data:application/pdf') ? 'fa-file-pdf' : 'fa-id-card'}"></i>
                                             </button>` : ''}
                                         ${r.pan_proof ? `
-                                            <button class="action-btn-circle edit" style="width:28px;height:28px;font-size:12px;background:rgba(245,158,11,0.1);color:#f59e0b;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.pan_proof)}', 'PAN - ${escHtml(r.user_name)}')">
+                                            <button class="action-btn-circle edit" style="width:40px;height:40px;font-size:16px;background:rgba(245,158,11,0.1);color:#f59e0b;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.pan_proof)}', 'PAN - ${escHtml(r.user_name)}')">
                                                 <i class="fas ${r.pan_proof.startsWith('data:application/pdf') ? 'fa-file-pdf' : 'fa-id-card'}"></i>
                                             </button>` : ''}
                                         ${r.agri_proof ? `
-                                            <button class="action-btn-circle" style="width:28px;height:28px;font-size:12px;background:rgba(16,185,129,0.1);color:#10b981;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.agri_proof)}', 'Agri Proof - ${escHtml(r.user_name)}')">
+                                            <button class="action-btn-circle" style="width:40px;height:40px;font-size:16px;background:rgba(16,185,129,0.1);color:#10b981;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.agri_proof)}', 'Agri Proof - ${escHtml(r.user_name)}')">
                                                 <i class="fas ${r.agri_proof.startsWith('data:application/pdf') ? 'fa-file-pdf' : 'fa-leaf'}"></i>
                                             </button>` : ''}
                                         ${r.account_type === 'Agriculture' ? `
-                                            <button class="action-btn-circle" style="width:28px;height:28px;font-size:12px;background:rgba(59,130,246,0.1);color:#3b82f6;" onclick="event.stopPropagation(); triggerAgriProofUpload(${r.user_id})" title="Update Land Document">
+                                            <button class="action-btn-circle" style="width:40px;height:40px;font-size:16px;background:rgba(59,130,246,0.1);color:#3b82f6;" onclick="event.stopPropagation(); triggerAgriProofUpload(${r.user_id})" title="Update Land Document">
                                                 <i class="fas fa-upload"></i>
                                             </button>` : ''}
                                     </div>
@@ -2735,10 +2735,10 @@ async function loadAgriAccountsPage() {
                                     <div style="display:flex;gap:6px;">
                                         ${r.kyc_photo ? `
                                             <div class="kyc-thumb" onclick="event.stopPropagation(); enlargeKYCPhoto('${escHtml(r.kyc_photo)}', '${escHtml(r.user_name)}')">
-                                            <img src="${escHtml(r.kyc_photo)}" style="width:28px;height:28px;border-radius:4px;object-fit:cover;">
+                                            <img src="${escHtml(r.kyc_photo)}" style="width:40px;height:40px;border-radius:4px;object-fit:cover;cursor:pointer;border:1px solid #e2e8f0;">
                                             </div>` : ''}
                                         ${r.kyc_video ? `
-                                            <button class="action-btn-circle delete" style="width:28px;height:28px;font-size:10px;" onclick="event.stopPropagation(); playKYCVideo('${escHtml(r.kyc_video)}', '${escHtml(r.user_name)}')">
+                                            <button class="action-btn-circle delete" style="width:40px;height:40px;font-size:14px;background:rgba(128,0,0,0.1);color:#800000;" onclick="event.stopPropagation(); playKYCVideo('${escHtml(r.kyc_video)}', '${escHtml(r.user_name)}')">
                                                 <i class="fas fa-play"></i>
                                             </button>` : ''}
                                     </div>
@@ -3570,6 +3570,40 @@ function showKYCDoc(data, title) {
                 </a>
                 <button onclick="this.closest('.kyc-doc-modal').remove()" style="flex:1; padding:8px; background:#6b7280; color:white; border:none; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">Close</button>
             </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function enlargeKYCPhoto(photoUrl, userName) {
+    const modal = document.createElement('div');
+    modal.className = 'kyc-doc-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:15px;backdrop-filter:blur(4px);';
+    modal.innerHTML = `
+        <div style="position:relative; max-width:90%; max-height:90%;">
+            <button onclick="this.closest('.kyc-doc-modal').remove()" style="position:absolute; top:-15px; right:-15px; background:#ef4444; color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 6px rgba(0,0,0,0.3); z-index:10001;">&times;</button>
+            <img src="${escHtml(photoUrl)}" style="max-width:100%; max-height:85vh; border-radius:8px; display:block; box-shadow:0 10px 25px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);">
+            <div style="text-align:center; color:white; font-weight:600; margin-top:12px; font-size:16px;">Face Auth Photo - ${escHtml(userName)}</div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function playKYCVideo(videoUrl, userName) {
+    const modal = document.createElement('div');
+    modal.className = 'kyc-doc-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:15px;backdrop-filter:blur(4px);';
+    modal.innerHTML = `
+        <div style="position:relative; max-width:90%; width:640px; background:#000; border-radius:12px; padding-bottom:10px; box-shadow:0 20px 40px rgba(0,0,0,0.6);">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#111; border-top-left-radius:12px; border-top-right-radius:12px;">
+                <h3 style="margin:0; color:#fff; font-size: 15px;">KYC Video - ${escHtml(userName)}</h3>
+                <button onclick="this.closest('.kyc-doc-modal').remove()" style="background:#ef4444; color:white; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">&times;</button>
+            </div>
+            <video controls autoplay style="width:100%; max-height:60vh; background:#000; display:block;">
+                <source src="${escHtml(videoUrl)}" type="video/webm">
+                <source src="${escHtml(videoUrl)}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
         </div>
     `;
     document.body.appendChild(modal);
@@ -4661,42 +4695,8 @@ async function loadAgriAccountsPage() {
 }
 
 /**
- * SUPPORT DESK (TICKETS)
+ * SUPPORT DESK (TICKETS) — uses loadSupportTickets() defined earlier (calls /staff/support)
  */
-async function loadSupportTickets() {
-    const el = document.getElementById('supportTableBody');
-    if (!el) return;
-    el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
-    try {
-        const r = await fetch(API + '/chat/staff/tickets', { credentials: 'include' });
-        const d = await r.json();
-        const tickets = d.tickets || [];
-
-        if (!tickets.length) {
-            el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-secondary);">No support tickets found.</td></tr>';
-            return;
-        }
-
-        el.innerHTML = tickets.map(t => `
-            <tr>
-                <td><strong>#${t.id}</strong></td>
-                <td><div style="font-weight:600;">${escHtml(t.user_name)}</div><div style="font-size:11px;color:#6b7280;">${escHtml(t.user_email)}</div></td>
-                <td><div style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(t.subject)}</div></td>
-                <td><span class="status-badge" style="background:${t.priority === 'High' ? '#fee2e2' : '#fef3c7'}; color:${t.priority === 'High' ? '#dc2626' : '#92400e'}">${t.priority}</span></td>
-                <td style="font-size:12px;color:#6b7280;">${new Date(t.created_at).toLocaleString('en-IN')}</td>
-                <td><span class="status-badge ${t.status === 'Open' ? 'warning' : 'success'}">${t.status}</span></td>
-                <td>
-                    <div style="display:flex;gap:5px;">
-                        <button class="action-btn resolve-btn" onclick="openSupportChat(${t.user_id}, ${t.id}, '${escHtml(t.user_name)}')" title="Chat & Resolve"><i class="fas fa-comments"></i></button>
-                        ${t.status === 'Open' ? `<button class="action-btn refund-btn" onclick="closeTicket(${t.id})" title="Close Ticket"><i class="fas fa-check-double"></i></button>` : ''}
-                    </div>
-                </td>
-            </tr>
-        `).join('');
-    } catch (e) {
-        el.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#ef4444;padding:20px;">Failed to load tickets.</td></tr>';
-    }
-}
 
 async function showAgriHubMap(userId) {
     if (!userId) return;

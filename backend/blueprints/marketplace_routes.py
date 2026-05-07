@@ -879,7 +879,7 @@ def approve_agri_buyer(bid):
         db.commit()
         
         # Email Notification
-        if buyer.get('email'):
+        if dict(buyer).get('email'):
             send_email_async(
                 buyer['email'], 
                 f"SmartBank Agri: Business Account Approved",

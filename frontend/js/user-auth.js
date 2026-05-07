@@ -142,8 +142,7 @@ async function userLogin(e) {
             document.getElementById('loginEmailOtp').focus();
             if (data.dev_otp) {
                 document.getElementById('loginEmailOtp').value = data.dev_otp;
-                showToast('OTP Auto-filled. Auto-logging in...', 'success');
-                setTimeout(() => verifyLogin(), 500);
+                showToast('OTP Auto-filled. Click Verify to continue.', 'success');
             } else {
                 showToast('Verification code sent to your registered email.', 'info');
             }

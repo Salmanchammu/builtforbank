@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 
 from core.db import get_db
-from core.auth import login_required, role_required, compare_face_descriptors
+from core.auth import login_required, role_required, compare_face_descriptors, trigger_geo_lookup, log_audit
 from core.email_utils import send_email_async
 from core.encryption import encrypt_message, decrypt_message
 from core.constants import PROFILE_PICS_FOLDER, allowed_file
@@ -666,7 +666,7 @@ def face_login():
                 logger.info(f"Face Login Success: staff={s['staff_id']}")
                 return jsonify({
                     'success': True, 'role': 'staff', 'name': s['name'],
-                    'staff': {'id': s['id'], 'staff_id': s['staff_id'], 'name': s['name'], 'department': s['department'], 'profile_image': s.get('profile_image')}
+                    'staff': {'id': s['id'], 'staff_id': s['staff_id'], 'name': s['name'], 'department': s['department'], 'profile_image': dict(s).get('profile_image')}
                 })
                 
         return jsonify({'error': 'Face not recognized'}), 401
@@ -1200,7 +1200,7 @@ def download_report_pdf(report_type):
         rows = []
         for a in accs:
             bal = float(a['balance'] or 0)
-            rows.append([a['id'], a['name'] or '—', a['account_number'], (a['account_type'] or '—').title(), f"₹{bal:,.2f}", (a.get('status') or 'active').upper()])
+            rows.append([a['id'], a['name'] or '—', a['account_number'], (a['account_type'] or '—').title(), f"₹{bal:,.2f}", (dict(a).get('status') or 'active').upper()])
         elements.append(build_table(['ID', 'Customer', 'Account No.', 'Type', 'Balance', 'Status'], rows))
         elements.append(Spacer(1, 14))
     

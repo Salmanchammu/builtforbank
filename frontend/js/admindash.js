@@ -3608,19 +3608,19 @@ async function loadAgriApprovalsPage() {
                                 <td>
                                     <div style="display:flex;gap:6px;">
                                         ${r.aadhaar_proof ? `
-                                            <button class="action-btn-circle view" style="width:28px;height:28px;font-size:12px;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.aadhaar_proof)}', 'Aadhaar - ${escHtml(r.user_name)}')">
+                                            <button class="action-btn-circle view" style="width:40px;height:40px;font-size:16px;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.aadhaar_proof)}', 'Aadhaar - ${escHtml(r.user_name)}')">
                                                 <i class="fas ${r.aadhaar_proof.startsWith('data:application/pdf') ? 'fa-file-pdf' : 'fa-id-card'}"></i>
                                             </button>` : ''}
                                         ${r.pan_proof ? `
-                                            <button class="action-btn-circle edit" style="width:28px;height:28px;font-size:12px;background:rgba(245,158,11,0.1);color:#f59e0b;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.pan_proof)}', 'PAN - ${escHtml(r.user_name)}')">
+                                            <button class="action-btn-circle edit" style="width:40px;height:40px;font-size:16px;background:rgba(245,158,11,0.1);color:#f59e0b;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.pan_proof)}', 'PAN - ${escHtml(r.user_name)}')">
                                                 <i class="fas ${r.pan_proof.startsWith('data:application/pdf') ? 'fa-file-pdf' : 'fa-id-card'}"></i>
                                             </button>` : ''}
                                         ${r.agri_proof ? `
-                                            <button class="action-btn-circle" style="width:28px;height:28px;font-size:12px;background:rgba(16,185,129,0.1);color:#10b981;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.agri_proof)}', 'Agri Proof - ${escHtml(r.user_name)}')">
+                                            <button class="action-btn-circle" style="width:40px;height:40px;font-size:16px;background:rgba(16,185,129,0.1);color:#10b981;" onclick="event.stopPropagation(); showKYCDoc('${escHtml(r.agri_proof)}', 'Agri Proof - ${escHtml(r.user_name)}')">
                                                 <i class="fas ${r.agri_proof.startsWith('data:application/pdf') ? 'fa-file-pdf' : 'fa-leaf'}"></i>
                                             </button>` : ''}
                                         ${r.account_type === 'Agriculture' ? `
-                                            <button class="action-btn-circle" style="width:28px;height:28px;font-size:12px;background:rgba(59,130,246,0.1);color:#3b82f6;" onclick="event.stopPropagation(); triggerAgriProofUpload(${r.user_id})" title="Update Land Document">
+                                            <button class="action-btn-circle" style="width:40px;height:40px;font-size:16px;background:rgba(59,130,246,0.1);color:#3b82f6;" onclick="event.stopPropagation(); triggerAgriProofUpload(${r.user_id})" title="Update Land Document">
                                                 <i class="fas fa-upload"></i>
                                             </button>` : ''}
                                     </div>
@@ -3629,10 +3629,10 @@ async function loadAgriApprovalsPage() {
                                     <div style="display:flex;gap:6px;">
                                         ${r.kyc_photo ? `
                                             <div class="kyc-thumb" onclick="event.stopPropagation(); enlargeKYCPhoto('${escHtml(r.kyc_photo)}', '${escHtml(r.user_name)}')">
-                                                <img src="${escHtml(r.kyc_photo)}" style="width:28px;height:28px;border-radius:4px;object-fit:cover;">
+                                                <img src="${escHtml(r.kyc_photo)}" style="width:40px;height:40px;border-radius:4px;object-fit:cover;cursor:pointer;border:1px solid #e2e8f0;">
                                             </div>` : ''}
                                         ${r.kyc_video ? `
-                                            <button class="action-btn-circle delete" style="width:28px;height:28px;font-size:10px;" onclick="playKYCVideo('${escHtml(r.kyc_video)}', '${escHtml(r.user_name)}')">
+                                            <button class="action-btn-circle delete" style="width:40px;height:40px;font-size:14px;background:rgba(128,0,0,0.1);color:#800000;" onclick="playKYCVideo('${escHtml(r.kyc_video)}', '${escHtml(r.user_name)}')">
                                                 <i class="fas fa-play"></i>
                                             </button>` : ''}
                                     </div>
@@ -4791,4 +4791,68 @@ function triggerAgriProofUpload(userId) {
     document.body.appendChild(fileInput);
     fileInput.click();
     document.body.removeChild(fileInput);
+}
+
+function showKYCDoc(data, title) {
+    const modal = document.createElement('div');
+    modal.className = 'kyc-doc-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:15px;';
+
+    const isPDF = data && data.startsWith('data:application/pdf');
+
+    modal.innerHTML = `
+        <div style="background:#fff; padding:12px; border-radius:12px; max-width:95%; width:400px; display:flex; flex-direction:column; position:relative; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:6px;">
+                <h3 style="margin:0; color:#1f2937; font-size: 14px;">${escHtml(title)}</h3>
+                <button onclick="this.closest('.kyc-doc-modal').remove()" style="background:#ef4444; color:white; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">&times;</button>
+            </div>
+            <div style="flex:1; overflow:auto; text-align:center; min-height:120px; background:#f9fafb; border-radius:8px;">
+                ${isPDF ?
+            `<iframe src="${escHtml(data)}" style="width:100%; height:380px; border:none;"></iframe>` :
+            `<img src="${escHtml(data)}" style="max-width:100%; max-height:45vh; border-radius:4px; display: block; margin: 0 auto;">`
+        }
+            </div>
+            <div style="margin-top:10px; display:flex; gap:6px;">
+                <a href="${escHtml(data)}" download="${escHtml(title.replace(/\s+/g, '_'))}${isPDF ? '.pdf' : '.png'}" style="flex:1; text-align:center; padding:8px; background:#800000; color:white; border-radius:8px; text-decoration:none; font-weight:600; font-size:12px;">
+                    <i class="fas fa-download"></i> Download
+                </a>
+                <button onclick="this.closest('.kyc-doc-modal').remove()" style="flex:1; padding:8px; background:#6b7280; color:white; border:none; border-radius:8px; font-weight:600; font-size:12px; cursor:pointer;">Close</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function enlargeKYCPhoto(photoUrl, userName) {
+    const modal = document.createElement('div');
+    modal.className = 'kyc-doc-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:15px;backdrop-filter:blur(4px);';
+    modal.innerHTML = `
+        <div style="position:relative; max-width:90%; max-height:90%;">
+            <button onclick="this.closest('.kyc-doc-modal').remove()" style="position:absolute; top:-15px; right:-15px; background:#ef4444; color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 6px rgba(0,0,0,0.3); z-index:10001;">&times;</button>
+            <img src="${escHtml(photoUrl)}" style="max-width:100%; max-height:85vh; border-radius:8px; display:block; box-shadow:0 10px 25px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);">
+            <div style="text-align:center; color:white; font-weight:600; margin-top:12px; font-size:16px;">Face Auth Photo - ${escHtml(userName)}</div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function playKYCVideo(videoUrl, userName) {
+    const modal = document.createElement('div');
+    modal.className = 'kyc-doc-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:15px;backdrop-filter:blur(4px);';
+    modal.innerHTML = `
+        <div style="position:relative; max-width:90%; width:640px; background:#000; border-radius:12px; padding-bottom:10px; box-shadow:0 20px 40px rgba(0,0,0,0.6);">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#111; border-top-left-radius:12px; border-top-right-radius:12px;">
+                <h3 style="margin:0; color:#fff; font-size: 15px;">KYC Video - ${escHtml(userName)}</h3>
+                <button onclick="this.closest('.kyc-doc-modal').remove()" style="background:#ef4444; color:white; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">&times;</button>
+            </div>
+            <video controls autoplay style="width:100%; max-height:60vh; background:#000; display:block;">
+                <source src="${escHtml(videoUrl)}" type="video/webm">
+                <source src="${escHtml(videoUrl)}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    `;
+    document.body.appendChild(modal);
 }

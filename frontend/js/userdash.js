@@ -498,20 +498,28 @@ async function submitNewAccount() {
         const salaryProof    = salaryProofFile  ? await toBase64(salaryProofFile)  : null;
         const currentProof   = currentProofFile ? await toBase64(currentProofFile) : null;
 
-        // Step 1: Capture Face Descriptor and Photo for KYC via FaceAuthManager
-        if (!window.faceAuthManager) throw new Error('Face Auth Manager not loaded');
-        const kycData = await window.faceAuthManager.captureFaceForKYC();
-        if (!kycData || !kycData.descriptor) throw new Error('Face verification failed');
-
-        // Capture Geolocation
+        // Capture Geolocation FIRST (MANDATORY for KYC)
         const desktopLocation = await new Promise((resolve) => {
             if (!navigator.geolocation) return resolve(null);
             navigator.geolocation.getCurrentPosition(
                 pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
                 err => resolve(null),
-                { timeout: 5000 }
+                { timeout: 10000, enableHighAccuracy: true }
             );
         });
+        if (!desktopLocation || !desktopLocation.lat) {
+            throw new Error('Location access is mandatory for KYC verification. Please allow location permission in your browser and try again.');
+        }
+
+        // Step 1: Capture Face Descriptor and Photo for KYC via FaceAuthManager
+        if (!window.faceAuthManager) throw new Error('Face Authentication is not available. Please refresh the page and allow camera access.');
+        let kycData = null;
+        try {
+            kycData = await window.faceAuthManager.captureFaceForKYC();
+        } catch (faceErr) {
+            throw new Error('Camera access denied or face detection failed. Please allow camera permission and try again.');
+        }
+        if (!kycData || !kycData.descriptor) throw new Error('Face verification was cancelled or failed. Please try again and look directly at the camera.');
 
         // Step 2: Submit to backend
         const res = await fetch(window.API + '/user/accounts', {

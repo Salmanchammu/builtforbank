@@ -27,28 +27,40 @@ class FaceAuthManager {
     // ─── Load Models ─────────────────────────────────────────────────────────
     async loadFaceAPIModels() {
         if (this.faceAPILoaded) return true;
-        try {
-            if (typeof faceapi === 'undefined') {
+        if (this._modelLoadPromise) return this._modelLoadPromise; // Wait for ongoing load
+
+        this._modelLoadPromise = (async () => {
+            try {
+                if (typeof faceapi === 'undefined') {
+                    await Promise.race([
+                        this.loadFaceAPIScript(),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Face AI Script timeout')), 15000))
+                    ]);
+                }
+                const MODEL_URL = window.location.origin + '/models';
                 await Promise.race([
-                    this.loadFaceAPIScript(),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Face AI Script timeout')), 15000))
+                    Promise.all([
+                        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+                    ]),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Models timeout')), 30000))
                 ]);
+                this.faceAPILoaded = true;
+                console.log('✓ Face API models loaded');
+                return true;
+            } catch (error) {
+                console.error('✗ Failed to load Face API models:', error);
+                this.faceAPILoaded = false;
+                throw error;
+            } finally {
+                this._modelLoadPromise = null;
             }
-            const MODEL_URL = window.location.origin + '/models';
-            await Promise.race([
-                Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-                ]),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Models timeout')), 30000))
-            ]);
-            this.faceAPILoaded = true;
-            console.log('✓ Face API models loaded');
-            return true;
-        } catch (error) {
-            console.error('✗ Failed to load Face API models:', error);
-            this.faceAPILoaded = false;
+        })();
+
+        try {
+            return await this._modelLoadPromise;
+        } catch (err) {
             return false;
         }
     }
@@ -290,7 +302,7 @@ class FaceAuthManager {
         }
     }
 
-    // ─── Record 15s KYC Video ──────────────────────────────────────────────────
+    // ─── Record 2s KYC Video ──────────────────────────────────────────────────
     async recordKYCVideo() {
         return new Promise((resolve) => {
             try {
@@ -304,9 +316,9 @@ class FaceAuthManager {
                     reader.readAsDataURL(blob);
                 };
 
-                this.updateStatus('video', 'Recording 15s Video...', 'KYC security check. Please stay centered.');
+                this.updateStatus('video', 'Recording Security Video...', 'KYC security check. Please stay centered.');
                 recorder.start();
-                setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 15000);
+                setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 2000);
             } catch (e) {
                 console.error('Video recording failed:', e);
                 resolve(null);
@@ -319,12 +331,11 @@ class FaceAuthManager {
         this.consecutiveDetections = 0;
         const startTime = Date.now();
         const isLoginMode = (this.currentMode === 'login');
-        // Login: 8s max, Register/KYC: 15s max
-        const timeoutMs = isLoginMode ? 8000 : 15000;
-        // Blink is required for ALL modes (human-only security)
-        // Login: 2s grace window (auto-accept if no blink after 2s of first human detection)
-        // Register/KYC/Attendance: blink is mandatory, no grace
-        const BLINK_GRACE_MS = isLoginMode ? 2000 : 0;
+        // All modes: 15s max to allow time for blink
+        const timeoutMs = 15000;
+        // Blink is STRICTLY REQUIRED for ALL modes (human-only security)
+        // No grace period - guarantees it's a real person, not a photo
+        const BLINK_GRACE_MS = 0;
         let firstHumanDetectedAt = null;
 
         this.updateStatus('scanning', 'Face Detection Active', 'Scanning for human face...');
@@ -369,25 +380,9 @@ class FaceAuthManager {
                                 resolve(detection);
                                 return;
                             }
-                        } else if (BLINK_GRACE_MS > 0 && humanElapsed >= BLINK_GRACE_MS) {
-                            // Login mode: grace period expired, accept without blink
-                            this.consecutiveDetections++;
-                            this.updateStatus('human',
-                                `Human Verified ✓`,
-                                'Quick-authenticating...');
-                            if (this.consecutiveDetections >= this.REQUIRED_CONSECUTIVE) {
-                                console.log(`[FaceAuth] Human verified (blink grace expired) in ${humanElapsed}ms`);
-                                this.updateProgress(100);
-                                resolve(detection);
-                                return;
-                            }
                         } else {
                             // Waiting for blink
-                            const remaining = BLINK_GRACE_MS > 0 ? Math.ceil((BLINK_GRACE_MS - humanElapsed) / 1000) : '';
-                            const blinkMsg = BLINK_GRACE_MS > 0
-                                ? `Please blink naturally (${remaining}s)`
-                                : 'Please blink to verify you are human';
-                            this.updateStatus('scanning', 'Liveness Check', blinkMsg);
+                            this.updateStatus('scanning', 'Liveness Check', 'Please blink to verify you are human');
                             this.consecutiveDetections = 0;
                         }
                     } else {

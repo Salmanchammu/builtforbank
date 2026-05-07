@@ -478,7 +478,7 @@ def transfer_money():
         user_global_limit = user['daily_limit'] if user and user['daily_limit'] is not None else 200000.00
         
         # Use account-specific limit if set, otherwise fallback to user-global limit
-        daily_limit = src['daily_limit'] if src.get('daily_limit') is not None else user_global_limit
+        daily_limit = src['daily_limit'] if ('daily_limit' in src.keys() and src['daily_limit'] is not None) else user_global_limit
         
         # Security: Lower limit for International Transfers (if not INR)
         if currency != 'INR':
@@ -606,7 +606,7 @@ def upi_pay():
         if not src: return jsonify({'error': 'Insufficient funds'}), 400
         
         # Check Daily Limits (same enforcement as regular transfer)
-        limit = src.get('daily_limit') or 200000.00
+        limit = (src['daily_limit'] if 'daily_limit' in src.keys() and src['daily_limit'] is not None else None) or 200000.00
         if currency != 'INR': limit = min(limit, 50000.00)
         
         today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
@@ -756,9 +756,8 @@ def open_new_account():
         db.execute('INSERT INTO account_requests (user_id, account_type, aadhaar_number, pan_number, tax_id, face_descriptor, kyc_photo, kyc_video, status, signup_ip, signup_lat, signup_lng, agri_address, agri_proof, salary_proof, current_proof) VALUES (?, ?, ?, ?, ?, ?, ?, ?, \'pending\', ?, ?, ?, ?, ?, ?, ?)',
                   (user_id, account_type, aadhaar, pan, tax_id, json.dumps(face), kyc_p, kyc_v, client_ip, lat, lng, agri_address, agri_proof, salary_proof, current_proof))
         
-        # Also track as a general service application for unified staff view
-        db.execute('INSERT INTO service_applications (user_id, service_type, product_name, status) VALUES (?, "Account", ?, \'pending\')',
-                   (user_id, account_type))
+        # Account requests are tracked natively in the account_requests table.
+        # We do not insert into service_applications here because account_id is NOT NULL in strict schemas.
         
         db.commit()
         return jsonify({'success': True, 'message': 'Account requested successfully'})
@@ -1062,7 +1061,7 @@ def change_card_pin(card_id):
         if not card:
             return jsonify({'error': 'Card not found or unauthorized'}), 404
             
-        if not card.get('pin_hash'):
+        if not dict(card).get('pin_hash'):
             return jsonify({'error': 'No existing PIN found. Please use the Set PIN option.'}), 400
             
         from werkzeug.security import check_password_hash, generate_password_hash
@@ -1078,20 +1077,6 @@ def change_card_pin(card_id):
                   
         db.commit()
         return jsonify({'success': True, 'message': 'Card PIN changed successfully'})
-    except Exception as e:
-        db.rollback()
-        return jsonify({'error': str(e)}), 500
-        
-        # Send Email Alert
-        user = db.execute('SELECT email, name FROM users WHERE id = ?', (user_id,)).fetchone()
-        if user and user['email']:
-            send_email_async(
-                user['email'], 
-                "Security Alert: Card Unblocked", 
-                f"<p>Dear {user['name']}, your SmartBank card ending in {card['card_number'][-4:]} has been successfully unblocked.</p>"
-            )
-
-        return jsonify({'success': True, 'message': 'Card unblocked successfully'})
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
