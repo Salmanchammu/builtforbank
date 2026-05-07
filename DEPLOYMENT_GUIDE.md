@@ -64,7 +64,11 @@ Your app will be available at a URL like:
 `https://smart-bank-v2-xxxx.onrender.com`
 
 ## Troubleshooting
-- **Database Initialization**: On the first launch, `render_app.py` will automatically create the database and seed it with the default admin account:
+- **Database Initialization**: On the first launch, the application (`backend/main.py`) will automatically create the database and seed it with the default admin account:
   - **Username**: `admin`
   - **Password**: `admin123`
+- **Mobile & Desktop**: The same URL handles both. The system automatically detects your device and serves either the Desktop dashboard (`userdash.html`) or the Mobile dashboard (`mobile-dash.html`).
 - **Logs**: If the app fails to start, check the **Logs** tab in Render for Python error messages.
+
+## Security Note
+Ensure `SECRET_KEY` is set in the Render Environment tab to secure user sessions. The application uses HTTPS by default on Render, which is required for Face Recognition features to work.
