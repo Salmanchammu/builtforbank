@@ -12,6 +12,20 @@ from core.email_utils import send_email_async
 from core.encryption import encrypt_message, decrypt_message
 from core.constants import PROFILE_PICS_FOLDER, allowed_file
 
+from decimal import Decimal
+
+def to_json_serializable(data):
+    """Recursively convert datetime and decimal objects to strings for JSON serialization."""
+    if isinstance(data, list):
+        return [to_json_serializable(item) for item in data]
+    if isinstance(data, dict):
+        return {k: to_json_serializable(v) for k, v in data.items()}
+    if isinstance(data, (datetime,)):
+        return data.isoformat()
+    if isinstance(data, Decimal):
+        return float(data)
+    return data
+
 user_bp = Blueprint('user', __name__)
 logger = logging.getLogger('smart_bank.user')
 
@@ -110,7 +124,7 @@ def get_user_dashboard():
         profile_img = user_dict.get('profile_image')
         l_login = user_dict.get('last_login')
         
-        return jsonify({
+        return jsonify(to_json_serializable({
             'user': user_dict,
             'last_login': l_login,
             'accounts': [dict(a) for a in accounts],
@@ -122,7 +136,7 @@ def get_user_dashboard():
             'loans': [dict(l) for l in loans],
             'total_balance': float(total_balance),
             'profile_image_url': f"/api/user/profile-image/{profile_img}" if profile_img else None
-        })
+        }))
     except Exception as e:
         logger.error(f"FATAL Dashboard Error: {e}", exc_info=True)
         return jsonify({'error': 'Internal Server Error'}), 500
@@ -140,9 +154,9 @@ def get_all_user_transactions():
         ORDER BY t.transaction_date DESC
     ''', (user_id,)).fetchall()
     
-    return jsonify({
+    return jsonify(to_json_serializable({
         'transactions': [dict(t) for t in transactions]
-    })
+    }))
 
 @user_bp.route('/notifications/mark_read/<int:notif_id>', methods=['POST'])
 @login_required

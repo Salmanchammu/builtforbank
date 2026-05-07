@@ -15,9 +15,9 @@ def apply_loan_penalties(db=None):
     try:
         loans = db.execute('''
             SELECT * FROM loans 
-            WHERE status IN ("approved", "overdue") 
+            WHERE status IN ('approved', 'overdue') 
             AND next_due_date < ? 
-            AND (last_charge_date IS NULL OR DATE(last_charge_date) < ?)
+            AND (last_charge_date IS NULL OR last_charge_date < ?)
         ''', (today, today)).fetchall()
         
         count = 0
@@ -38,7 +38,7 @@ def apply_loan_penalties(db=None):
                 UPDATE loans 
                 SET penalty_amount = ?, 
                     outstanding_amount = ?, 
-                    status = "overdue",
+                    status = 'overdue',
                     last_charge_date = CURRENT_TIMESTAMP 
                 WHERE id = ?
             ''', (new_penalty, new_outstanding, loan['id']))
