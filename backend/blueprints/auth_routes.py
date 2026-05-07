@@ -14,6 +14,14 @@ from core.auth import login_required, log_audit, compare_face_descriptors, get_f
 from core.email_utils import send_email_async
 from core.utils import validate_email, validate_password
 
+def _parse_expiry(val):
+    """Parse otp_expiry safely — handles both datetime objects (Postgres) and strings (SQLite)."""
+    if isinstance(val, datetime):
+        return val
+    if isinstance(val, str):
+        return datetime.strptime(val, '%Y-%m-%d %H:%M:%S')
+    return datetime.min  # expired if unparseable
+
 auth_bp = Blueprint('auth', __name__)
 
 def send_sms_async(p, m):
@@ -88,8 +96,15 @@ def signup():
         otp = generate_secure_otp()
         otp_expiry = (datetime.now() + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
         
-        cursor = db.execute('INSERT INTO users (username, password, email, phone, name, status, otp, phone_otp, otp_expiry, device_type) VALUES (?, ?, ?, ?, ?, \'pending\', ?, NULL, ?, ?)',
-                           (username, hashed, email, None, name, otp, otp_expiry, device_type))
+        # Get optional location fields from frontend
+        signup_lat = data.get('latitude')
+        signup_lng = data.get('longitude')
+        signup_address = data.get('location_address')
+        
+        cursor = db.execute('''INSERT INTO users 
+            (username, password, email, phone, name, status, otp, phone_otp, otp_expiry, device_type, signup_lat, signup_lng, signup_address) 
+            VALUES (?, ?, ?, ?, ?, 'pending', ?, NULL, ?, ?, ?, ?, ?)''',
+            (username, hashed, email, None, name, otp, otp_expiry, device_type, signup_lat, signup_lng, signup_address))
         user_id = cursor.lastrowid
         db.commit()
 
@@ -124,7 +139,7 @@ def verify_otp():
     if user['otp'] != email_otp:
         return jsonify({'error': 'Invalid verification code'}), 400
         
-    expiry = datetime.strptime(user['otp_expiry'], '%Y-%m-%d %H:%M:%S')
+    expiry = _parse_expiry(user['otp_expiry'])
     if datetime.now() > expiry: return jsonify({'error': 'verification codes expired'}), 400
     
     try:
@@ -305,7 +320,7 @@ def verify_login():
     if user['otp'] != email_otp:
         return jsonify({'error': 'Invalid Email verification code'}), 401
         
-    expiry = datetime.strptime(user['otp_expiry'], '%Y-%m-%d %H:%M:%S')
+    expiry = _parse_expiry(user['otp_expiry'])
     if datetime.now() > expiry: return jsonify({'error': 'verification codes expired'}), 401
     
     try:
@@ -624,7 +639,7 @@ def verify_reset_token():
             continue   # table may lack the column
 
         if user:
-            expiry = datetime.strptime(user['reset_token_expiry'], '%Y-%m-%d %H:%M:%S')
+            expiry = _parse_expiry(user['reset_token_expiry'])
             if datetime.now() > expiry:
                 return jsonify({'error': 'This reset link has expired. Please request a new one.'}), 400
             return jsonify({
@@ -666,7 +681,7 @@ def reset_password():
             continue
 
         if user:
-            expiry = datetime.strptime(user['reset_token_expiry'], '%Y-%m-%d %H:%M:%S')
+            expiry = _parse_expiry(user['reset_token_expiry'])
             if datetime.now() > expiry:
                 return jsonify({'error': 'This reset link has expired. Please request a new one.'}), 400
 
