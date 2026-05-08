@@ -397,7 +397,7 @@ def checkout_verify_otp():
         ''', (card['account_id'], amount, f"POS/Online: {merchant}"))
 
         # Deduct from System Liquidity (money leaves the bank)
-        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "System Liquidity"', (amount,))
+        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = \'System Liquidity\'', (amount,))
 
         db.execute('INSERT INTO user_activity_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
                   (card['user_id'], 'Card Payment (OTP Verified)', f'Paid {amount} INR to {merchant} via Card **{card_number[-4:]}', request.remote_addr))
@@ -523,7 +523,7 @@ def transfer_money():
         if dest:
             dest_bal_after = dest['balance'] + inr_amount
             db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (dest_bal_after, dest['id']))
-            db.execute('INSERT INTO transactions (account_id, type, amount, description, reference_number, balance_after) VALUES (?, "credit", ?, ?, ?, ?)',
+            db.execute('INSERT INTO transactions (account_id, type, amount, description, reference_number, balance_after) VALUES (?, \'credit\', ?, ?, ?, ?)',
                       (dest['id'], inr_amount, f"Received from {src['account_number']}", f"{ref}CR", dest_bal_after))
         db.commit()
         
@@ -581,7 +581,7 @@ def upi_pay():
         target_user = db.execute('SELECT id FROM users WHERE username = ?', (target_username,)).fetchone()
     
     # 3. Find source account (Primary/Savings)
-    src_acc = db.execute('SELECT id FROM accounts WHERE user_id = ? AND account_type = "Savings" ORDER BY id ASC LIMIT 1', (user_id,)).fetchone()
+    src_acc = db.execute('SELECT id FROM accounts WHERE user_id = ? AND account_type = \'Savings\' ORDER BY id ASC LIMIT 1', (user_id,)).fetchone()
     if not src_acc:
         src_acc = db.execute('SELECT id FROM accounts WHERE user_id = ? ORDER BY id ASC LIMIT 1', (user_id,)).fetchone()
     
@@ -592,7 +592,7 @@ def upi_pay():
     # If target_user found internally, use their primary account
     to_acc = None
     if target_user:
-        dest_acc = db.execute('SELECT account_number FROM accounts WHERE user_id = ? AND account_type = "Savings" ORDER BY id ASC LIMIT 1', (target_user['id'],)).fetchone()
+        dest_acc = db.execute('SELECT account_number FROM accounts WHERE user_id = ? AND account_type = \'Savings\' ORDER BY id ASC LIMIT 1', (target_user['id'],)).fetchone()
         if dest_acc:
             to_acc = dest_acc['account_number']
 
@@ -644,11 +644,11 @@ def upi_pay():
             if dest:
                 dest_bal_after = dest['balance'] + inr_amount
                 db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (dest_bal_after, dest['id']))
-                db.execute('INSERT INTO transactions (account_id, type, amount, description, reference_number, balance_after, mode) VALUES (?, "credit", ?, ?, ?, ?, "UPI")',
+                db.execute('INSERT INTO transactions (account_id, type, amount, description, reference_number, balance_after, mode) VALUES (?, \'credit\', ?, ?, ?, ?, \'UPI\')',
                           (dest['id'], inr_amount, f"UPI from {user['name']}", f"{ref}CR", dest_bal_after, "UPI"))
         else:
             # External UPI Payment: Deduct from System Liquidity
-            db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "System Liquidity"', (inr_amount,))
+            db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = \'System Liquidity\'', (inr_amount,))
         
         db.commit()
         return jsonify({'success': True, 'message': 'Payment successful', 'reference': ref})
@@ -670,7 +670,7 @@ def apply_loan():
     try:
         db.execute('INSERT INTO loans (user_id, loan_type, loan_amount, tenure_months, interest_rate, status, target_account_id, outstanding_amount) VALUES (?, ?, ?, ?, ?, \'pending\', ?, ?)',
                   (user_id, loan_type, amount, tenure, 5.0, target_account_id, amount))
-        db.execute('INSERT INTO service_applications (user_id, service_type, product_name, amount, tenure, status, account_id) VALUES (?, "Loan", ?, ?, ?, \'pending\', ?)',
+        db.execute('INSERT INTO service_applications (user_id, service_type, product_name, amount, tenure, status, account_id) VALUES (?, \'Loan\', ?, ?, ?, \'pending\', ?)',
                   (user_id, loan_type, amount, tenure, target_account_id))
         db.commit()
         user = db.execute('SELECT email, name FROM users WHERE id = ?', (user_id,)).fetchone()
@@ -702,13 +702,13 @@ def repay_loan():
             db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (acc_bal, account_id))
         
         new_outstanding = outstanding - amount
-        db.execute('UPDATE system_finances SET balance = balance + ? WHERE fund_name = "Loan Liquidity Fund"', (amount,))
+        db.execute('UPDATE system_finances SET balance = balance + ? WHERE fund_name = \'Loan Liquidity Fund\'', (amount,))
         db.execute('UPDATE loans SET outstanding_amount = ? WHERE id = ?', (new_outstanding, loan_id))
         if new_outstanding <= 0: db.execute('UPDATE loans SET status = \'closed\' WHERE id = ?', (loan_id,))
         
         ref = f"LRP{secrets.token_hex(4).upper()}"
         if mode == 'account' and acc_bal is not None:
-             db.execute('INSERT INTO transactions (account_id, type, amount, description, reference_number, balance_after, mode) VALUES (?, "debit", ?, ?, ?, ?, ?)',
+             db.execute('INSERT INTO transactions (account_id, type, amount, description, reference_number, balance_after, mode) VALUES (?, \'debit\', ?, ?, ?, ?, ?)',
                        (account_id, amount, f"Repayment for Loan #{loan_id}", ref, acc_bal, f"Loan Repay ({mode.upper()})"))
         db.commit()
         user = db.execute('SELECT email, name FROM users WHERE id = ?', (user_id,)).fetchone()
@@ -909,7 +909,7 @@ def request_card():
                   (user_id, acc_id, c_type, lim))
         
         # Also track as a general service application for unified staff view
-        db.execute('INSERT INTO service_applications (user_id, account_id, service_type, product_name, amount, status) VALUES (?, ?, "Card", ?, ?, \'pending\')',
+        db.execute('INSERT INTO service_applications (user_id, account_id, service_type, product_name, amount, status) VALUES (?, ?, \'Card\', ?, ?, \'pending\')',
                    (user_id, acc_id, c_type, lim))
         
         db.commit()
@@ -1226,7 +1226,7 @@ def break_savings_goal(g_id):
         amount = float(goal['current_amount'])
         if amount <= 0:
             # Just mark as broken, no funds to return
-            db.execute('UPDATE savings_goals SET status = "broken" WHERE id = ?', (g_id,))
+            db.execute('UPDATE savings_goals SET status = \'broken\' WHERE id = ?', (g_id,))
             db.commit()
             return jsonify({'success': True, 'message': 'Pocket closed (no funds to return)'})
         
@@ -1248,7 +1248,7 @@ def break_savings_goal(g_id):
         ''', (primary_acc['id'], amount, f'Pocket "{goal["name"]}" broken - funds returned', ref, new_balance))
         
         # Mark goal as broken
-        db.execute('UPDATE savings_goals SET status = "broken", current_amount = 0 WHERE id = ?', (g_id,))
+        db.execute('UPDATE savings_goals SET status = \'broken\', current_amount = 0 WHERE id = ?', (g_id,))
         
         # Log activity
         db.execute('INSERT INTO user_activity_logs (user_id, action, details, ip_address) VALUES (?, ?, ?, ?)',

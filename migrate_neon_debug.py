@@ -90,3 +90,18 @@ with app.app_context():
                 print(f"SUCCESS added {col}")
             except Exception as e2:
                 print(f"FAILED adding {col}: {e2}")
+
+    try:
+        fund_exists = db.execute("SELECT 1 FROM system_finances WHERE fund_name = 'Loan Liquidity Fund'").fetchone()
+        if not fund_exists:
+            print("Seeding system_finances with default Loan Liquidity Fund")
+            db.execute("INSERT INTO system_finances (fund_name, balance) VALUES (?, ?)", ("Loan Liquidity Fund", 1000000.00))
+            
+        main_bank_exists = db.execute("SELECT 1 FROM system_finances WHERE fund_name = 'System Liquidity'").fetchone()
+        if not main_bank_exists:
+            print("Seeding system_finances with System Liquidity")
+            db.execute("INSERT INTO system_finances (fund_name, balance) VALUES (?, ?)", ("System Liquidity", 50000000.00))
+            
+        db.commit()
+    except Exception as e:
+        print(f"Failed to seed system_finances: {e}")

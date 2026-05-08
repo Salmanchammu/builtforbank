@@ -521,6 +521,7 @@ def migrate_db():
         ('users', 'signup_lng', 'DECIMAL(10, 7)'),
         ('users', 'signup_city', 'VARCHAR(100)'),
         ('users', 'signup_country', 'VARCHAR(100)'),
+        ('users', 'signup_address', 'TEXT'),
         ('account_requests', 'aadhaar_proof', 'TEXT'),
         ('account_requests', 'pan_proof', 'TEXT'),
         ('account_requests', 'kyc_photo', 'TEXT'),

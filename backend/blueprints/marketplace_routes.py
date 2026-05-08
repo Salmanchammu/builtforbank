@@ -7,6 +7,7 @@ import secrets
 import random
 from functools import wraps
 from core.email_utils import send_email_async
+from core.utils import to_json_serializable
 
 marketplace_bp = Blueprint('marketplace', __name__)
 logger = logging.getLogger('smart_bank.marketplace')
@@ -64,7 +65,7 @@ def my_listings():
         FROM crop_listings cl JOIN accounts a ON cl.farmer_account_id = a.id
         WHERE cl.farmer_user_id = ? ORDER BY cl.created_at DESC''',
         (session['user_id'],)).fetchall()
-    return jsonify({'success': True, 'listings': [dict(r) for r in rows]})
+    return jsonify(to_json_serializable({'success': True, 'listings': [dict(r) for r in rows]}))
 
 @marketplace_bp.route('/listings/<int:lid>', methods=['PUT'])
 @role_required('user')
@@ -93,7 +94,7 @@ def update_listing(lid):
 @role_required('user')
 def delete_listing(lid):
     db = get_db()
-    db.execute('UPDATE crop_listings SET status = "expired" WHERE id = ? AND farmer_user_id = ?',
+    db.execute('UPDATE crop_listings SET status = \'expired\' WHERE id = ? AND farmer_user_id = ?',
                (lid, session['user_id']))
     db.commit()
     return jsonify({'success': True, 'message': 'Listing removed'})
@@ -194,7 +195,7 @@ def farmer_escrow():
         JOIN agri_buyers ab ON co.buyer_id = ab.id
         WHERE co.farmer_user_id = ?
         ORDER BY et.created_at DESC''', (session['user_id'],)).fetchall()
-    return jsonify({'success': True, 'escrow': [dict(r) for r in rows]})
+    return jsonify(to_json_serializable({'success': True, 'escrow': [dict(r) for r in rows]}))
 
 @marketplace_bp.route('/tax-records', methods=['GET'])
 @role_required('user')
@@ -208,7 +209,7 @@ def tax_records():
         ORDER BY co.updated_at DESC''', (uid,)).fetchall()
     total_revenue = sum(float(o['farmer_credit'] or 0) for o in completed)
     total_commission = sum(float(o['commission_amount'] or 0) for o in completed)
-    return jsonify({
+    return jsonify(to_json_serializable({
         'success': True,
         'summary': {
             'total_sales': len(completed),
@@ -217,7 +218,7 @@ def tax_records():
             'gross_sales': round(total_revenue + total_commission, 2)
         },
         'records': [dict(r) for r in completed]
-    })
+    }))
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # BUYER — Browse & Order
@@ -261,7 +262,7 @@ def get_listing(lid):
         WHERE cl.id = ?''', (lid,)).fetchone()
     if not row:
         return jsonify({'error': 'Listing not found'}), 404
-    return jsonify({'success': True, 'listing': dict(row)})
+    return jsonify(to_json_serializable({'success': True, 'listing': dict(row)}))
 
 @marketplace_bp.route('/orders', methods=['POST'])
 @_buyer_required
@@ -484,7 +485,7 @@ def buyer_dashboard():
         user = db.execute('SELECT id FROM users WHERE username = ?', (buyer['buyer_id'],)).fetchone()
         if user:
             # First, check if a Business account was approved but not yet linked
-            acc = db.execute('SELECT id, account_number, balance FROM accounts WHERE user_id = ? AND account_type = "Current" AND status = \'active\'', (user['id'],)).fetchone()
+            acc = db.execute('SELECT id, account_number, balance FROM accounts WHERE user_id = ? AND account_type = \'Current\' AND status = \'active\'', (user['id'],)).fetchone()
             if acc:
                 # Auto-link the account
                 db.execute('UPDATE agri_buyers SET associated_account_id = ? WHERE id = ?', (acc['id'], bid))
@@ -502,11 +503,11 @@ def buyer_dashboard():
                 if pending:
                     wallet['status'] = 'pending_approval'
 
-    return jsonify({'success': True, 'stats': {
+    return jsonify(to_json_serializable({'success': True, 'stats': {
         'total_orders': total_orders, 'active_orders': active,
         'completed_orders': completed, 'total_spent': round(float(total_spent), 2),
         'available_listings': listings_count
-    }, 'wallet': wallet})
+    }, 'wallet': wallet}))
 
 
 
@@ -565,7 +566,7 @@ def buyer_request_wallet():
             f.write(base64.b64decode(kyc_video_b64.split(",")[1]))
 
         # Check for existing pending request
-        existing = db.execute('SELECT id FROM account_requests WHERE user_id = ? AND account_type = "Current" AND status = \'pending\'', (uid,)).fetchone()
+        existing = db.execute('SELECT id FROM account_requests WHERE user_id = ? AND account_type = \'Current\' AND status = \'pending\'', (uid,)).fetchone()
         if existing:
             return jsonify({'error': 'A request is already pending approval.'}), 400
             
@@ -603,7 +604,7 @@ def get_buyer_transactions():
     
     acc_id = buyer['associated_account_id']
     txns = db.execute('''SELECT * FROM transactions WHERE account_id = ? ORDER BY transaction_date DESC''', (acc_id,)).fetchall()
-    return jsonify({'success': True, 'transactions': [dict(t) for t in txns]})
+    return jsonify(to_json_serializable({'success': True, 'transactions': [dict(t) for t in txns]}))
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STAFF / ADMIN — Marketplace Management
@@ -619,7 +620,7 @@ def staff_all_orders():
         JOIN users u ON co.farmer_user_id = u.id
         JOIN agri_buyers ab ON co.buyer_id = ab.id
         ORDER BY co.created_at DESC''').fetchall()
-    return jsonify({'success': True, 'orders': [dict(r) for r in rows]})
+    return jsonify(to_json_serializable({'success': True, 'orders': [dict(r) for r in rows]}))
 
 @marketplace_bp.route('/escrow/pending', methods=['GET'])
 @role_required(['staff', 'admin'])
@@ -641,7 +642,7 @@ def staff_escrow_pending():
         WHERE co.status IN ('escrow_held', 'delivered', 'inspected')
         ORDER BY co.created_at ASC''').fetchall()
         
-    return jsonify({
+    return jsonify(to_json_serializable({
         'success': True, 
         'stats': {
             'pending_amount': round(float(pending_amount), 2),
@@ -649,7 +650,7 @@ def staff_escrow_pending():
             'completed_orders': completed_orders
         },
         'orders': [dict(r) for r in rows]
-    })
+    }))
 
 @marketplace_bp.route('/staff/orders/<int:oid>/release-escrow', methods=['PUT'])
 @role_required(['staff', 'admin'])
@@ -766,12 +767,12 @@ def escrow_report():
     released = db.execute("SELECT COALESCE(SUM(amount),0) FROM escrow_transactions WHERE type = 'release'").fetchone()[0]
     commission = db.execute("SELECT COALESCE(SUM(amount),0) FROM escrow_transactions WHERE type = 'commission'").fetchone()[0]
     refunded = db.execute("SELECT COALESCE(SUM(amount),0) FROM escrow_transactions WHERE type = 'refund'").fetchone()[0]
-    return jsonify({'success': True, 'report': {
+    return jsonify(to_json_serializable({'success': True, 'report': {
         'currently_held': round(float(held), 2),
         'total_released': round(float(released), 2),
         'total_commission': round(float(commission), 2),
         'total_refunded': round(float(refunded), 2)
-    }})
+    }}))
 
 @marketplace_bp.route('/staff/listings', methods=['GET'])
 @role_required(['staff', 'admin'])
@@ -780,7 +781,7 @@ def staff_all_listings():
     rows = db.execute('''SELECT cl.*, u.name as farmer_name
         FROM crop_listings cl JOIN users u ON cl.farmer_user_id = u.id
         ORDER BY cl.created_at DESC''').fetchall()
-    return jsonify({'success': True, 'listings': [dict(r) for r in rows]})
+    return jsonify(to_json_serializable({'success': True, 'listings': [dict(r) for r in rows]}))
 
 def _provision_buyer_account(buyer_id, buyer_name, buyer_email, buyer_password):
     """
@@ -800,7 +801,7 @@ def _provision_buyer_account(buyer_id, buyer_name, buyer_email, buyer_password):
         user_id = user['id']
     
     # 2. Check if already has a business account
-    acc = db.execute('SELECT id FROM accounts WHERE user_id = ? AND account_type = "Business"', (user_id,)).fetchone()
+    acc = db.execute('SELECT id FROM accounts WHERE user_id = ? AND account_type = \'Business\'', (user_id,)).fetchone()
     if acc:
         return acc['id']
     

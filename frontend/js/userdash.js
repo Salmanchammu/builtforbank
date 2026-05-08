@@ -4680,6 +4680,22 @@ let _locatorLocations = [];
 let _locatorFilter = 'all';
 let _locatorInitialized = false;
 
+// 10 hardcoded ATM locations around Nagpur — always displayed
+const _hardcodedATMs = [
+    { id: 'atm_hc_1',  type: 'atm', name: 'SmartBank ATM - Dharampeth',       lat: 21.1485, lng: 79.0780, address: 'Dharampeth Main Road, Nagpur',           city: 'Nagpur' },
+    { id: 'atm_hc_2',  type: 'atm', name: 'SmartBank ATM - Sitabuldi',        lat: 21.1430, lng: 79.0830, address: 'Sitabuldi Square, Nagpur',                city: 'Nagpur' },
+    { id: 'atm_hc_3',  type: 'atm', name: 'SmartBank ATM - Sadar',            lat: 21.1510, lng: 79.0930, address: 'Sadar Bazaar, Nagpur',                    city: 'Nagpur' },
+    { id: 'atm_hc_4',  type: 'atm', name: 'SmartBank ATM - Manewada',         lat: 21.1160, lng: 79.0650, address: 'Manewada Ring Road, Nagpur',              city: 'Nagpur' },
+    { id: 'atm_hc_5',  type: 'atm', name: 'SmartBank ATM - Hingna Road',      lat: 21.1250, lng: 79.0400, address: 'Hingna MIDC Road, Nagpur',               city: 'Nagpur' },
+    { id: 'atm_hc_6',  type: 'atm', name: 'SmartBank ATM - Wardhaman Nagar',  lat: 21.1580, lng: 79.1100, address: 'Wardhaman Nagar Main Rd, Nagpur',        city: 'Nagpur' },
+    { id: 'atm_hc_7',  type: 'atm', name: 'SmartBank ATM - Ramdaspeth',       lat: 21.1390, lng: 79.0760, address: 'Ramdaspeth Circle, Nagpur',              city: 'Nagpur' },
+    { id: 'atm_hc_8',  type: 'atm', name: 'SmartBank ATM - Pratap Nagar',     lat: 21.1320, lng: 79.0530, address: 'Pratap Nagar Square, Nagpur',            city: 'Nagpur' },
+    { id: 'atm_hc_9',  type: 'atm', name: 'SmartBank ATM - Gandhibagh',       lat: 21.1550, lng: 79.0980, address: 'Gandhibagh Market, Nagpur',              city: 'Nagpur' },
+    { id: 'atm_hc_10', type: 'atm', name: 'SmartBank ATM - Laxmi Nagar',      lat: 21.1350, lng: 79.1050, address: 'Laxmi Nagar Main Road, Nagpur',          city: 'Nagpur' }
+];
+
+
+
 function initUserLocator() {
     if (_locatorInitialized && _locatorMap) {
         // Map already exists — just resize and refetch
@@ -4764,19 +4780,25 @@ function initUserLocator() {
 }
 
 async function fetchLocations() {
+    let apiLocations = [];
     try {
         const res = await fetch(`${API}/user/locations`, { credentials: 'include' });
         if (res.ok) {
-            _locatorLocations = await res.json();
-            renderLocatorMarkers();
+            apiLocations = await res.json();
         } else {
             console.error('Failed to fetch locations:', res.status);
-            updateLocCountBadge(0);
         }
     } catch (e) {
         console.error('Error fetching locations:', e);
-        updateLocCountBadge(0);
     }
+    // Merge API locations with hardcoded ATMs (avoid duplicates by id)
+    const existingIds = new Set(apiLocations.map(l => String(l.id)));
+    const merged = [...apiLocations];
+    _hardcodedATMs.forEach(atm => {
+        if (!existingIds.has(String(atm.id))) merged.push(atm);
+    });
+    _locatorLocations = merged;
+    renderLocatorMarkers();
 }
 
 function renderLocatorMarkers() {
@@ -4792,16 +4814,37 @@ function renderLocatorMarkers() {
 
     if (!_locatorMap || !filtered.length) return;
 
+    // ── De-collision: offset markers that are too close to each other ──
+    const PROXIMITY_THRESHOLD = 0.0005; // ~55 meters
+    const OFFSET_DISTANCE = 0.0003;     // ~33 meters offset
+    const positioned = filtered.map(loc => ({ ...loc, displayLat: loc.lat, displayLng: loc.lng }));
+    for (let i = 0; i < positioned.length; i++) {
+        let collisionIndex = 0;
+        for (let j = 0; j < i; j++) {
+            const dLat = Math.abs(positioned[i].lat - positioned[j].lat);
+            const dLng = Math.abs(positioned[i].lng - positioned[j].lng);
+            if (dLat < PROXIMITY_THRESHOLD && dLng < PROXIMITY_THRESHOLD) {
+                collisionIndex++;
+            }
+        }
+        if (collisionIndex > 0) {
+            // Spread colliding markers in a circle around the original point
+            const angle = (collisionIndex * 2 * Math.PI) / 6; // Up to 6 evenly spaced slots
+            positioned[i].displayLat = positioned[i].lat + OFFSET_DISTANCE * Math.cos(angle);
+            positioned[i].displayLng = positioned[i].lng + OFFSET_DISTANCE * Math.sin(angle);
+        }
+    }
+
     const bounds = new maplibregl.LngLatBounds();
 
-    filtered.forEach(loc => {
+    positioned.forEach(loc => {
         const isBranch = (loc.type || '').toLowerCase() === 'branch';
         const color = isBranch ? '#800000' : '#2563eb';
         const icon = isBranch ? 'fa-university' : 'fa-credit-card';
         const label = isBranch ? 'Branch' : 'ATM';
         const locId = `loc_${loc.id || Math.random().toString(36).slice(2)}`;
 
-        // Custom marker element
+        // Custom marker element — NO transform on hover to prevent position shift
         const el = document.createElement('div');
         el.className = 'loc-marker';
         el.style.cssText = `
@@ -4809,11 +4852,11 @@ function renderLocatorMarkers() {
             background: ${color}; border: 3px solid white;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-            cursor: pointer; transition: transform 0.2s ease;
+            cursor: pointer; transition: box-shadow 0.2s ease, border-color 0.2s ease;
         `;
         el.innerHTML = `<i class="fas ${icon}" style="color:white; font-size:16px;"></i>`;
-        el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.2)'; });
-        el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
+        el.addEventListener('mouseenter', () => { el.style.boxShadow = '0 0 0 4px rgba(128,0,0,0.3), 0 4px 14px rgba(0,0,0,0.3)'; });
+        el.addEventListener('mouseleave', () => { el.style.boxShadow = '0 4px 14px rgba(0,0,0,0.3)'; });
 
         // Popup with travel distance panel
         const popup = new maplibregl.Popup({ offset: 30, closeButton: true, maxWidth: '320px' })
@@ -4881,19 +4924,19 @@ function renderLocatorMarkers() {
             calculateTravelDistances(loc.lat, loc.lng, locId);
         });
 
-        const marker = new maplibregl.Marker({ element: el })
-            .setLngLat([loc.lng, loc.lat])
+        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+            .setLngLat([loc.displayLng, loc.displayLat])
             .setPopup(popup)
             .addTo(_locatorMap);
 
         _locatorMarkers.push(marker);
-        bounds.extend([loc.lng, loc.lat]);
+        bounds.extend([loc.displayLng, loc.displayLat]);
     });
 
     // Fly to fit bounds
-    if (filtered.length === 1) {
-        _locatorMap.flyTo({ center: [filtered[0].lng, filtered[0].lat], zoom: 14, pitch: 50, bearing: 0, duration: 1500 });
-    } else if (filtered.length > 1) {
+    if (positioned.length === 1) {
+        _locatorMap.flyTo({ center: [positioned[0].displayLng, positioned[0].displayLat], zoom: 14, pitch: 50, bearing: 0, duration: 1500 });
+    } else if (positioned.length > 1) {
         _locatorMap.fitBounds(bounds, { padding: 80, maxZoom: 14, duration: 1500, pitch: 45, bearing: -15 });
     }
 }
@@ -5146,25 +5189,6 @@ async function renderSettingsPage() {
     const container = $id('settingsContent');
     if (!container) return;
 
-    // Check passcode status
-    if (_desktopPasscodeEnabled === null) {
-        await checkDesktopPasscodeStatus();
-    }
-
-    const pinStatusText = _desktopPasscodeEnabled
-        ? '<span style="color:#10b981;font-weight:700;"><i class="fas fa-check-circle"></i> Active</span>'
-        : '<span style="color:#f59e0b;font-weight:700;"><i class="fas fa-exclamation-circle"></i> Not Set</span>';
-
-    const pinActionHtml = _desktopPasscodeEnabled
-        ? `<div style="display:flex;gap:12px;flex-wrap:wrap;">
-               <button class="btn btn-primary btn-sm" onclick="showDesktopChangePinForm()" style="background: #b45309;">
-                   <i class="fas fa-exchange-alt"></i> Change Balance PIN
-               </button>
-           </div>`
-        : `<button class="btn btn-primary btn-sm" onclick="toggleBalanceVisibility()" style="background: #10b981;">
-               <i class="fas fa-plus-circle"></i> Set Up Balance PIN
-           </button>`;
-
     container.innerHTML = `
         <div style="padding: 24px;">
             <!-- User Info Card -->
@@ -5178,57 +5202,6 @@ async function renderSettingsPage() {
                 </div>
             </div>
 
-            <!-- Security Section -->
-            <div style="margin-bottom:24px;">
-                <h4 style="font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:16px;">
-                    <i class="fas fa-shield-alt" style="margin-right:8px;color:#3b82f6;"></i>Security
-                </h4>
-
-                <!-- Balance PIN Card -->
-                <div style="background:white;border:1px solid var(--border-color);border-radius:14px;padding:20px;margin-bottom:12px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                        <div>
-                            <div style="font-weight:700;font-size:15px;color:var(--text-primary);margin-bottom:4px;">
-                                <i class="fas fa-lock" style="margin-right:8px;color:#6366f1;"></i>Balance PIN
-                            </div>
-                            <div style="font-size:12px;color:var(--text-secondary);">4-digit PIN required to view your account balance</div>
-                        </div>
-                        <div>${pinStatusText}</div>
-                    </div>
-                    ${pinActionHtml}
-
-                    <!-- Change PIN Form (hidden by default) -->
-                    <div id="desktopChangePinForm" style="display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--border-color);">
-                        <h5 style="margin:0 0 16px;font-size:14px;font-weight:700;color:var(--text-primary);">Change Balance PIN</h5>
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:500px;">
-                            <div class="form-group" style="margin:0;">
-                                <label class="form-label" style="font-size:12px;">Current PIN</label>
-                                <input type="password" id="deskChangePinCurrent" class="form-input" maxlength="4" placeholder="••••"
-                                    style="text-align:center;letter-spacing:8px;font-size:18px;" inputmode="numeric">
-                            </div>
-                            <div class="form-group" style="margin:0;">
-                                <label class="form-label" style="font-size:12px;">New PIN</label>
-                                <input type="password" id="deskChangePinNew" class="form-input" maxlength="4" placeholder="••••"
-                                    style="text-align:center;letter-spacing:8px;font-size:18px;" inputmode="numeric">
-                            </div>
-                            <div class="form-group" style="margin:0;">
-                                <label class="form-label" style="font-size:12px;">Confirm</label>
-                                <input type="password" id="deskChangePinConfirm" class="form-input" maxlength="4" placeholder="••••"
-                                    style="text-align:center;letter-spacing:8px;font-size:18px;" inputmode="numeric">
-                            </div>
-                        </div>
-                        <p id="deskChangePinError" style="color:#ef4444;font-size:13px;font-weight:600;margin:8px 0;display:none;"></p>
-                        <div style="display:flex;gap:10px;margin-top:14px;">
-                            <button id="deskChangePinSubmitBtn" class="btn btn-primary btn-sm" onclick="submitDesktopChangePin()" style="background:#b45309;">
-                                <i class="fas fa-check"></i> Update PIN
-                            </button>
-                            <button class="btn btn-cancel btn-sm" onclick="hideDesktopChangePinForm()">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Face Auth Card -->
             <div style="background:white;border:1px solid var(--border-color);border-radius:14px;padding:20px;margin-bottom:24px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div>

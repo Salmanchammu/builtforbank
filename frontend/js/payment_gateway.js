@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const API = '/api';
-    
+
     // Elements
     const cardInput = document.getElementById('cardNumber');
     const expiryInput = document.getElementById('cardExpiry');
@@ -9,35 +9,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('checkoutForm');
     const payBtn = document.getElementById('payBtn');
     const errorMsg = document.getElementById('errorMsg');
-    
+
     const amountDisplays = [
         document.getElementById('orderAmountItem'),
         document.getElementById('orderAmountTotal'),
         document.getElementById('btnAmount')
     ];
     const merchantDisplay = document.getElementById('merchantName');
-    
+
     // Check URL parameters for dynamic merchant and amount
     const urlParams = new URLSearchParams(window.location.search);
-    let amount = parseFloat(urlParams.get('amount')) || 4999.00;
+    let amount = parseFloat(urlParams.get('amount')) || 499.00;
     let merchant = urlParams.get('merchant') || 'Premium Subscription';
-    
+
     // Also extract card if passed (for easy testing from dashboard)
     const passedCard = urlParams.get('card');
     if (passedCard) {
         cardInput.value = formatCardNumber(passedCard);
     }
-    
+
     // Update UI
     amountDisplays.forEach(el => el.textContent = amount.toFixed(2));
     merchantDisplay.textContent = merchant;
-    
+
     // Format Card Number (auto space every 4 digits)
     cardInput.addEventListener('input', (e) => {
         let val = e.target.value.replace(/\D/g, '');
         e.target.value = formatCardNumber(val);
     });
-    
+
     function formatCardNumber(val) {
         let parts = [];
         for (let i = 0; i < val.length; i += 4) {
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return parts.join(' ');
     }
-    
+
     // Format Expiry (MM/YY)
     expiryInput.addEventListener('input', (e) => {
         let val = e.target.value.replace(/\D/g, '');
@@ -54,30 +54,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         e.target.value = val;
     });
-    
+
     // Restrict CVV and PIN to numbers
     cvvInput.addEventListener('input', (e) => e.target.value = e.target.value.replace(/\D/g, ''));
     pinInput.addEventListener('input', (e) => e.target.value = e.target.value.replace(/\D/g, ''));
-    
+
     // Handle form submission (Step 1: Validate & Send OTP)
     let currentUserId = null;
     let paymentPayload = null;
-    
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         // Basic validation
         const cNum = cardInput.value.replace(/\s/g, '');
         if (cNum.length < 13 || cNum.length > 19) return showError('Invalid Card Number length');
         if (expiryInput.value.length !== 5) return showError('Invalid Expiry Date format (MM/YY)');
         if (cvvInput.value.length < 3) return showError('Invalid CVV');
         if (pinInput.value.length !== 4) return showError('PIN must be 4 digits');
-        
+
         errorMsg.style.display = 'none';
         const originalBtnHTML = payBtn.innerHTML;
         payBtn.disabled = true;
         payBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Securing Payment...';
-        
+
         try {
             paymentPayload = {
                 card_number: cNum,
@@ -87,15 +87,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 amount: amount,
                 merchant: merchant
             };
-            
+
             const response = await fetch(`${API}/user/checkout/send-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(paymentPayload)
             });
-            
+
             const data = await response.json();
-            
+
             if (response.ok) {
                 currentUserId = data.user_id;
                 document.getElementById('otpEmailDisplay').textContent = data.masked_email;
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('resendOtpBtn').style.display = 'none';
         document.getElementById('otpTimer').style.display = 'inline';
         clearInterval(otpInterval);
-        
+
         otpInterval = setInterval(() => {
             timeLeft--;
             document.getElementById('otpCountdown').textContent = timeLeft;
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
         let otpValue = '';
         otpInputs.forEach(input => otpValue += input.value);
-        
+
         const otpError = document.getElementById('otpError');
         otpError.style.display = 'none';
 
@@ -190,9 +190,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(verifyPayload)
             });
-            
+
             const data = await response.json();
-            
+
             if (response.ok) {
                 document.getElementById('otpOverlay').classList.remove('active');
                 document.getElementById('txnIdDisplay').textContent = 'Ref: ' + data.transaction_id;
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.innerHTML = originalHTML;
         }
     });
-    
+
     function showError(msg) {
         errorMsg.textContent = msg;
         errorMsg.style.display = 'block';

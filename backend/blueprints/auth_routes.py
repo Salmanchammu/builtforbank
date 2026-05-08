@@ -564,13 +564,13 @@ def forgot_password():
     
     db = get_db()
     # Find user in any table - get consistent names
-    user = db.execute('SELECT id, username, "user" as role FROM users WHERE email = ?', (email,)).fetchone()
+    user = db.execute('SELECT id, username, \'user\' as role FROM users WHERE email = ?', (email,)).fetchone()
     if not user:
         # staff uses staff_id as username
-        user = db.execute('SELECT id, staff_id as username, "staff" as role FROM staff WHERE email = ?', (email,)).fetchone()
+        user = db.execute('SELECT id, staff_id as username, \'staff\' as role FROM staff WHERE email = ?', (email,)).fetchone()
     if not user:
         # agri_buyers uses buyer_id as username
-        user = db.execute('SELECT id, buyer_id as username, "agri_buyer" as role FROM agri_buyers WHERE email = ?', (email,)).fetchone()
+        user = db.execute('SELECT id, buyer_id as username, \'agri_buyer\' as role FROM agri_buyers WHERE email = ?', (email,)).fetchone()
         
     if not user:
         return jsonify({'success': True, 'message': 'If an account is associated with this email, a reset link has been sent.'}), 200

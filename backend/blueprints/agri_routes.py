@@ -10,6 +10,7 @@ import random
 import secrets
 from werkzeug.security import generate_password_hash
 from core.auth import trigger_geo_lookup
+from core.utils import to_json_serializable
 from core.constants import PROFILE_PICS_FOLDER, allowed_file
 
 logger = logging.getLogger('smart_bank.agri')
@@ -124,12 +125,12 @@ def apply_loan():
         
         db.commit()
         
-        return jsonify({
+        return jsonify(to_json_serializable({
             'message': 'Analysis complete',
             'score': score,
             'recommendation': rec,
             'soil_moisture': final_moisture
-        })
+        }))
 
     except Exception as e:
         logger.error(f'/agri/apply Error: {traceback.format_exc()}')

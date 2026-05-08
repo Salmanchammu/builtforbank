@@ -72,7 +72,7 @@ def dashboard():
     now = datetime.now()
     this_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
     
-    main_bank_fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "System Liquidity"').fetchone()
+    main_bank_fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = \'System Liquidity\'').fetchone()
     
     total_customers = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
     stats = {
@@ -206,7 +206,7 @@ def staff_get_loans():
 @role_required(['staff', 'admin'])
 def staff_get_liquidity_fund():
     db = get_db()
-    fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "Loan Liquidity Fund"').fetchone()
+    fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = \'Loan Liquidity Fund\'').fetchone()
     balance = float(fund['balance']) if fund else 1000000.00
     active_count = db.execute('SELECT COUNT(*) FROM loans WHERE status = \'approved\'').fetchone()[0]
     paid_count = db.execute('SELECT COUNT(*) FROM loans WHERE status = \'closed\'').fetchone()[0]
@@ -255,7 +255,7 @@ def update_service_application(app_id):
                         ''', (target_acc['id'], app_data['amount'], f"Loan Disbursement: {app_data['product_name']} (#{loan['id']})", ref, new_balance))
                         
                         # Deduct from Liquidity Fund
-                        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "Loan Liquidity Fund"', (app_data['amount'],))
+                        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = \'Loan Liquidity Fund\'', (app_data['amount'],))
             
             elif app_data['service_type'] == 'Investment':
                 if 'Gold Loan' in app_data['product_name']:
@@ -272,7 +272,7 @@ def update_service_application(app_id):
                         ''', (target_acc['id'], app_data['amount'], f"Gold Loan Disbursement: {app_data['product_name']}", ref, new_balance))
                         
                         # Deduct from Liquidity Fund
-                        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "Loan Liquidity Fund"', (app_data['amount'],))
+                        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = \'Loan Liquidity Fund\'', (app_data['amount'],))
                 
                 # so approval doesn't need to move money unless specific logic is added later.
                 pass
@@ -414,8 +414,8 @@ def add_transaction():
         if not account: return jsonify({'error': 'Account not found'}), 404
         new_bal = account['balance'] + amount
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (new_bal, account['id']))
-        db.execute('UPDATE system_finances SET balance = balance + ? WHERE fund_name = "System Liquidity"', (amount,))
-        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, mode) VALUES (?, "credit", ?, ?, \'completed\', "Staff Deposit", "CASH")', (account['id'], amount, new_bal))
+        db.execute('UPDATE system_finances SET balance = balance + ? WHERE fund_name = \'System Liquidity\'', (amount,))
+        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, mode) VALUES (?, \'credit\', ?, ?, \'completed\', "Staff Deposit", "CASH")', (account['id'], amount, new_bal))
         db.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -434,8 +434,8 @@ def withdraw_transaction():
         if account['balance'] < amount: return jsonify({'error': 'Insufficient balance'}), 400
         new_bal = account['balance'] - amount
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (new_bal, account['id']))
-        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "System Liquidity"', (amount,))
-        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, mode) VALUES (?, "debit", ?, ?, \'completed\', "Staff Withdrawal", "CASH")', (account['id'], amount, new_bal))
+        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = \'System Liquidity\'', (amount,))
+        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, mode) VALUES (?, \'debit\', ?, ?, \'completed\', "Staff Withdrawal", "CASH")', (account['id'], amount, new_bal))
         db.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -462,8 +462,8 @@ def transfer_transaction():
         ref = f"TRF{secrets.token_hex(4).upper()}"
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (sender_bal, sender['id']))
         db.execute('UPDATE accounts SET balance = ? WHERE id = ?', (receiver_bal, receiver['id']))
-        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, reference_number, mode) VALUES (?, "debit", ?, ?, \'completed\', ?, ?, "Transfer")', (sender['id'], amount, sender_bal, f"Transfer to {receiver['account_number']}", ref))
-        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, reference_number, mode) VALUES (?, "credit", ?, ?, \'completed\', ?, ?, "Transfer")', (receiver['id'], amount, receiver_bal, f"Transfer from {sender['account_number']}", ref))
+        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, reference_number, mode) VALUES (?, \'debit\', ?, ?, \'completed\', ?, ?, "Transfer")', (sender['id'], amount, sender_bal, f"Transfer to {receiver['account_number']}", ref))
+        db.execute('INSERT INTO transactions (account_id, type, amount, balance_after, status, description, reference_number, mode) VALUES (?, \'credit\', ?, ?, \'completed\', ?, ?, "Transfer")', (receiver['id'], amount, receiver_bal, f"Transfer from {sender['account_number']}", ref))
         db.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -595,7 +595,7 @@ def clock_in():
     if existing: return jsonify({'error': 'Already clocked in today'}), 400
     
     try:
-        db.execute('INSERT INTO attendance (staff_id, date, clock_in, status) VALUES (?, ?, ?, "present")',
+        db.execute('INSERT INTO attendance (staff_id, date, clock_in, status) VALUES (?, ?, ?, \'present\')',
                   (staff_id, today, now.isoformat()))
         db.commit()
         return jsonify({'success': True, 'message': 'Clocked in successfully'})
@@ -798,7 +798,7 @@ def update_agri_proof(user_id):
     db = get_db()
     
     # Try to find an existing Agriculture account request for this user
-    req = db.execute('SELECT id FROM account_requests WHERE user_id = ? AND account_type = "Agriculture" ORDER BY request_date DESC LIMIT 1', (user_id,)).fetchone()
+    req = db.execute('SELECT id FROM account_requests WHERE user_id = ? AND account_type = \'Agriculture\' ORDER BY request_date DESC LIMIT 1', (user_id,)).fetchone()
     
     try:
         if req:
@@ -806,7 +806,7 @@ def update_agri_proof(user_id):
         else:
             # If no request exists, we might just update the most recent one or create a dummy one
             # Alternatively, if they are a farmer, they should have an Agriculture request. Let's just create one if not found.
-            db.execute('INSERT INTO account_requests (user_id, account_type, status, agri_proof) VALUES (?, "Agriculture", \'pending\', ?)', (user_id, agri_proof))
+            db.execute('INSERT INTO account_requests (user_id, account_type, status, agri_proof) VALUES (?, \'Agriculture\', \'pending\', ?)', (user_id, agri_proof))
             
         # Log the action
         staff_id = session.get('staff_id') or session.get('admin_id')
@@ -982,7 +982,7 @@ def staff_ticket_reply(ticket_id):
         ''', (ticket_id, staff_id, session.get('role', 'staff'), message))
         
         # Update ticket status to 'replied' or similar
-        db.execute('UPDATE support_tickets SET status = "replied", resolved_by = ? WHERE id = ?', (staff_id, ticket_id))
+        db.execute('UPDATE support_tickets SET status = \'replied\', resolved_by = ? WHERE id = ?', (staff_id, ticket_id))
         
         # Notify the user
         notify_user(db, ticket['user_id'], "New Support Reply", f"You have a new message regarding ticket #{ticket_id}.", 'info')
@@ -998,7 +998,7 @@ def staff_ticket_reply(ticket_id):
 def get_staff_profile():
     db = get_db()
     staff_id = session.get('staff_id')
-    staff = db.execute('SELECT id, staff_id, name, email, phone, department, position, status, profile_image, aadhaar_number, pan_number, "staff" as role FROM staff WHERE id = ?', (staff_id,)).fetchone()
+    staff = db.execute('SELECT id, staff_id, name, email, phone, department, position, status, profile_image, aadhaar_number, pan_number, \'staff\' as role FROM staff WHERE id = ?', (staff_id,)).fetchone()
     if not staff: return jsonify({'error': 'Staff not found'}), 404
     
     staff_dict = dict(staff)

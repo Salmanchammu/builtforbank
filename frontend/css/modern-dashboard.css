@@ -2938,11 +2938,11 @@ h1, h2, h3, h4, h5, h6, .logo-text, .welcome-name {
 
 .btn-primary {
 
-    background: linear-gradient(135deg, var(--primary-blue) 0%, #1d4ed8 100%);
+    background: linear-gradient(135deg, #800000 0%, #a52525 100%);
 
     color: white;
 
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 4px 12px rgba(128, 0, 0, 0.25);
 
     border: none;
 
@@ -2954,7 +2954,7 @@ h1, h2, h3, h4, h5, h6, .logo-text, .welcome-name {
 
     transform: translateY(-2px);
 
-    box-shadow: 0 8px 16px rgba(59, 130, 246, 0.35);
+    box-shadow: 0 8px 16px rgba(128, 0, 0, 0.35);
 
 }
 

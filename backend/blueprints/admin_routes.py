@@ -26,10 +26,10 @@ def admin_dashboard():
     total_users = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
     total_deposits = db.execute('SELECT SUM(balance) FROM accounts WHERE status = \'active\'').fetchone()[0] or 0
     active_staff = db.execute('SELECT COUNT(*) FROM staff WHERE status = \'active\'').fetchone()[0]
-    liquidity_fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "Loan Liquidity Fund"').fetchone()
+    liquidity_fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = \'Loan Liquidity Fund\'').fetchone()
     liquidity_balance = float(liquidity_fund['balance']) if liquidity_fund else 1000000.00
     
-    main_bank_fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "System Liquidity"').fetchone()
+    main_bank_fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = \'System Liquidity\'').fetchone()
     main_bank_liquidity = float(main_bank_fund['balance']) if main_bank_fund else 50000000.00
     
     today_trans = db.execute("SELECT COUNT(*) FROM transactions WHERE CAST(transaction_date AS DATE) = CURRENT_DATE").fetchone()[0]
@@ -268,7 +268,7 @@ def delete_account(account_id):
 @role_required(['admin', 'staff'])
 def get_liquidity_fund():
     db = get_db()
-    fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = "Loan Liquidity Fund"').fetchone()
+    fund = db.execute('SELECT balance FROM system_finances WHERE fund_name = \'Loan Liquidity Fund\'').fetchone()
     balance = float(fund['balance']) if fund else 1000000.00
     active_loans = db.execute('SELECT COUNT(*) FROM loans WHERE status = \'approved\'').fetchone()[0]
     return jsonify({'success': True, 'fund_balance': balance, 'active_count': active_loans})
@@ -320,7 +320,7 @@ def get_attendance_tracking():
         ORDER BY a.date DESC, a.clock_in DESC
     ''').fetchall()
     stats = {
-        'today_present': db.execute('SELECT COUNT(*) FROM attendance WHERE date = date("now")').fetchone()[0],
+        'today_present': db.execute('SELECT COUNT(*) FROM attendance WHERE date = date(\'now\')').fetchone()[0],
         'total_staff': db.execute('SELECT COUNT(*) FROM staff').fetchone()[0],
         'avg_hours': db.execute('SELECT AVG(total_hours) FROM attendance WHERE total_hours IS NOT NULL').fetchone()[0] or 0
     }
@@ -350,7 +350,7 @@ def pay_salary():
     try:
         staff = db.execute('SELECT * FROM staff WHERE id = ?', (staff_id,)).fetchone()
         if not staff: return jsonify({'error': 'Staff not found'}), 404
-        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = "Operating Fund"', (amount,))
+        db.execute('UPDATE system_finances SET balance = balance - ? WHERE fund_name = \'Operating Fund\'', (amount,))
         db.commit()
         log_audit(session.get('admin_id'), 'admin', 'salary_paid', f"Paid ₹{amount} to {staff['name']}")
         return jsonify({'success': True, 'message': f'Salary of ₹{amount} paid to {staff["name"]}'})

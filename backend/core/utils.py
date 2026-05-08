@@ -23,16 +23,16 @@ def validate_phone(phone):
     pattern = r'^\+?\d{10,15}$'
     return re.match(pattern, clean_phone) is not None
 
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
 
 def to_json_serializable(data):
-    """Recursively convert datetime and decimal objects to strings for JSON serialization."""
+    """Recursively convert datetime, date, and decimal objects to strings for JSON serialization."""
     if isinstance(data, list):
         return [to_json_serializable(item) for item in data]
     if isinstance(data, dict):
         return {k: to_json_serializable(v) for k, v in data.items()}
-    if isinstance(data, (datetime,)):
+    if isinstance(data, (datetime, date)):
         return data.isoformat()
     if isinstance(data, Decimal):
         return float(data)

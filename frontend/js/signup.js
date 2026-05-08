@@ -4,6 +4,83 @@ const API_URL = window.SMART_BANK_API_BASE;
 // Toggle password visibility is handled in auth-helper.js
 // showToast is also handled in auth-helper.js
 
+// ─── Location Permission Handler ─────────────────────────────────────────
+let _signupLocationGranted = false;
+
+function requestLocationPermission() {
+    const statusBox = document.getElementById('locationStatus');
+    const locIcon = document.getElementById('locIcon');
+    const locTitle = document.getElementById('locTitle');
+    const locDetail = document.getElementById('locDetail');
+    const btn = document.getElementById('enableLocationBtn');
+
+    if (!navigator.geolocation) {
+        locTitle.textContent = 'Not Supported';
+        locDetail.textContent = 'Your browser does not support geolocation';
+        return;
+    }
+
+    // Show loading state
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detecting...';
+    btn.disabled = true;
+    locTitle.textContent = 'Detecting location...';
+    locDetail.textContent = 'Please allow location access when prompted';
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            document.getElementById('userLat').value = lat;
+            document.getElementById('userLng').value = lng;
+
+            // Reverse geocode to show address
+            let address = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
+                    headers: { 'Accept-Language': 'en' }
+                });
+                const data = await res.json();
+                if (data && data.display_name) {
+                    // Build a clean short address
+                    const a = data.address || {};
+                    const parts = [a.suburb || a.neighbourhood || a.village || '', a.city || a.town || a.state_district || '', a.state || ''].filter(Boolean);
+                    address = parts.join(', ') || data.display_name.substring(0, 80);
+                }
+            } catch(e) {
+                console.warn('Reverse geocode failed:', e);
+            }
+
+            document.getElementById('userLocationAddress').value = address;
+            _signupLocationGranted = true;
+
+            // Success UI
+            statusBox.style.background = 'rgba(16,185,129,0.08)';
+            statusBox.style.border = '1.5px solid #6ee7b7';
+            locIcon.className = 'fas fa-check-circle';
+            locIcon.style.color = '#10b981';
+            locTitle.textContent = 'Location Verified';
+            locTitle.style.color = '#059669';
+            locDetail.textContent = address;
+            locDetail.style.color = '#475569';
+            btn.innerHTML = '<i class="fas fa-check"></i> Enabled';
+            btn.style.background = 'linear-gradient(135deg,#059669,#10b981)';
+            btn.disabled = true;
+        },
+        (err) => {
+            btn.innerHTML = '<i class="fas fa-crosshairs"></i> Retry';
+            btn.disabled = false;
+            locTitle.textContent = 'Location Denied';
+            locTitle.style.color = '#dc2626';
+            if (err.code === 1) {
+                locDetail.textContent = 'Please allow location access in browser settings and retry';
+            } else {
+                locDetail.textContent = 'Unable to detect location. Please try again.';
+            }
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+}
+
 // Handle form submission
 async function handleSignup(e) {
     if (e) e.preventDefault();
@@ -26,11 +103,18 @@ async function handleSignup(e) {
     if (password !== confirmPassword) return showToast('Passwords do not match', 'error');
     if (!agreeTerms) return showToast('Please agree to terms and conditions', 'error');
 
+    // Location validation — mandatory
+    if (!_signupLocationGranted) {
+        return showToast('Please enable location sharing to create your account', 'error');
+    }
 
+    const userLat = document.getElementById('userLat').value;
+    const userLng = document.getElementById('userLng').value;
+    const userAddress = document.getElementById('userLocationAddress').value;
 
     // Prepare data
     const device_type = window.SmartBankDeviceDetector ? window.SmartBankDeviceDetector.getDeviceType() : 'unknown';
-    const userData = { username, email, password, name, device_type };
+    const userData = { username, email, password, name, device_type, latitude: userLat, longitude: userLng, location_address: userAddress };
 
     // Show loading state
     const originalText = btn.innerHTML;
