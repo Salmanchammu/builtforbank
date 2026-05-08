@@ -140,7 +140,7 @@ class FaceAuthManager {
 
                 <div class="face-auth-actions" style="${isAttendance ? 'margin-top: 10px;' : ''}">
                     <button class="btn-face-cancel" onclick="faceAuthManager.closeModal()" style="${isAttendance ? 'padding: 10px; font-size: 12px;' : ''}">
-                        <i class="fas fa-shield-slash"></i> ABORT
+                        <i class="fas fa-shield-slash"></i> CANCEL
                     </button>
                 </div>
             </div>

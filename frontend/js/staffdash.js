@@ -3902,8 +3902,7 @@ function _renderUnifiedStaffMap() {
                 cursor: pointer; transition: transform 0.2s ease;
             `;
             el.innerHTML = `<i class="fas ${iconCls}" style="color:white; font-size:16px;"></i>`;
-            el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.2)'; });
-            el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
+            // Removed mouseenter/mouseleave transform scale to prevent marker bouncing
 
             const popup = new maplibregl.Popup({ offset: 30, closeButton: true, maxWidth: '280px' })
                 .setHTML(`

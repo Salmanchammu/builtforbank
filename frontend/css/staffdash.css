@@ -1402,3 +1402,15 @@ body.dark-theme .list-item:hover {
     overflow-x: auto !important;
     max-width: 100%;
 }
+
+/* Added Maroon Theme Action Buttons */
+.action-btn-circle.success { background: #800000; color: white; border: none; }
+.action-btn-circle.success:hover { background: #5c0000; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(128,0,0,0.2); }
+.action-btn-circle.danger { background: #ef4444; color: white; border: none; }
+.action-btn-circle.danger:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239,68,68,0.2); }
+.action-btn-circle.view { background: #6b7280; color: white; border: none; }
+.action-btn-circle.view:hover { background: #4b5563; transform: translateY(-2px); }
+.action-btn-circle.edit { background: #800000; color: white; border: none; }
+.action-btn-circle.edit:hover { background: #5c0000; transform: translateY(-2px); }
+.action-btn-circle.delete { background: #ef4444; color: white; border: none; }
+.action-btn-circle.delete:hover { background: #dc2626; transform: translateY(-2px); }

@@ -463,11 +463,8 @@ h1, h2, h3, h4, h5, h6, .logo-text, .welcome-name {
 
 
 .brand-logo:hover {
-
-    transform: scale(1.05) rotate(5deg);
-
+    /* Removed transform to prevent upward movement */
     box-shadow: 0 6px 12px rgba(128, 0, 0, 0.3);
-
 }
 
 
